@@ -14,6 +14,8 @@ This file lists every name, number, colour and line of verse the game uses. **If
 | Lamplighter        | Old Wren                                      | Wren the lamplighter (fine in prose) |
 | Child              | Pell                                          | —                                    |
 | Smith              | Bram                                          | —                                    |
+| Farmer             | Tansy                                         | —                                    |
+| Woodcutter         | Rook                                          | —                                    |
 | Prestige           | the Cave-in                                   | reset, rebirth, ascension            |
 | Prestige currency  | Echoes                                        | points, souls                        |
 | Prestige screen    | the Survey Book                               | prestige menu                        |
@@ -308,6 +310,8 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 | Bram’s props               | 10 Bricks                   | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand                                                        |
 | Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12)                                                                                                        |
 | Wren’s cold lamps (Act IV) | 6 Gold bars + 20 Bricks     | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot                                       |
+| Tansy’s hands              | 10 Copper bars              | Tansy reaps one ripe plot every 2 s, and can ring the feast bell when it is full (§17). Offered after the 5th harvest                                      |
+| Rook’s axe                 | 12 Copper bars              | Rook fells old trees and replants, about once a second. He leaves any tree that has stood through a Cave-in (§17). Offered after the first felling       |
 
 ### 14.1 Feedback
 
@@ -367,3 +371,46 @@ All sound is synthesised; recipes live in `src/data/sounds.ts`.
 **The hum**: a root and a fifth under a 520 Hz low-pass, deepening with depth (gain 0.05 at the top of Topsoil to 0.16 at 381 tiles). Roots by biome: Holloway none, Topsoil 55, Glowroot 65.41, Flooded Halls 49, Singing Geodes 73.42, Ember Deep 46.25, Hollow Heart 55.
 
 **Levels**: Sound and The hum are each Off, Low (0.35), Medium (0.7) or High (1). Defaults: Sound Medium, The hum Low.
+
+## §17 Holloway above (v0, ADR-029)
+
+Everything on the surface only adds: no hunger, no spoiling, no penalty for an empty larder. Numbers live in `src/data/surface.ts`.
+
+### 17.1 Tansy's fields
+
+| Thing          | Value                                                                       |
+| -------------- | --------------------------------------------------------------------------- |
+| Tansy arrives  | with the first miner, bringing 1 free plot                                  |
+| Plots          | up to 12, at columns 45–56; each after the free one costs 6 Copper × 1.15ⁿ  |
+| Barley         | ripens in 90 s; a harvest gives 3, or 6 reaped by hand (tap a ripe plot)    |
+| Golden ear     | 1 in 25 ripe crops (seeded RNG); pays ×10                                   |
+| Tansy’s hands  | §14; one plot every 2 s                                                     |
+
+### 17.2 The cookhouse and the feast bell
+
+| Thing              | Cost                 | Effect                       |
+| ------------------ | -------------------- | ---------------------------- |
+| Miner’s bread      | 10 × 1.5ⁿ barley     | miners +15% a level          |
+| Foreman’s porridge | 8 × 1.5ⁿ barley      | hand-mining +12% a level     |
+
+Meals reset on a Cave-in. The feast bell fills by 1 per harvest (10 for a golden ear) and needs 150, ×1.6 per feast this run. Ringing it gives 45 s of every worker ×2 (the village multiplier) with crops growing ×3.
+
+### 17.3 Rook's woodlot
+
+| Thing            | Value                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Rook arrives     | at 20 tiles (80 ft), or at once to a woodlot that stood through the Cave-in            |
+| Slots            | 5, at columns 1.5, 4, 58.5, 60.5, 62.5; Rook plants 2 free saplings in a bare woodlot  |
+| Saplings         | 3 Copper × 1.15ⁿ (n = trees standing)                                                 |
+| Stages           | young at 3 min, grown at 8 min, old at 20 min                                         |
+| Felling          | 0 / 4 / 12 / 40 timber for sapling / young / grown / old; ×2 by hand (tap a tree)     |
+| Charcoal hearth  | 20 × 1.6ⁿ timber; the forge works +50% a level                                        |
+| Cottage          | 5 × 1.3ⁿ timber; miners +2% each; drawn in a back row                                 |
+| Pit prop         | a support for 3 timber instead of bricks, whenever timber is the more plentiful       |
+
+Hearth and cottage levels reset on a Cave-in. Trees do not.
+
+### 17.4 Elders
+
+A tree that stands through 3 Cave-ins is an elder: never felled, it drops 2 timber a minute. Its roots grow 6 rows (25 ft) per Cave-in it has stood through from the third on, leaning toward the shaft. Rock a root passes through takes 0.6 of its hardness, and copper and tin within 3 tiles of a root glint.
+

@@ -1,4 +1,4 @@
-// Holloway above: Tansy's fields, the cookhouse, the feast bell and Rook's woodlot. canon §17 (ADR-028)
+// Holloway above: Tansy's fields, the cookhouse, the feast bell and Rook's woodlot. canon §17 (ADR-029)
 // Everything up here only adds: nothing on the surface can slow the mine.
 import {
   FEAST,

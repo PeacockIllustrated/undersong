@@ -51,7 +51,7 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 5;
     return o as Raw;
   },
-  // v5 → v6 (M6, ADR-028): Holloway above. Barley and timber are filled in below with every other missing resource.
+  // v5 → v6 (M6, ADR-029): Holloway above. Barley and timber are filled in below with every other missing resource.
   5: (s) => {
     const o = s as Record<string, any>;
     o.surface = newSurface();

@@ -1,4 +1,4 @@
-# Holloway above (M6, ADR-028): Tansy, Rook, barley, the woodlot, the cookhouse, cottages and the cairn.
+# Holloway above (M6, ADR-029): Tansy, Rook, barley, the woodlot, the cookhouse, cottages and the cairn.
 # Run from tools/art: python3 surface.py
 from lib import *
 from chars import body, idle2

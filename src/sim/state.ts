@@ -78,7 +78,7 @@ export interface Tree {
   stood: number;
 }
 
-/** Holloway above (ADR-028). The fields, meals and timber buys reset on a Cave-in; trees and the tallies stay. */
+/** Holloway above (ADR-029). The fields, meals and timber buys reset on a Cave-in; trees and the tallies stay. */
 export interface Surface {
   /** Tansy has come up the valley road this run. */
   tansy: boolean;

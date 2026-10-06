@@ -245,7 +245,7 @@ export const LINES: Record<string, Line> = {
     who: 'wren',
     text: 'Heat coming up through the floor. Whatever we sealed down there, we’re nearly back to it.',
   },
-  // Holloway above (ADR-028)
+  // Holloway above (ADR-029)
   tansyArrives: {
     id: 'tansyArrives',
     who: 'tansy',

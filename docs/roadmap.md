@@ -288,9 +288,25 @@ From the code review in `/mnt/project-files/reviews/undersong-code-review.md`.
 - [x] **R-04 Pacing gate.** `--strict`; Act I sim on every PR, Act II, Act III and the ending nightly.
 - [x] **R-05 Sound.** Synthesised effects for every event, the verse song, the hum, Sound and The hum settings, M to mute (canon §16).
 
+## M6 · Holloway Above (Tom's request, ADR-029)
+
+Tom approved this on 2026-10-06 from the proposal at https://claude.ai/artifact/VPksRKJCXFApnzqmuqQVgT. The surface only adds: no hunger, no spoiling, no penalty. Every chore gets a helper (ADR-020). Numbers in canon §17.
+**Exit:** the fields and the woodlot are part of every run, and every pacing target is still within ±15%.
+
+- [x] **M6-01 Surface view.** A Look up button (▲) pans to the fields; ⌖ comes back down. A HUD chip counts ripe crops and jumps to them. A feast chip shows the time left.
+- [x] **M6-02 Tansy and the fields.** Tansy arrives with the first miner and one free plot; plots, barley, hand harvests ×2, golden ears ×10, Tansy's hands.
+- [x] **M6-03 The cookhouse.** Miner's bread and Foreman's porridge, the feast bell and its setting; a toast for every purchase.
+- [x] **M6-04 Rook and the woodlot.** Rook at 80 ft, saplings, four stages, felling, Rook's axe, the charcoal hearth, pit props and cottages (drawn in a back row).
+- [x] **M6-05 Trees through the Cave-in.** Trees stand through a Cave-in; elders after 3 drop timber; their roots grow 25 ft per Cave-in, soften the rock and make copper and tin glint.
+- [ ] **M6-06 The cairn and the tally board.** Done: the cairn by the headframe gains a stone per Cave-in (up to 5). Not done: each stone showing that run's depth and the change from the last, and the tally board of ore per second by source.
+- [ ] **M6-07 Act crops.** Glowcap beds in a root cellar, cress paddies watered by pumps with cress soup (haul +20% a level), firepepper hot-beds warmed by ember ore with pepper broth (heat tolerance +0.1 a level, up to 3).
+- [x] **M6-08 Balance.** The sim bot tends the surface every 30 s (reaps and fells by hand until the helpers take over, rings the bell, eats, spends spare copper on plots and saplings, and timber on the hearth and cottages). `--surface=off` turns it off for comparison.
+
 ---
 
 ## Parking lot
+
+- M7 ideas from the Holloway Above proposal: the tinker's cart, the curio shelf, Pell's dog, day and night, rain showers and the ore heap.
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.

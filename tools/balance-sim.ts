@@ -29,6 +29,8 @@ import { heatAt } from '../src/sim/heat';
 import { HEAT } from '../src/data/heat';
 import { endingReady } from '../src/sim/ending';
 import { HEART_CENTER_D } from '../src/world/generator';
+import { feastNeed, feasting, isElder, mealCost, plotCost, saplingCost, treeStage, woodCost } from '../src/sim/surface';
+import { MEALS, WOODLOT, WOOD_BUYS } from '../src/data/surface';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -39,6 +41,9 @@ const args = Object.fromEntries(
 const SEEDS = Number(args.seeds ?? 9);
 /** How often the bot looks at the screen, in ms. An engaged player, not a perfect one. */
 const ATTENTION_MS = Number(args.attention ?? 1500);
+/** M6: an engaged player looks up at the fields about this often (ms); --surface=off leaves the surface alone. */
+const SURFACE_MS = Number(args['surface-every'] ?? 30_000);
+const SURFACE = args.surface !== 'off';
 const MINUTES = Number(args.minutes ?? 120);
 /** Ending mode plays on through the Ember Deep to the Hollow Heart, and sings the last verse. */
 const ENDING = args.until === 'ending';
@@ -243,12 +248,41 @@ function spendEchoes(g: Game): void {
 /** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
 function hireHelpers(g: Game): void {
   const s = g.state;
-  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents'] as const) {
+  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents', 'tansy', 'rook'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
     if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 2) continue;
     if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
   }
+}
+
+/**
+ * M6 Holloway above: every so often the player looks up, reaps and fells by hand until the helpers take over,
+ * rings the bell, and spends barley and timber. Copper goes on plots and saplings only when it is spare.
+ */
+const tendedAt = new WeakMap<Game, number>();
+function tendSurface(g: Game): void {
+  const s = g.state;
+  const sf = s.surface;
+  if (!SURFACE || !sf.tansy || s.totalT < (tendedAt.get(g) ?? 0)) return;
+  tendedAt.set(g, s.totalT + SURFACE_MS);
+  if (!s.helpers.tansy) sf.plots.forEach((p, i) => p.t >= 1 && apply(g, { type: 'harvest', plot: i }));
+  if (!feasting(s) && sf.feast >= feastNeed(s)) apply(g, { type: 'ringFeast' });
+  if (s.helpers.tansy) apply(g, { type: 'autoFeast', on: true });
+  const spare = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
+    !!c && canPay(s, c) && c[0]!.amount.lte(s.res.copperBar.mul(0.1)) && s.miners.length >= 2;
+  if (spare(plotCost(s))) apply(g, { type: 'buyPlot' });
+  for (const m of [...MEALS].sort((a, b) => sf.meals[a.id] - sf.meals[b.id]))
+    if (canPay(s, mealCost(s, m.id))) apply(g, { type: 'eatMeal', id: m.id });
+  if (!sf.rook) return;
+  sf.trees.forEach((t, i) => {
+    if (!s.helpers.rook && !isElder(t) && t.stood === 0 && treeStage(t) >= WOODLOT.stageS.length)
+      apply(g, { type: 'chop', tree: i });
+  });
+  if (spare(saplingCost(s))) apply(g, { type: 'plantSapling' });
+  // keep a few timber for pit props; spend the rest on the cheaper of hearth and cottage
+  for (const b of [...WOOD_BUYS].sort((a, c) => woodCost(s, a.id)[0]!.amount.cmp(woodCost(s, c.id)[0]!.amount)))
+    if (s.res.timber.gte(woodCost(s, b.id)[0]!.amount.add(6))) apply(g, { type: 'buyWood', id: b.id });
 }
 
 /** The whetstone: an engaged player takes the cheap levels at once, later ones from spare copper. */
@@ -557,6 +591,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       if (act2Mode) shopA2(g);
       else shop(g);
       placeTorches(g);
+      tendSurface(g);
       if (ACT3 && !s.helpers.pumps) managePumps(g);
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)

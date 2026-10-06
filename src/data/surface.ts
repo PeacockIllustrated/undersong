@@ -1,4 +1,4 @@
-// Holloway above: Tansy's fields, the cookhouse and Rook's woodlot. canon §17 (ADR-028)
+// Holloway above: Tansy's fields, the cookhouse and Rook's woodlot. canon §17 (ADR-029)
 import type { Cost } from './items';
 
 /** canon §17.1 Tansy's fields. Plots line the grass east of the shaft. */
