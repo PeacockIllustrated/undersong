@@ -90,7 +90,7 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 | Echoes from a typical first Cave-in | 6–10 |
 | Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 2 h 50 min (was 4 h; see ADR-020) |
 | Act III end: 1000 ft reached and Verses VI–X known | 6 h 30 min (was 9 h; see ADR-021) |
-| Ending reached | 14 h |
+| Ending reached: Verse XII found and the choice made | 11 h 30 min (was 14 h; see ADR-023) |
 
 ## §6 Art
 
@@ -167,9 +167,11 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Silver ore | 14 | 1 Silver ore | 3 |
 | Aquamarine | 18 | 1 Aquamarine | 3 |
 | Resonant crystal | 24 | 1 Resonant crystal | 4 |
-| Ember ore | 32 | 1 Ember ore | 5 |
-| Gold ore | 28 | 1 Gold ore | 5 |
-| Heartstone | 60 | 1 Heartstone | 6 |
+| Ember ore | 64 (was 32; ADR-023) | 1 Ember ore | 5 |
+| Gold ore | 56 (was 28; ADR-023) | 3 Gold ore | 5 |
+| Heartstone | 120 (was 60; ADR-023) | 1 Heartstone | 6 |
+| Basalt | 40 (ADR-023) | Rubble | 5 |
+| Heartrock | 52 (ADR-023) | Rubble | 6 |
 | Old brick | 10 | 1 Brick | shrines, drowned town |
 | Singing stone | 14 | — | the Geodes' own rock (M3) |
 
@@ -185,7 +187,8 @@ The lowest pick that can break a material at all. Anything not listed breaks wit
 | Aquamarine, singing stone | Silver pick |
 | Resonant crystal | Aquamarine pick |
 | Basalt, ember ore, gold ore | Crystal pick |
-| Heartstone, heartrock | Ember pick |
+| Heartrock | Ember pick |
+| Heartstone | Heart pick (ADR-023) |
 
 Verses III–V are carved inside old brick shrines (a 3×3 ring), so the Glowroot verses need an iron pick.
 
@@ -331,11 +334,10 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 |---|---|---|
 | Cooling vent | 2 Gold bars + 10 Bricks | Takes 0.9 heat off every tile within 5 |
 | Crystal pick | 80 Resonant crystal | pickPower 18. Opens basalt, ember ore and gold |
-| Ember pick | 40 Ember ore + 20 Gold bars | pickPower 27. Opens heartrock and heartstone |
-| Heart pick | 20 Heartstone + 50 Gold bars | pickPower 40 |
+| Ember pick | 40 Ember ore + 30 Gold bars | pickPower 27. Opens heartrock |
+| Heart pick | 80 Ember ore + 80 Gold bars | pickPower 40. The only pick that breaks heartstone, so Verse XII waits for it |
 | Steam lift | 30 Gold bars | carrierSpeed 30, capacity 150 |
 | Cinder wisp | 1/90 per miner per second at a face with heat 0.5+ | Stops that miner until tapped |
-| Gold ore | Drops 3. Five ore make a bar | |
 
 **Verse XI** is carved in the Ember Deep inside a ring of ember ore, so it is hot until a vent is set. **Verse XII** is in the Heartstone mound on the floor of the Hollow Heart.
 

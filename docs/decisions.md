@@ -134,10 +134,12 @@ Decision:
 - Too hot means miners won't take the face at all, so they move to cooler work and "Held back by: Heat" names it. The Foreman is only slowed (×0.3), so a player is never locked out.
 - Water cools. A player who floods a hot gallery on purpose is rewarded, which ties Act IV to Act III.
 - Wren's cold lamps (6 gold + 20 bricks) take the vent chore away, in line with ADR-020.
-- Act IV's tools are priced in what the Deep gives. The crystal pick costs 80 crystal and nothing else, since the Geodes give little silver and no aquamarine, the same lesson as M3-09. Gold ore drops 3.
+- Act IV's tools are priced in what the Deep gives. The crystal pick costs 80 crystal and nothing else, since the Geodes give little silver and no aquamarine, the same lesson as M3-09. Gold ore drops 3. Heartstone needs the Heart pick, which is made from the Deep (80 ember ore + 80 gold), so Verse XII waits for the best pick in the game.
+- Act IV rock is twice as hard as first drafted (basalt 40, ember ore 64, gold ore 56, heartrock 52, heartstone 120). With the bot able to reach Verse XII, Act IV took only 1.5 to 2.5 hours; the design bible gives it five.
 - Both endings close the cycle like a Cave-in, paying Echoes. Sealing sets Endless Depth: the floor of the Heart opens 64 rows at a time. Singing starts New Song+: each song sung adds 50% to all later Echo gains.
 - "Remixed verses" (design bible) means each verse comes back sung, with its two lines the other way round. Canon verse text is never rewritten.
 - The ending choice is offered every run in which Verse XII is found, so a player can take the other ending later.
+- The ending target moves from 14 h to 11 h 30. Act IV keeps the five hours the design bible gives it, after Act III's new end at 6 h 30 (ADR-021).
 Consequences: no save change (`ending`, `ngPlus` and `endlessRows` were already in the state). The ending and scene wording is Claude's and open to Tom's edits.
 
 ---

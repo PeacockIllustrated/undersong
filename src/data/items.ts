@@ -48,16 +48,17 @@ export const PICKS: readonly PickDef[] = [
     power: 27,
     cost: [
       { res: 'emberOre', n: 40 },
-      { res: 'goldBar', n: 20 },
+      { res: 'goldBar', n: 30 },
     ],
   },
   {
     name: 'Heart pick',
     sprite: 'pick-heart',
     power: 40,
+    // made from the Deep, not the Heart: heartstone itself wants this pick (ADR-023)
     cost: [
-      { res: 'heartstone', n: 20 },
-      { res: 'goldBar', n: 50 },
+      { res: 'emberOre', n: 80 },
+      { res: 'goldBar', n: 80 },
     ],
   },
 ];

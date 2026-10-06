@@ -67,7 +67,7 @@ const lastVerse = (s: Game['state']): number => (inAct4(s) ? 11 : inAct3(s) ? 9 
 const TARGETS: [string, string, number, boolean?][] = ENDING
   ? [
       ['act3', 'Act III end', 390],
-      ['ending', 'Ending reached', 840],
+      ['ending', 'Ending reached', 690],
     ]
   : ACT3
     ? [
@@ -119,9 +119,9 @@ function verseTunnel(g: Game): { x: number; y: number }[] | null {
     if (s.verses.run[c.verse] || c.verse > lastVerse(s)) continue;
     // the Geode verses sit in crystal: no use tunnelling to them without an aquamarine pick
     if (c.verse >= 8 && s.pickTier < 5) return null;
-    // Verse XI is ringed with ember ore (crystal pick); Verse XII sits in heartrock (ember pick)
+    // Verse XI is ringed with ember ore (crystal pick); Verse XII sits in heartstone (Heart pick)
     if (c.verse === 10 && s.pickTier < 6) return null;
-    if (c.verse === 11 && s.pickTier < 7) return null;
+    if (c.verse === 11 && s.pickTier < 8) return null;
     if (c.y >= floor) {
       // below the shaft: in Act III the mine is deeper than the shaft, so cut across from where the foreman stands
       if (!inAct3(s) || c.y > g.reachMaxY + 2) return null;
@@ -328,7 +328,7 @@ function act2Foreman(g: Game): void {
   }
   // Act IV: gold and ember ore for the picks and the steam lift, then down to the Heart
   if (inAct4(s)) {
-    const needOre = s.pickTier < 7 || s.haulTier < 4;
+    const needOre = s.pickTier < 8 || s.haulTier < 4;
     if (needOre && dig(nearestOre(g, 14))) return;
   }
   // Act III: below 400 ft the water decides. Without a pump to set, go get silver for one
@@ -404,6 +404,7 @@ function shopA2(g: Game): void {
           () => pick(6),
           () => haul(4),
           () => pick(7),
+          () => pick(8),
           () => building('kiln', 2),
           () => miner(24),
         ]
