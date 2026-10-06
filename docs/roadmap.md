@@ -274,7 +274,7 @@ Sound moved to its own update in another thread at Tom's request (2026-10-06), s
 
 - [x] **M5-01 Settings.** A Settings panel from the menu, saved apart from the game: motion, text size, shape marks, number style (ADR-024). Sound rows join it with the sound update.
 - [x] **M5-02 Accessibility.** Reduced motion (device or setting) stops screen shake and every animation; text scales to 1.3×; dark faces and faces too hot to work are shown by shape as well as colour.
-- [ ] **M5-03 Achievements.** Milestones worth a badge across cycles, shown in the Survey Book, kept through a Cave-in.
+- [x] **M5-03 Achievements.** Milestones worth a badge across cycles, shown in the Survey Book, kept through a Cave-in.
 - [ ] **M5-04 Launch.** An itch.io build (relative paths, zipped), a title and description, and a short how-to-play on first load.
 - [ ] **M5-05 Balance pass.** After the offline catch-up fixes land: re-run every act's sim and retune anything outside ±15%.
 
@@ -284,7 +284,6 @@ Sound moved to its own update in another thread at Tom's request (2026-10-06), s
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
-- Old shafts from earlier cycles in the Hollow Heart (an M4 epic with no ticket): tunnels left by past villages, found again.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.
 

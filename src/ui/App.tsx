@@ -14,6 +14,7 @@ import { VillageSheet, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
 import { useApplySettings } from './Settings';
+import { AchievementToasts } from './Achievements';
 import { EndingChoice, StoryLayer } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
@@ -334,6 +335,7 @@ export function App({ ui }: { ui: UiBridge }) {
           </button>
         </div>
       </div>
+      <AchievementToasts s={s} />
       {sheet === 'village' && <VillageSheet ui={ui} close={() => setSheet(null)} />}
       {sheet === 'survey' && <SurveyBook ui={ui} close={() => setSheet(null)} />}
       {sheet === 'menu' && <MenuSheet ui={ui} close={() => setSheet(null)} />}

@@ -10,6 +10,7 @@ import { stepWater } from './water';
 import { coolCache } from './heat';
 import { stepEndless } from './ending';
 import { stepHelpers } from './helpers';
+import { stepAchievements } from './achievements';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 
 export { mineTile } from './dig';
@@ -33,7 +34,10 @@ export function step(g: Game, dtMs: number): void {
   stepHelpers(g, dt);
   stepGlints(g);
   stepStory(g);
-  if (s.t % 1000 === 0 || dt >= 1) stepEndless(g);
+  if (s.t % 1000 === 0 || dt >= 1) {
+    stepEndless(g);
+    stepAchievements(g);
+  }
 }
 
 /** Pell's Hum: the nearest unfound verse glints when the Foreman is close. */
