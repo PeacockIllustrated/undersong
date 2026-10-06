@@ -1235,3 +1235,94 @@ body.atlas #ui > * {
   right: -8px;
   margin: 0;
 }
+/* M4: the ending choice and scenes */
+.ending-wrap {
+  background: rgba(6, 8, 18, 0.88);
+  z-index: 20;
+}
+.ending-wrap.sing {
+  background: linear-gradient(#2a5e86, #141a33 70%);
+}
+.ending-card {
+  width: min(560px, 100%);
+  text-align: center;
+  padding: 28px 22px 24px;
+  background: #141a33;
+  border: 2px solid var(--gold);
+  box-shadow:
+    0 0 0 4px #141a33,
+    0 0 48px rgba(255, 214, 90, 0.3);
+  animation: rise 0.8s ease-out;
+}
+.ending-wrap.seal .ending-card {
+  border-color: var(--slate-3);
+  box-shadow: 0 0 0 4px #141a33;
+}
+.ending-card h2 {
+  font-family: var(--display);
+  color: var(--gold);
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+.ending-card p {
+  font-family: var(--body);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 12px;
+  animation: fade-in 1.2s ease-out both;
+}
+.ending-card p.still {
+  animation: none;
+}
+.ending-card > .btn {
+  margin-top: 8px;
+  animation: fade-in 0.8s ease-out both;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  padding: 14px 12px;
+  background: var(--panel);
+  border: 2px solid var(--slate-2);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 14px;
+  cursor: pointer;
+}
+.choice:hover,
+.choice:focus-visible {
+  border-color: var(--gold);
+}
+.choice b {
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--gold);
+}
+.choice.seal b {
+  color: var(--ink);
+}
+.choice i {
+  font-style: normal;
+  color: var(--glow);
+  font-size: 13px;
+}
+@media (max-width: 600px) {
+  .choices {
+    grid-template-columns: 1fr;
+  }
+}

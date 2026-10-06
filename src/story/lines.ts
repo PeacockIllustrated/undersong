@@ -269,4 +269,65 @@ export const LINES: Record<string, Line> = {
     who: 'foreman',
     text: 'The Survey Book has pages already filled in. The handwriting is mine.',
   },
+  // Act IV: the Ember Deep and the Hollow Heart (M4)
+  emberMeet: {
+    id: 'emberMeet',
+    who: 'bram',
+    text: 'Basalt. Black as my forge on a Monday, and warmer. Mind your hands.',
+  },
+  firstEmber: {
+    id: 'firstEmber',
+    who: 'bram',
+    text: 'Ember ore. It’s still hot when it reaches the top. I didn’t light that.',
+  },
+  firstGold: {
+    id: 'firstGold',
+    who: 'pell',
+    text: 'Gold! Real gold! Bram says it’s too soft for picks. Bram says that about everything.',
+  },
+  tooHot: {
+    id: 'tooHot',
+    who: 'wren',
+    text: 'The miners won’t work a face that hot, and I won’t make them. Set a cooling vent, or let water in.',
+  },
+  wisp: {
+    id: 'wisp',
+    who: 'pell',
+    text: 'A cinder wisp! It sits on the hot rock and nobody can work past it. Tap it, quick.',
+  },
+  verse10: {
+    id: 'verse10',
+    who: 'wren',
+    text: 'Some things are buried that never would sleep. I sang that to you when you were small. You were not small, then. You were the Foreman.',
+  },
+  heartMeet: {
+    id: 'heartMeet',
+    who: 'foreman',
+    text: 'The Hollow Heart. Ropes hanging into it from shafts I never dug. Each one has our mark on the collar.',
+  },
+  firstHeartstone: {
+    id: 'firstHeartstone',
+    who: 'bram',
+    text: 'It hums in the hand. Fine. I believe in songs now. Don’t tell anyone.',
+  },
+  verse11: {
+    id: 'verse11',
+    who: 'pell',
+    text: 'That’s the last one. I always knew how it ended. I just never got to sing it.',
+  },
+  helper_vents: {
+    id: 'helper_vents',
+    who: 'wren',
+    text: 'My people know cold the way they know dark. Show them the hot faces and get on with it.',
+  },
+  endless: {
+    id: 'endless',
+    who: 'bram',
+    text: 'The floor of the Heart has given way. There’s more mountain under the mountain. Of course there is.',
+  },
+  newSong: {
+    id: 'newSong',
+    who: 'pell',
+    text: 'Everyone remembers now. The verses sound different when the whole village knows them.',
+  },
 };

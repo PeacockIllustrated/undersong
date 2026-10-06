@@ -4,13 +4,15 @@ import { LINES } from '../story/lines';
 import type { Game } from './game';
 import { canCaveIn } from './cavein';
 import { BIOMES } from '../data/biomes';
-import { SHAFT_X } from '../data/constants';
+import { HEART_FLOOR_D, SHAFT_X } from '../data/constants';
 import { flooded } from './water';
 import { shaftFloor } from './miners';
 
 const GLOWROOT = BIOMES[2]!;
 const HALLS = BIOMES[3]!;
 const GEODES = BIOMES[4]!;
+const EMBER = BIOMES[5]!;
+const HEART = BIOMES[6]!;
 
 export function say(g: Game, id: string): void {
   const st = g.state.story;
@@ -81,6 +83,23 @@ export function stepStory(g: Game): void {
     say(g, 'geodesDone');
   }
   if (s.verses.run.slice(5, 10).every(Boolean)) first(g, 'act3Verses');
+  // Act IV
+  if (s.stats.maxDepthD >= EMBER.d0 + 2) {
+    first(g, 'ember');
+    say(g, 'emberMeet');
+  }
+  if (s.res.emberOre.gt(0) || s.underground.emberOre.gt(0)) say(g, 'firstEmber');
+  if (s.res.goldOre.gt(0) || s.underground.goldOre.gt(0)) {
+    first(g, 'gold');
+    say(g, 'firstGold');
+  }
+  if (s.stats.maxDepthD >= HEART.d0 + 2) {
+    first(g, 'heart');
+    say(g, 'heartMeet');
+  }
+  if (s.res.heartstone.gt(0) || s.underground.heartstone.gt(0)) say(g, 'firstHeartstone');
+  if (s.ending === 'seal' && s.stats.maxDepthD >= HEART_FLOOR_D) say(g, 'endless');
+  if (s.ngPlus > 0 && s.t >= 4000) say(g, 'newSong');
   if (canCaveIn(s)) {
     first(g, 'caveInReady');
     say(g, 'caveInReady');

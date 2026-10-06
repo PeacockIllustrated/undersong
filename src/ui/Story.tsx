@@ -9,6 +9,8 @@ import { RES_ICON } from './icons';
 import { VERSE_CACHE, VERSE_POWER } from '../data/helpers';
 import { ECHO } from '../data/economy';
 import { nextTip } from '../story/tips';
+import { CHOICE, SCENES, SUNG_BACK } from '../story/ending';
+import { endingReady } from '../sim/ending';
 
 const PORTRAIT: Record<string, string> = { pell: 'pell', bram: 'bram', wren: 'wren', foreman: 'foreman' };
 
@@ -34,7 +36,7 @@ export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }
       }, 4200);
       return () => (window.clearTimeout(a), window.clearTimeout(b));
     }
-    if (ev.kind !== 'verse') ui.dispatch({ type: 'ackStory' });
+    if (ev.kind !== 'verse' && ev.kind !== 'ending') ui.dispatch({ type: 'ackStory' });
     return undefined;
   }, [ev]);
   void shownAt;
@@ -73,6 +75,8 @@ export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }
   if (ev.kind === 'verse') {
     const v = VERSES[ev.verse]!;
     const cache = VERSE_CACHE[ev.verse]!;
+    // New Song+ (ADR-023): the verses come back sung, their lines the other way round
+    const song = ui.game.state.ngPlus > 0;
     return (
       <div class="sheet-wrap verse-wrap">
         <div class="verse-card" role="dialog" aria-label={`Verse ${v.n}`}>
@@ -86,12 +90,16 @@ export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }
             <li>+{Math.round(ECHO.perVerse * 100)}% Echoes at this Cave-in</li>
           </ul>
           <p class="verse-text">
-            {v.lines[0]}
+            {song ? v.lines[1] : v.lines[0]}
             <br />
-            {v.lines[1]}
+            {song ? v.lines[0] : v.lines[1]}
           </p>
           <div class="verse-sub">
-            {ev.again ? 'You knew it before you read it.' : `Carved into the rock of the ${v.biome}.`}
+            {song
+              ? SUNG_BACK
+              : ev.again
+                ? 'You knew it before you read it.'
+                : `Carved into the rock of the ${v.biome}.`}
           </div>
           <button class="btn primary" onClick={() => ui.dispatch({ type: 'ackStory' })}>
             Keep digging
@@ -100,7 +108,53 @@ export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }
       </div>
     );
   }
+  if (ev.kind === 'ending') {
+    const sc = SCENES[ev.which];
+    return (
+      <div class={`sheet-wrap ending-wrap ${ev.which}`}>
+        <div class="ending-card" role="dialog" aria-label={sc.title}>
+          <h2>{sc.title}</h2>
+          {sc.lines.map((l, i) => (
+            <p key={i} style={{ animationDelay: `${0.6 + i * 1.4}s` }}>
+              {l}
+            </p>
+          ))}
+          <button
+            class="btn primary"
+            style={{ animationDelay: `${0.6 + sc.lines.length * 1.4}s` }}
+            onClick={() => ui.dispatch({ type: 'ackStory' })}
+          >
+            {sc.button}
+          </button>
+        </div>
+      </div>
+    );
+  }
   return null;
+}
+
+/** At the Hollow Heart with Verse XII sung: the choice. Waits behind any story still showing. */
+export function EndingChoice({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  if (!endingReady(s) || s.story.events.length) return null;
+  const pick = (which: 'seal' | 'sing'): void => ui.dispatch({ type: 'chooseEnding', which });
+  return (
+    <div class="sheet-wrap ending-wrap choice">
+      <div class="ending-card" role="dialog" aria-label={CHOICE.title}>
+        <h2>{CHOICE.title}</h2>
+        <p class="still">{CHOICE.intro}</p>
+        <div class="choices">
+          {(['seal', 'sing'] as const).map((k) => (
+            <button key={k} class={`choice ${k}`} onClick={() => pick(k)}>
+              <b>{CHOICE[k].label}</b>
+              <span>{CHOICE[k].text}</span>
+              <i>{CHOICE[k].unlocks}</i>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** Polish item 4: a tip card, queued behind the story so two never stack. Shown once ever per system. */

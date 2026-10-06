@@ -13,7 +13,7 @@ import { fmt } from './format';
 import { VillageSheet, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
-import { StoryLayer } from './Story';
+import { EndingChoice, StoryLayer } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
 import { homecoming, homeUntilD } from '../sim/power';
@@ -127,6 +127,7 @@ export function App({ ui }: { ui: UiBridge }) {
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
   const eels = s.pests.filter((p) => p.kind === 'eel');
   const golems = s.pests.filter((p) => p.kind === 'golem');
+  const wisps = s.pests.filter((p) => p.kind === 'wisp');
   const golemStopped = s.miners.filter((m) => golems.some((p) => p.id === m.stalledBy)).length;
   const tools: { id: Tool; sprite: string; label: string; stock?: ResKey; show: boolean; title: string }[] = [
     {
@@ -160,6 +161,14 @@ export function App({ ui }: { ui: UiBridge }) {
       stock: 'pump',
       show: s.stats.firsts.halls !== undefined || s.res.pump.gt(0),
       title: 'Tap open ground at the water’s edge to set a pump; tap a pump to take it up',
+    },
+    {
+      id: 'vent',
+      sprite: 'obj-vent',
+      label: 'Vent',
+      stock: 'vent',
+      show: s.stats.firsts.ember !== undefined || s.res.vent.gt(0),
+      title: 'Tap open ground by a hot face to set a cooling vent; tap a vent to take it up',
     },
   ];
   void RES_KEYS;
@@ -230,17 +239,19 @@ export function App({ ui }: { ui: UiBridge }) {
               class="panel alert"
               style={{ pointerEvents: 'auto' }}
               onClick={() => {
-                const p = golems[0] ?? eels[0] ?? beetles[0] ?? s.pests[0]!;
+                const p = golems[0] ?? wisps[0] ?? eels[0] ?? beetles[0] ?? s.pests[0]!;
                 ui.lookAt(p.x, p.y);
               }}
             >
               {golems.length > 0
                 ? `Shard golem · ${golemStopped} miner${golemStopped === 1 ? '' : 's'} stopped. Tap it ${golems[0]!.hp ?? 1} more time${(golems[0]!.hp ?? 1) > 1 ? 's' : ''}.`
-                : eels.length > 0
-                  ? `Eels · ${eels.length} miner${eels.length > 1 ? 's' : ''} bitten.`
-                  : beetles.length > 0
-                    ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
-                    : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
+                : wisps.length > 0
+                  ? `Cinder wisps · ${wisps.length} miner${wisps.length > 1 ? 's' : ''} stopped.`
+                  : eels.length > 0
+                    ? `Eels · ${eels.length} miner${eels.length > 1 ? 's' : ''} bitten.`
+                    : beetles.length > 0
+                      ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
+                      : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
               Show me
             </button>
           )}
@@ -250,6 +261,7 @@ export function App({ ui }: { ui: UiBridge }) {
       </div>
       {ui.away && <AwaySheet ui={ui} />}
       <StoryLayer ui={ui} tips={!sheet} />
+      <EndingChoice ui={ui} />
       <Toasts />
       <BiomeBanner />
       {!sheet && <EdgeMarkers ui={ui} />}

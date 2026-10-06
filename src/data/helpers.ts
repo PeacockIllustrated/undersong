@@ -2,7 +2,7 @@
 import type { Cost } from './items';
 import type { ResKey } from './resources';
 
-export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps';
+export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps' | 'vents';
 
 export interface HelperDef {
   id: HelperId;
@@ -49,6 +49,18 @@ export const HELPERS: readonly HelperDef[] = [
       ],
     ],
   },
+  {
+    id: 'vents',
+    name: 'Wren’s cold lamps',
+    who: 'wren',
+    text: 'Wren’s people set a cooling vent wherever a face is too hot to work, and make a new vent whenever you have none in hand.',
+    levels: [
+      [
+        { res: 'goldBar', n: 10 },
+        { res: 'brick', n: 20 },
+      ],
+    ],
+  },
 ];
 
 /** canon §14 numbers. */
@@ -62,6 +74,8 @@ export const HELPER_FX = {
   /** Pumps the crew keeps in hand, and how many rows above the deepest open tile it looks for water. */
   keepPumps: 1,
   pumpRows: 8,
+  /** Vents Wren's people keep in hand. */
+  keepVents: 1,
   /** Lumen the village keeps in hand before it spends any on a lantern. */
   lanternLumenFloor: 30,
 };

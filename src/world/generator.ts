@@ -43,6 +43,9 @@ export const SHRINE_VERSES = [2, 4] as const;
 /** Verses (0-based, inclusive) sealed in a ring of resonant crystal: the Geode verses need an aquamarine pick. */
 export const GEODE_VERSES = [8, 9] as const;
 
+/** Verse XI sits in a ring of ember ore: it is hot, and wants a vent before it can be opened (canon §15). */
+export const EMBER_VERSE = 10;
+
 /** Drowned town street row (depth tiles). canon §2 Flooded Halls */
 export const TOWN_STREET_D = 138;
 export const TOWN_HOUSES_X = [8, 18, 46, 56] as const;
@@ -128,6 +131,13 @@ function baseTile(w: World, x: number, y: number, S: number, opts: GenOptions): 
       return M.HEARTWALL;
     }
   }
+}
+
+/** Fill rows from y0 down after the world has grown (Endless Depth). Rows above y0 are left as they are. */
+export function extendWorld(w: World, seed: number, opts: GenOptions, y0: number): void {
+  for (let y = y0; y < w.h; y++)
+    for (let x = 0; x < w.w; x++) w.mat[y * w.w + x] = baseTile(w, x, y, seed, opts);
+  w.touchAll();
 }
 
 function endlessTile(x: number, y: number, d: number, S: number): number {
@@ -265,6 +275,9 @@ function placeCarvings(w: World, S: number): void {
       if (v >= GEODE_VERSES[0] && v <= GEODE_VERSES[1])
         for (let dy = -1; dy <= 1; dy++)
           for (let dx = -1; dx <= 1; dx++) w.mat[(y + dy) * w.w + x + dx] = M.CRYSTAL;
+      if (v === EMBER_VERSE)
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) w.mat[(y + dy) * w.w + x + dx] = M.EMBER;
     }
     w.mat[y * w.w + x] = M.CARVING;
     w.carvings.push({ verse: v, x, y });

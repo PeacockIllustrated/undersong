@@ -25,6 +25,10 @@ import { canWeave, weaveCost } from '../src/sim/charms';
 import { flooded } from '../src/sim/water';
 import { villageAffordable } from '../src/ui/feedback';
 import { helperCost, helperOffered } from '../src/sim/helpers';
+import { heatAt } from '../src/sim/heat';
+import { HEAT } from '../src/data/heat';
+import { endingReady } from '../src/sim/ending';
+import { HEART_CENTER_D } from '../src/world/generator';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -36,37 +40,49 @@ const SEEDS = Number(args.seeds ?? 9);
 /** How often the bot looks at the screen, in ms. An engaged player, not a perfect one. */
 const ATTENTION_MS = Number(args.attention ?? 1500);
 const MINUTES = Number(args.minutes ?? 120);
+/** Ending mode plays on through the Ember Deep to the Hollow Heart, and sings the last verse. */
+const ENDING = args.until === 'ending';
 /** Act III mode plays on through the Flooded Halls and the Singing Geodes. */
-const ACT3 = args.until === 'act3';
+const ACT3 = args.until === 'act3' || ENDING;
 /** Act II mode plays on through Cave-ins until Glowroot is cleared (and on through Act III with --until=act3). */
 const ACT2 = args.until === 'act2' || ACT3;
 const GLOWROOT = BIOMES[2]!;
 const GEODES = BIOMES[4]!;
+const EMBER = BIOMES[5]!;
 /** Act II is behind the village once 400 ft has been reached and the Glowroot verses are known. */
 const glowrootKnown = (s: Game['state']): boolean =>
   s.verses.known[2] === true && s.verses.known[3] === true && s.verses.known[4] === true;
 /** In Act III mode the bot only moves on to the Halls once the Glowroot is behind it, as a player would. */
 const inAct3 = (s: Game['state']): boolean => ACT3 && glowrootKnown(s) && s.stats.bestDepthD >= GLOWROOT.d1;
-/** The depth the late-game bot digs for. */
-const goalD = (s: Game['state']): number => (inAct3(s) ? GEODES.d1 : GLOWROOT.d1);
+/** In ending mode the bot moves on to the Ember Deep once Act III is behind it. */
+const inAct4 = (s: Game['state']): boolean =>
+  ENDING && inAct3(s) && s.verses.known.slice(5, 10).every(Boolean) && s.stats.bestDepthD >= GEODES.d1;
+/** The depth the late-game bot digs for: in Act IV, the Heartstone mound where Verse XII is. */
+const goalD = (s: Game['state']): number =>
+  inAct4(s) ? HEART_CENTER_D + 9 : inAct3(s) ? GEODES.d1 : GLOWROOT.d1;
 /** Highest verse (0-based) the bot goes after. */
-const lastVerse = (s: Game['state']): number => (inAct3(s) ? 9 : 4);
+const lastVerse = (s: Game['state']): number => (inAct4(s) ? 11 : inAct3(s) ? 9 : 4);
 
 // canon §5 (ADR-015). A target with `atMost` passes when the median is at or under it.
-const TARGETS: [string, string, number, boolean?][] = ACT3
+const TARGETS: [string, string, number, boolean?][] = ENDING
   ? [
-      ['glowroot', 'Glowroot cleared (Act II)', 170],
       ['act3', 'Act III end', 390],
+      ['ending', 'Ending reached', 840],
     ]
-  : ACT2
-    ? [['glowroot', 'Glowroot cleared (Act II)', 170]]
-    : [
-        ['bar', 'First bar smelted', 1, true],
-        ['miner', 'First miner hired', 8],
-        ['verse0', 'Verse I found', 10],
-        ['ft150', '150 ft', 17],
-        ['caveInReady', 'First Cave-in available', 30],
-      ];
+  : ACT3
+    ? [
+        ['glowroot', 'Glowroot cleared (Act II)', 170],
+        ['act3', 'Act III end', 390],
+      ]
+    : ACT2
+      ? [['glowroot', 'Glowroot cleared (Act II)', 170]]
+      : [
+          ['bar', 'First bar smelted', 1, true],
+          ['miner', 'First miner hired', 8],
+          ['verse0', 'Verse I found', 10],
+          ['ft150', '150 ft', 17],
+          ['caveInReady', 'First Cave-in available', 30],
+        ];
 
 const mins = (ms: number | undefined): string =>
   ms === undefined ? '  —  ' : (ms / 60000).toFixed(1).padStart(5);
@@ -103,9 +119,14 @@ function verseTunnel(g: Game): { x: number; y: number }[] | null {
     if (s.verses.run[c.verse] || c.verse > lastVerse(s)) continue;
     // the Geode verses sit in crystal: no use tunnelling to them without an aquamarine pick
     if (c.verse >= 8 && s.pickTier < 5) return null;
+    // Verse XI is ringed with ember ore (crystal pick); Verse XII sits in heartrock (ember pick)
+    if (c.verse === 10 && s.pickTier < 6) return null;
+    if (c.verse === 11 && s.pickTier < 7) return null;
     if (c.y >= floor) {
       // below the shaft: in Act III the mine is deeper than the shaft, so cut across from where the foreman stands
       if (!inAct3(s) || c.y > g.reachMaxY + 2) return null;
+      // a hot verse wants a vent beside the Foreman first
+      if (inAct4(s)) ventFace(g, c.x, c.y);
       const f = s.foreman;
       const tiles = line4({ x: f.x, y: f.y }, { x: c.x + Math.sign(f.x - c.x || 1), y: c.y }).filter((t) =>
         canDig(g.world.get(t.x, t.y), s.pickTier),
@@ -210,10 +231,10 @@ function spendEchoes(g: Game): void {
 /** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
 function hireHelpers(g: Game): void {
   const s = g.state;
-  for (const id of ['lamps', 'pell', 'props', 'pumps'] as const) {
+  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
-    if (id !== 'props' && id !== 'pumps' && s.miners.length < 2) continue;
+    if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 2) continue;
     if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
   }
 }
@@ -293,8 +314,13 @@ function act2Foreman(g: Game): void {
     if (t) apply(g, { type: 'dig', x: t.x, y: t.y });
     return;
   }
+  // Act IV: gold and ember ore for the picks and the steam lift, then down to the Heart
+  if (inAct4(s)) {
+    const needOre = s.pickTier < 7 || s.haulTier < 4;
+    if (needOre && dig(nearestOre(g, 14))) return;
+  }
   // Act III: below 400 ft the water decides. Without a pump to set, go get silver for one
-  if (inAct3(s) && s.stats.maxDepthD >= GLOWROOT.d1) {
+  else if (inAct3(s) && s.stats.maxDepthD >= GLOWROOT.d1) {
     const needSilver = s.res.pump.lt(1) || s.pickTier < 4 || (s.pickTier < 5 && s.res.aquamarine.lt(20));
     if (needSilver && dig(nearestOre(g, 14))) return;
   }
@@ -360,6 +386,16 @@ function shopA2(g: Game): void {
           () => building('songloom', 2),
         ]
       : []),
+    ...(ENDING && inAct4(s)
+      ? [
+          // the crystal pick opens basalt; gold buys the steam lift; the ember pick opens the Heart
+          () => pick(6),
+          () => haul(4),
+          () => pick(7),
+          () => building('kiln', 2),
+          () => miner(24),
+        ]
+      : []),
   ];
   // work down the list; a goal waiting on one resource does not hold up goals paid in another
   const blocked = new Set<ResKey>();
@@ -387,9 +423,22 @@ function shopA2(g: Game): void {
   if (s.miners.length > 0 && s.res.torch.lt(2) && s.res.copperBar.gte(3)) apply(g, { type: 'craftTorches' });
 }
 
+/** Act IV: a cooling vent beside the Foreman when the face he wants is too hot. */
+function ventFace(g: Game, x: number, y: number): void {
+  const s = g.state;
+  if (heatAt(g, x, y) < HEAT.stopAt) return;
+  if (s.res.vent.lt(1) && canCraft(s, 'vent')) apply(g, { type: 'craft', id: 'vent' });
+  if (s.res.vent.lt(1) || nearObj(g, 'vent', s.foreman.x, s.foreman.y, 3)) return;
+  apply(g, { type: 'tap', x: s.foreman.x, y: s.foreman.y, tool: 'vent' });
+}
+
 /** Act III: keep a pump or two in hand, weave every charm the loom allows and wear the best. */
 function shopAct3(g: Game): void {
   const s = g.state;
+  if (inAct4(s)) {
+    const f = s.foreman;
+    if (f.target) ventFace(g, f.target.x, f.target.y);
+  }
   if (s.stats.firsts.halls !== undefined && s.res.pump.lt(2) && canCraft(s, 'pump'))
     apply(g, { type: 'craft', id: 'pump' });
   for (const c of CHARMS)
@@ -448,6 +497,8 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     ft400?: number;
     act3?: number;
     ft1000?: number;
+    ft1400?: number;
+    ending?: number;
     caveIns: number[];
   } = { caveIns: [] };
   const limit = MINUTES * 60 * 1000;
@@ -518,9 +569,15 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         const act3Done = s.stats.maxDepthD >= GEODES.d1 && s.verses.known.slice(5, 10).every(Boolean);
         if (s.stats.maxDepthD >= GEODES.d1 && act2.ft1000 === undefined) act2.ft1000 = s.totalT;
         if (act3Done && act2.act3 === undefined) act2.act3 = s.totalT;
-        if (ACT3 ? act3Done : glowDone) break;
+        if (s.stats.maxDepthD >= EMBER.d1 && act2.ft1400 === undefined) act2.ft1400 = s.totalT;
+        if (ENDING && endingReady(s)) {
+          act2.ending = s.totalT;
+          apply(g, { type: 'chooseEnding', which: 'sing' });
+          break;
+        }
+        if (!ENDING && (ACT3 ? act3Done : glowDone)) break;
         // Cave in once the dig has stalled for a while
-        if (canCaveIn(s) && s.t - lastDeeper > (inAct3(s) ? 3 : 1) * STALL_MS) {
+        if (canCaveIn(s) && s.t - lastDeeper > (inAct4(s) ? 4 : inAct3(s) ? 3 : 1) * STALL_MS) {
           if (act2.caveIns.length === 0) first1 = { ...s.stats.firsts, echoes: echoGain(s).toNumber() };
           act2.caveIns.push(Math.round(s.totalT / 60000));
           apply(g, { type: 'caveIn' });
@@ -558,7 +615,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     );
   if (ACT2)
     console.log(
-      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses}`,
+      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses}`,
     );
   return {
     ...(first1 ?? s.stats.firsts),
@@ -569,6 +626,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     miners: s.miners.length,
     ...(act2.glowroot !== undefined ? { glowroot: act2.glowroot } : {}),
     ...(act2.act3 !== undefined ? { act3: act2.act3 } : {}),
+    ...(act2.ending !== undefined ? { ending: act2.ending } : {}),
   };
 }
 

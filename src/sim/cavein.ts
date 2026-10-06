@@ -9,6 +9,7 @@ import { UPGRADE_FX } from '../data/upgrades';
 import { charm } from './power';
 import { CHARM } from '../data/charms';
 import type { ResKey } from '../data/resources';
+import { NEW_SONG } from '../data/heat';
 
 export function maxFt(s: GameState): number {
   return s.stats.maxDepthD * FT_PER_TILE;
@@ -25,7 +26,10 @@ export function canCaveIn(s: GameState): boolean {
 /** canon §4.3 floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × verses found this run) ) */
 export function echoGain(s: GameState): Decimal {
   const base = Math.floor(Math.sqrt(maxFt(s) / ECHO.divisor) * (1 + ECHO.perVerse * versesThisRun(s)));
-  const mult = (s.upgrades.surveyInstinct ? UPGRADE_FX.surveyInstinct : 1) * charm(s, 'hollow');
+  const mult =
+    (s.upgrades.surveyInstinct ? UPGRADE_FX.surveyInstinct : 1) *
+    charm(s, 'hollow') *
+    (1 + NEW_SONG.perSong * s.ngPlus);
   return D(mult === 1 ? base : Math.floor(base * mult));
 }
 

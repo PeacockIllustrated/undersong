@@ -220,6 +220,15 @@ Epics: water simulation and pumps, the drowned town set piece, the Singing Geode
 ## M4 · The Heart: Act IV and the ending
 Epics: Ember Deep with heat and cooling, the Hollow Heart with old shafts from earlier cycles, Verses XI–XII, both endings, Endless Depth and New Song+.
 **Exit:** the game can be finished, and both endings feel earned.
+- [ ] **M4-01 Heat.** Worked out per tile from depth and hot rock; slows then stops miners, slows the Foreman; vents and standing water cool (canon §15).
+- [ ] **M4-02 Vents and Wren's cold lamps.** Vent tool and craft; the helper sets vents at faces too hot to work (canon §14, §15).
+- [ ] **M4-03 Cinder wisps.** Spawn at hot faces and stop a miner until tapped; Pell's rounds handle them.
+- [ ] **M4-04 Verses XI and XII.** XI in a ring of ember ore, XII in the Heartstone mound; Act IV lines for the Deep and the Heart.
+- [ ] **M4-05 The ending.** The choice at the Heart; a scene for each; both close the cycle.
+- [ ] **M4-06 Endless Depth and New Song+.** Sealing opens the floor 64 rows at a time; singing adds Echoes and sings the verses back.
+- [ ] **M4-07 Heat on screen.** Hot faces glow and shimmer; "Held back by: Heat"; vent card and tool.
+- [ ] **M4-08 Balance sim to the ending.** `--until=ending` reaches the ending within ±15% of 14 h.
+Out of scope: music, achievements and settings (M5).
 
 ## M5 · Surface: polish and launch
 Epics: layered music and sound effects, a full balance pass, accessibility (reduced motion, text scale, light shown by more than colour), achievements, settings, and launch on the web (Vercel) and itch.io.

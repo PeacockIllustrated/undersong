@@ -298,10 +298,11 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 | Helper | Cost | Effect |
 |---|---|---|
 | Lamplighters (Wren) | 8 Copper bars | Miners light their own dark faces from stock. The village keeps 3 torches in hand, and 2 lanterns once there is a Lamp-works (only while Lumen is above 30) |
-| Pell’s rounds I | 12 Copper bars | Pell clears the oldest pest every 4 s: beetles, moths, eels, and one tap of a shard golem |
+| Pell’s rounds I | 12 Copper bars | Pell clears the oldest pest every 4 s: beetles, moths, eels, cinder wisps, and one tap of a shard golem |
 | Pell’s rounds II | 12 Bronze bars | Every 1.5 s |
 | Bram’s props | 10 Bricks | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand |
 | Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12) |
+| Wren’s cold lamps (Act IV) | 10 Gold bars + 20 Bricks | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot |
 
 ### 14.1 Feedback
 
@@ -312,3 +313,29 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 - Polish (ADR-022): a touch must be held 280 ms on a diggable tile before a drag digs. Edge arrows point at the nearest unfound verse within 24 tiles. Biome banners show for 3.5 s.
 - Depth ruler bands (master palette): Topsoil & Stone #8A5A3B, Glowroot Caverns #1E6B66, The Flooded Halls #2A5E86, Singing Geodes #7FD6FF, Ember Deep #E0532F, The Hollow Heart #FFD65A.
 
+## §15 Act IV: the Ember Deep, the Hollow Heart and the ending (v0, ADR-023)
+
+**Heat** is worked out for a tile from the rock around it; nothing about it is saved.
+
+`heat = min(0.6, 0.006 × (d − 250)) + Σ 0.12 × (1 − dist / 4) − cooling`, with d in tiles, summed over every ember ore and heartstone tile within 3 (square distance). Cooling is 0.9 within 5 tiles of a cooling vent and 0.4 beside standing water (level 4+). Never below 0.
+
+| Heat | Miners | Foreman |
+|---|---|---|
+| under 0.5 | full speed | full speed |
+| 0.5 to 1 | ×0.6 | ×0.6 |
+| 1 or more | won’t work the face | ×0.3 |
+
+| Thing | Cost | Effect |
+|---|---|---|
+| Cooling vent | 4 Gold bars + 10 Bricks | Takes 0.9 heat off every tile within 5 |
+| Crystal pick | 40 Resonant crystal + 30 Silver bars | pickPower 18. Opens basalt, ember ore and gold |
+| Ember pick | 40 Ember ore + 30 Gold bars | pickPower 27. Opens heartrock and heartstone |
+| Heart pick | 20 Heartstone + 50 Gold bars | pickPower 40 |
+| Steam lift | 40 Gold bars | carrierSpeed 30, capacity 150 |
+| Cinder wisp | 1/90 per miner per second at a face with heat 0.5+ | Stops that miner until tapped |
+
+**Verse XI** is carved in the Ember Deep inside a ring of ember ore, so it is hot until a vent is set. **Verse XII** is in the Heartstone mound on the floor of the Hollow Heart.
+
+**The ending.** Once Verse XII has been found in a run, the Foreman chooses, and either choice closes the cycle like a Cave-in (Echoes are paid as usual).
+- *Seal the shaft:* Endless Depth. The floor of the Heart opens 64 rows at a time whenever the mine comes within 24 rows of the bottom, through the biome looks of §2 in turn.
+- *Sing the last verse:* New Song+. Each song sung adds 50% to the Echoes from every Cave-in after it, and the verses come back sung: their two lines the other way round. The verse text itself never changes.

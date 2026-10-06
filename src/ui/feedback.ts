@@ -1,4 +1,5 @@
 // Reading the game for the player: what is holding the village back, and what can be bought now. ADR-020
+import { HEAT } from '../data/heat';
 import { lightFactor } from '../data/light';
 import { HELPERS } from '../data/helpers';
 import { BUILDINGS } from '../data/economy';
@@ -41,6 +42,15 @@ export function bottleneck(g: Game): Bottleneck | null {
       hint: `${dark} miners are working in the dark at reduced speed. Light their faces.`,
     };
   const idle = s.miners.length - working.length - stalled;
+  if (
+    idle * 2 >= s.miners.length &&
+    s.story.seen.includes('tooHot') &&
+    g.world.depth(g.reachMaxY) >= HEAT.fromD
+  )
+    return {
+      what: 'Heat',
+      hint: 'Miners won’t work faces that hot. Set cooling vents, or hire Wren’s cold lamps.',
+    };
   if (idle * 2 >= s.miners.length)
     return {
       what: 'Nothing to dig',

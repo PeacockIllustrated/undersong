@@ -14,6 +14,8 @@ import { makeRng } from './rng';
 import { say } from './story';
 import { mineTile } from './dig';
 import { deepMult, minerMult, pestMult, pickPower } from './power';
+import { heatAt, heatFactor } from './heat';
+import { HEAT, WISPS } from '../data/heat';
 
 function taken(g: Game, x: number, y: number, self: Miner): boolean {
   const f = g.state.foreman;
@@ -46,6 +48,11 @@ export function chooseFace(g: Game, m: Miner): Tile | null {
       else if (x === SHAFT_X && y === floorY) score = 1000;
       else if (y > w.surf[x]! + 2 && oreNear(g, x, y, g.state.pickTier)) score = 500 + dist;
       else continue;
+      // canon §15: nobody works a face that is too hot; a vent or water cools it
+      if (score < bestScore && heatAt(g, x, y) >= HEAT.stopAt) {
+        say(g, 'tooHot');
+        continue;
+      }
       if (score < bestScore) {
         bestScore = score;
         best = { x, y };
@@ -90,7 +97,13 @@ export function minerRate(g: Game, m: Miner): number {
   if (!t) return 0;
   const s = g.state;
   const power = pickPower(s);
-  return power * lightFactor(g.world.faceLight(t.x, t.y)) * minerMult(s) * deepMult(s, g.world.depth(t.y));
+  return (
+    power *
+    lightFactor(g.world.faceLight(t.x, t.y)) *
+    minerMult(s) *
+    deepMult(s, g.world.depth(t.y)) *
+    heatFactor(heatAt(g, t.x, t.y))
+  );
 }
 
 export function stepMiners(g: Game, dt: number): void {
@@ -130,6 +143,15 @@ export function stepMiners(g: Game, dt: number): void {
         say(g, 'beetle');
       }
     }
+    // Cinder wisps gather at hot faces (canon §15)
+    if (m.stalledBy === null && !g.offline && heatAt(g, t.x, t.y) >= WISPS.minHeat)
+      if (rng.next() < WISPS.chancePerSec * pestMult(s) * dt) {
+        const id = s.nextId++;
+        s.pests.push({ id, kind: 'wisp', x: t.x, y: t.y - 1, born: s.t, minerId: m.id });
+        m.stalledBy = id;
+        g.events.push({ kind: 'pest', x: t.x, y: t.y, cleared: false });
+        say(g, 'wisp');
+      }
     // Cave eels bite at miners working from the water's edge (canon §12)
     const wet = m.stalledBy === null ? (besideWater(g, t.x, t.y) ?? besideWater(g, m.x, m.y)) : null;
     if (wet && !g.offline && rng.next() < EELS.chancePerSec * dt) {

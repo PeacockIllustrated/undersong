@@ -21,6 +21,7 @@ import { CHARMS } from '../data/charms';
 import { PUMP } from '../data/water';
 import { canWeave, charmSlots, weaveCost } from '../sim/charms';
 import { pumpRate } from '../sim/water';
+import { OBJECTS } from '../data/objects';
 import { HELPERS, HELPER_FX } from '../data/helpers';
 import { helperCost, helperOffered } from '../sim/helpers';
 import { bottleneck } from './feedback';
@@ -443,6 +444,20 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                     one.
                   </p>
                   <Craft ui={ui} id="pump" label="Make a pump" s={s} />
+                </div>
+              </section>
+            )}
+
+            {(s.stats.firsts.ember !== undefined || s.res.vent.gt(0)) && (
+              <section class="card">
+                <img class="icon" src={spriteURL('obj-vent')} alt="" />
+                <div class="grow">
+                  <h3>Cooling vents · {fmt(s.res.vent)} in hand</h3>
+                  <p>
+                    A vent cools every face within {OBJECTS.vent.radius} tiles. Miners won’t work rock that is
+                    too hot. Standing water cools a face too. Use the Vent tool to set one.
+                  </p>
+                  <Craft ui={ui} id="vent" label="Make a vent" s={s} />
                 </div>
               </section>
             )}

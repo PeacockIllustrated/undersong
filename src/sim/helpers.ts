@@ -8,6 +8,8 @@ import { NEIGH4 } from '../world/world';
 import { PUMP } from '../data/water';
 import { SHAFT_X } from '../data/constants';
 import { flooded } from './water';
+import { coolCache, heatAt } from './heat';
+import { HEAT } from '../data/heat';
 import { D, type Decimal } from './decimal';
 import { canPay, flat, pay } from './economy';
 import type { Game } from './game';
@@ -23,8 +25,10 @@ export function helperDef(id: HelperId): (typeof HELPERS)[number] {
 export function helperOffered(s: GameState, id: HelperId): boolean {
   if (s.helpers[id]) return true;
   if (id === 'lamps') return s.miners.length > 0 || s.stats.caveIns > 0;
-  if (id === 'pell') return s.story.ever.some((l) => l === 'beetle' || l === 'moth' || l === 'eel');
+  if (id === 'pell')
+    return s.story.ever.some((l) => l === 'beetle' || l === 'moth' || l === 'eel' || l === 'wisp');
   if (id === 'pumps') return s.story.ever.includes('flooded');
+  if (id === 'vents') return s.story.ever.includes('tooHot');
   return s.stats.collapses > 0;
 }
 
@@ -73,6 +77,7 @@ export function placeFromStock(g: Game, x: number, y: number, kind: ObjKind & Re
   s.res[kind] = s.res[kind].sub(1);
   s.world.objects[key] = kind;
   w.touch(x, y);
+  coolCache(g);
   return true;
 }
 
@@ -101,6 +106,32 @@ export function stepHelpers(g: Game, dt: number): void {
   if (s.helpers.props && s.buildings.kiln > 0 && s.res.support.lt(HELPER_FX.keepSupports))
     if (pay(s, flat(CRAFTS.support.cost))) s.res.support = s.res.support.add(CRAFTS.support.makes);
   if (s.helpers.pumps) pumpCrew(g);
+  if (s.helpers.vents) ventCrew(g);
+}
+
+/** Wren's cold lamps: a vent beside the hottest face nobody can work, and always one in hand. canon §14, §15 */
+function ventCrew(g: Game): void {
+  const s = g.state;
+  const w = g.world;
+  const cost = flat(CRAFTS.vent.cost);
+  if (s.res.vent.lt(HELPER_FX.keepVents) && canPay(s, cost)) {
+    pay(s, cost);
+    s.res.vent = s.res.vent.add(CRAFTS.vent.makes);
+  }
+  if (s.res.vent.lt(1) || w.depth(g.reachMaxY) < HEAT.fromD) return;
+  // the open tiles of the deepest few rows, next to rock too hot to work
+  const r = reach(g);
+  let best: { x: number; y: number; h: number } | null = null;
+  for (let y = g.reachMaxY; y > g.reachMaxY - HELPER_FX.pumpRows && y > 0; y--)
+    for (let x = 1; x < w.w - 1; x++) {
+      if (!r[w.idx(x, y)] || w.objectAt(x, y)) continue;
+      for (const [dx, dy] of NEIGH4) {
+        if (w.isAir(x + dx, y + dy)) continue;
+        const h = heatAt(g, x + dx, y + dy);
+        if (h >= HEAT.stopAt && (!best || h > best.h)) best = { x, y, h };
+      }
+    }
+  if (best) placeFromStock(g, best.x, best.y, 'vent');
 }
 
 /** Any flooded tile within a pump's reach of (px, py). */
