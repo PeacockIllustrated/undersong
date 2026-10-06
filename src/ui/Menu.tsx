@@ -2,12 +2,15 @@
 import { useState } from 'preact/hooks';
 import { exportString, importString } from '../save/codec';
 import type { UiBridge } from './App';
+import { SettingsPanel } from './Settings';
+import { SETTINGS_TEXT } from '../story/settings';
 
 export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const [out, setOut] = useState('');
   const [inp, setInp] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [view, setView] = useState<'menu' | 'settings'>('menu');
 
   const doExport = (): void => {
     const s = exportString(ui.game.state);
@@ -31,10 +34,34 @@ export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
     }
   };
 
+  if (view === 'settings')
+    return (
+      <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
+        <div class="panel sheet" role="dialog" aria-label={SETTINGS_TEXT.title}>
+          <h2>{SETTINGS_TEXT.title}</h2>
+          <SettingsPanel />
+          <p class="small">{SETTINGS_TEXT.note}</p>
+          <div class="row end">
+            <button class="btn" onClick={() => setView('menu')}>
+              {SETTINGS_TEXT.back}
+            </button>
+            <button class="btn" onClick={close}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
   return (
     <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
       <div class="panel sheet" role="dialog" aria-label="Menu">
         <h2>Menu</h2>
+        <div class="row">
+          <button class="btn primary" onClick={() => setView('settings')}>
+            {SETTINGS_TEXT.open}
+          </button>
+        </div>
         <p>The game saves itself every 30 seconds and whenever you leave.</p>
         <div class="row">
           <button class="btn primary" onClick={() => (ui.save(), setMsg({ ok: true, text: 'Saved.' }))}>

@@ -13,6 +13,7 @@ import { fmt } from './format';
 import { VillageSheet, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
+import { useApplySettings } from './Settings';
 import { EndingChoice, StoryLayer } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
@@ -113,6 +114,7 @@ function useTick(ms: number): void {
 export function App({ ui }: { ui: UiBridge }) {
   useTick(200);
   const [sheet, setSheet] = useState<Sheet>(null);
+  useApplySettings();
   const [toolsOpen, setToolsOpen] = useState(false);
   const g = ui.game;
   const s = g.state;

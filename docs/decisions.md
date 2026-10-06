@@ -157,3 +157,14 @@ Decision:
 - Act I pacing targets (ADR-015): are 1, 8 and 20 min right for the first bar, first miner and 150 ft?
 - Act II gating (ADR-017): pick gates and brick shrines make the iron pick the key to the Glowroot verses. Is that the shape you want?
 - The final name.
+
+**ADR-024 · Settings and accessibility** · 2026-10-06 · Accepted
+Context: M5 asks for settings and accessibility: reduced motion, text scale, and light shown by more than colour. Sound has moved to its own quality-of-life update, done in another thread, so it is not part of this.
+Decision:
+
+- Settings live in `src/settings.ts` under their own localStorage key (`undersong.settings`), apart from the save. Import, export, a Cave-in and Start over never change them, and the save version is untouched. The sim never reads them; the renderer and UI do.
+- Motion has three choices: Auto follows the device's reduced-motion setting, Full and Reduced override it. Reduced cuts every CSS animation and transition to its end state, and stops screen shake.
+- Text size is Normal, Large (1.15×) or Larger (1.3×), applied to every font size through one CSS variable, so layouts grow with the text rather than being zoomed.
+- Shape marks are on by default. A face too dark for full speed (light under `PESTS.darkBelow`) gets a crescent moon over it while a miner works it. Rock too hot to work gets a dark badge with heat waves. Until now both were shown only by colour.
+- Numbers can be short (1.5M) or scientific (1.50e6), which incremental players often prefer.
+- The sound work adds its volume and mute rows to the same Settings panel.
