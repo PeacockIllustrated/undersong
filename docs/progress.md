@@ -12,6 +12,12 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M3-09 Act III tail
+Done: the two sim seeds that never finished Act III sat at 1000 ft with aquamarine to spare but not enough silver for the aquamarine pick. It is now 30 aquamarine + 20 silver bars (ADR-021, amended).
+State: `npm run check` green. Act III sim, 9 seeds: all 9 finish, median 333 min against a 390 target (inside ±15%, at the fast edge).
+Next: M4 The Heart.
+Questions for Tom: none.
+
 ## 2026-10-06 · UI polish (ADR-022)
 Done: all ten items of the approved polish proposal. Cancel queued blocks by tapping or dragging over them, Esc or Clear queue; numbered queue with an order thread; ore floats at the shaft head; one-time tip cards and NEW pips; a banner for each new biome; edge arrows to pests, stalled miners and nearby verses; a depth ruler with biome bands; miner face brackets and stall marks; Village tabs; biome resource chips with rates and a tray; a one-button tool picker and hold ring on phones.
 State: `npm run check` green (50 tests). Checked at 1280×800 and 390×844. No save change.
