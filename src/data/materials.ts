@@ -147,7 +147,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: BASALT_R,
     host: M.BASALT,
     overlay: 'ore-gold',
-    drop: { res: 'goldOre', n: 1 },
+    drop: { res: 'goldOre', n: 3 },
     isOre: true,
   },
   [M.HEART]: {

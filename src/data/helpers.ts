@@ -56,7 +56,7 @@ export const HELPERS: readonly HelperDef[] = [
     text: 'Wren’s people set a cooling vent wherever a face is too hot to work, and make a new vent whenever you have none in hand.',
     levels: [
       [
-        { res: 'goldBar', n: 10 },
+        { res: 'goldBar', n: 6 },
         { res: 'brick', n: 20 },
       ],
     ],

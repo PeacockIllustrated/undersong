@@ -49,6 +49,12 @@ export const TIPS: readonly Tip[] = [
     when: (s) => HELPERS.some((h) => helperOffered(s, h.id)),
   },
   {
+    id: 'heat',
+    title: 'Heat',
+    text: 'Glowing faces are too hot to work. Set a cooling vent near them, or let water in to cool them.',
+    when: (s) => s.story.seen.includes('tooHot'),
+  },
+  {
     id: 'loom',
     title: 'The Song-loom',
     text: 'Each verse you have found can be woven into a charm. Slot charms in the Loom tab.',

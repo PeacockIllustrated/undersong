@@ -1244,6 +1244,7 @@ body.atlas #ui > * {
   background: linear-gradient(#2a5e86, #141a33 70%);
 }
 .ending-card {
+  pointer-events: auto;
   width: min(560px, 100%);
   text-align: center;
   padding: 28px 22px 24px;
@@ -1325,4 +1326,8 @@ body.atlas #ui > * {
   .choices {
     grid-template-columns: 1fr;
   }
+}
+.ending-note {
+  color: var(--glow);
+  margin: 0 0 8px;
 }

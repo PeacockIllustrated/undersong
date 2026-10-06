@@ -123,7 +123,7 @@ function baseTile(w: World, x: number, y: number, S: number, opts: GenOptions): 
     case 5: {
       if (cave > 0.74) return M.AIR;
       if (n1 > 0.72) return M.EMBER;
-      if (n2 > 0.8) return M.GOLD;
+      if (n2 > 0.76) return M.GOLD;
       return M.BASALT;
     }
     default: {

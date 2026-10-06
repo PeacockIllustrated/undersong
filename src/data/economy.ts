@@ -102,7 +102,7 @@ export const CRAFTS = {
   },
   vent: {
     cost: [
-      { res: 'goldBar', n: 4 },
+      { res: 'goldBar', n: 2 },
       { res: 'brick', n: 10 },
     ] as Cost[],
     makes: 1,
@@ -127,7 +127,7 @@ export const HAULS: readonly HaulDef[] = [
   // canon §9: rails cost 8 iron bars per 10 tiles of shaft (charged on the shaft depth when built), at most 10 lots (ADR-021)
   { name: 'Rails', speed: 8, capacity: 25, cost: [{ res: 'ironBar', n: 8 }], perTenTiles: true },
   { name: 'Water lift', speed: 15, capacity: 60, cost: [{ res: 'silverBar', n: 40 }] },
-  { name: 'Steam lift', speed: 30, capacity: 150, cost: [{ res: 'goldBar', n: 40 }] },
+  { name: 'Steam lift', speed: 30, capacity: 150, cost: [{ res: 'goldBar', n: 30 }] },
 ];
 
 /** canon §9.2 Whetstone (ADR-020): a cheap, always-there buy. Each level sharpens the Foreman's hand-mining. */

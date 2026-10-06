@@ -304,7 +304,7 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 | Pell’s rounds II | 12 Bronze bars | Every 1.5 s |
 | Bram’s props | 10 Bricks | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand |
 | Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12) |
-| Wren’s cold lamps (Act IV) | 10 Gold bars + 20 Bricks | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot |
+| Wren’s cold lamps (Act IV) | 6 Gold bars + 20 Bricks | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot |
 
 ### 14.1 Feedback
 
@@ -329,12 +329,13 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 
 | Thing | Cost | Effect |
 |---|---|---|
-| Cooling vent | 4 Gold bars + 10 Bricks | Takes 0.9 heat off every tile within 5 |
-| Crystal pick | 40 Resonant crystal + 30 Silver bars | pickPower 18. Opens basalt, ember ore and gold |
-| Ember pick | 40 Ember ore + 30 Gold bars | pickPower 27. Opens heartrock and heartstone |
+| Cooling vent | 2 Gold bars + 10 Bricks | Takes 0.9 heat off every tile within 5 |
+| Crystal pick | 80 Resonant crystal | pickPower 18. Opens basalt, ember ore and gold |
+| Ember pick | 40 Ember ore + 20 Gold bars | pickPower 27. Opens heartrock and heartstone |
 | Heart pick | 20 Heartstone + 50 Gold bars | pickPower 40 |
-| Steam lift | 40 Gold bars | carrierSpeed 30, capacity 150 |
+| Steam lift | 30 Gold bars | carrierSpeed 30, capacity 150 |
 | Cinder wisp | 1/90 per miner per second at a face with heat 0.5+ | Stops that miner until tapped |
+| Gold ore | Drops 3. Five ore make a bar | |
 
 **Verse XI** is carved in the Ember Deep inside a ring of ember ore, so it is hot until a vent is set. **Verse XII** is in the Heartstone mound on the floor of the Hollow Heart.
 

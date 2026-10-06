@@ -42,3 +42,10 @@ export const SCENES: Record<'seal' | 'sing', { title: string; lines: string[]; b
 
 /** New Song+: a verse comes back sung, its lines the other way round. */
 export const SUNG_BACK = 'Sung back by the whole of Holloway.';
+
+/** What the Survey Book says once an ending has been chosen. */
+export const ENDING_NOTE = {
+  songs: (n: number, per: number): string =>
+    `The last verse has been sung ${n === 1 ? 'once' : `${n} times`}: every Cave-in pays ${Math.round(n * per * 100)}% more Echoes.`,
+  endless: 'The shaft was sealed, and the floor of the Heart goes on down.',
+};

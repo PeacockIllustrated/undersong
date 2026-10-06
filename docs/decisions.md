@@ -133,7 +133,8 @@ Decision:
 - Heat is not simulated over time. It is worked out for a tile from depth and the ember ore and heartstone near it, minus vents and water, and cached until the mine changes (canon §15). It is cheap, needs nothing saved, and is the same every time for the same mine.
 - Too hot means miners won't take the face at all, so they move to cooler work and "Held back by: Heat" names it. The Foreman is only slowed (×0.3), so a player is never locked out.
 - Water cools. A player who floods a hot gallery on purpose is rewarded, which ties Act IV to Act III.
-- Wren's cold lamps (10 gold + 20 bricks) take the vent chore away, in line with ADR-020.
+- Wren's cold lamps (6 gold + 20 bricks) take the vent chore away, in line with ADR-020.
+- Act IV's tools are priced in what the Deep gives. The crystal pick costs 80 crystal and nothing else, since the Geodes give little silver and no aquamarine, the same lesson as M3-09. Gold ore drops 3.
 - Both endings close the cycle like a Cave-in, paying Echoes. Sealing sets Endless Depth: the floor of the Heart opens 64 rows at a time. Singing starts New Song+: each song sung adds 50% to all later Echo gains.
 - "Remixed verses" (design bible) means each verse comes back sung, with its two lines the other way round. Canon verse text is never rewritten.
 - The ending choice is offered every run in which Verse XII is found, so a player can take the other ending later.

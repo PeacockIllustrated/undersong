@@ -9,7 +9,7 @@ import { minerCost, nextHaul, nextPick, canPay, whetstoneCost } from '../src/sim
 import { buildingCost, buildingOffered, canCraft } from '../src/sim/village';
 import { UPGRADES } from '../src/data/upgrades';
 import { BIOMES } from '../src/data/biomes';
-import { createGame, type Game } from '../src/sim/game';
+import { createGame, loadGame, type Game } from '../src/sim/game';
 import { shaftFloor } from '../src/sim/miners';
 import { reach, workable } from '../src/sim/reach';
 import { step } from '../src/sim/step';
@@ -17,8 +17,8 @@ import { NEIGH4 } from '../src/world/world';
 import type { ResKey } from '../src/data/resources';
 import type { Decimal } from '../src/sim/decimal';
 import { line4 } from '../src/sim/geom';
-import { writeFileSync } from 'node:fs';
-import { pack } from '../src/save/codec';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { pack, unpack } from '../src/save/codec';
 import { CHARMS } from '../src/data/charms';
 import { PUMP } from '../src/data/water';
 import { canWeave, weaveCost } from '../src/sim/charms';
@@ -482,7 +482,8 @@ function managePumps(g: Game): void {
 const STALL_MS = Number(args.stall ?? 10) * 60_000;
 
 function playOne(seed: number): Record<string, number> & { echoes: number } {
-  const g = createGame(seed);
+  // --load=<path>: carry on from a saved game (one written with --save-act3), to tune Act IV quickly
+  const g = args.load ? loadGame(unpack(readFileSync(args.load, 'utf8'))) : createGame(seed);
   const s = g.state;
   let deepest = 0;
   let lastDeeper = 0;
@@ -545,7 +546,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
         console.log(
-          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar}· aq ${s.res.aquamarine}+${s.underground.aquamarine ?? 0} loom ${s.buildings.songloom} cry ${s.res.crystal} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
+          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar}· aq ${s.res.aquamarine}+${s.underground.aquamarine ?? 0} loom ${s.buildings.songloom} cry ${s.res.crystal} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · run ${s.verses.run.map((k) => (k ? 1 : 0)).join("")} · vents ${s.res.vent}/${Object.values(s.world.objects).filter((o) => o === "vent").length} · Au ${s.res.goldBar} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
         );
       if (canCaveIn(s) && args.until === 'first-cavein') break;
       if (ACT2) {
@@ -568,7 +569,11 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         if (s.stats.maxDepthD >= GLOWROOT.d1 && act2.ft400 === undefined) act2.ft400 = s.totalT;
         const act3Done = s.stats.maxDepthD >= GEODES.d1 && s.verses.known.slice(5, 10).every(Boolean);
         if (s.stats.maxDepthD >= GEODES.d1 && act2.ft1000 === undefined) act2.ft1000 = s.totalT;
-        if (act3Done && act2.act3 === undefined) act2.act3 = s.totalT;
+        if (act3Done && act2.act3 === undefined) {
+          act2.act3 = s.totalT;
+          // --save-act3=<path>: keep the game at the end of Act III
+          if (args['save-act3']) writeFileSync(args['save-act3'], pack(s));
+        }
         if (s.stats.maxDepthD >= EMBER.d1 && act2.ft1400 === undefined) act2.ft1400 = s.totalT;
         if (ENDING && endingReady(s)) {
           act2.ending = s.totalT;
@@ -589,7 +594,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       }
     }
     // --save-at=<min> --save=<path>: write the game as it stands, for screenshots
-    if (args.save && s.totalT === Number(args['save-at']) * 60_000) writeFileSync(args.save, pack(s));
+    if (args.save && t === Number(args['save-at']) * 60_000) writeFileSync(args.save, pack(s));
     step(g, TICK_MS);
     g.events.length = 0;
   }
