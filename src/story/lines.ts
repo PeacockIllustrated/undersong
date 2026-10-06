@@ -254,6 +254,11 @@ export const LINES: Record<string, Line> = {
     who: 'pell',
     text: 'I’ll do the rounds! Beetles, moths, anything. I’m faster than you anyway.',
   },
+  helper_pumps: {
+    id: 'helper_pumps',
+    who: 'bram',
+    text: 'My lads will mind the pumps. Wherever the water climbs, there’ll be a pump drinking it.',
+  },
   helper_props: {
     id: 'helper_props',
     who: 'bram',

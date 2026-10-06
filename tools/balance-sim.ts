@@ -200,10 +200,10 @@ function spendEchoes(g: Game): void {
 /** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
 function hireHelpers(g: Game): void {
   const s = g.state;
-  for (const id of ['lamps', 'pell', 'props'] as const) {
+  for (const id of ['lamps', 'pell', 'props', 'pumps'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
-    if (id !== 'props' && s.miners.length < 2) continue;
+    if (id !== 'props' && id !== 'pumps' && s.miners.length < 2) continue;
     if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
   }
 }
@@ -478,7 +478,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       if (act2Mode) shopA2(g);
       else shop(g);
       placeTorches(g);
-      if (ACT3) managePumps(g);
+      if (ACT3 && !s.helpers.pumps) managePumps(g);
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
         console.log(

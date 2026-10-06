@@ -2,7 +2,7 @@
 import type { Cost } from './items';
 import type { ResKey } from './resources';
 
-export type HelperId = 'lamps' | 'pell' | 'props';
+export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps';
 
 export interface HelperDef {
   id: HelperId;
@@ -37,6 +37,18 @@ export const HELPERS: readonly HelperDef[] = [
     text: 'Bram props any roof about to fall with a support from stock, and the kiln makes supports whenever you run low.',
     levels: [[{ res: 'brick', n: 10 }]],
   },
+  {
+    id: 'pumps',
+    name: 'Bram’s pump crew',
+    who: 'bram',
+    text: 'The crew carries pumps to wherever the water is, picks up the ones left standing dry, and makes a new pump whenever you have none in hand.',
+    levels: [
+      [
+        { res: 'silverBar', n: 4 },
+        { res: 'ironBar', n: 10 },
+      ],
+    ],
+  },
 ];
 
 /** canon §14 numbers. */
@@ -47,6 +59,9 @@ export const HELPER_FX = {
   keepTorches: 3,
   keepLanterns: 2,
   keepSupports: 2,
+  /** Pumps the crew keeps in hand, and how many rows above the deepest open tile it looks for water. */
+  keepPumps: 1,
+  pumpRows: 8,
   /** Lumen the village keeps in hand before it spends any on a lantern. */
   lanternLumenFloor: 30,
 };

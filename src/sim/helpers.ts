@@ -5,6 +5,9 @@ import { LIGHT, lightFactor } from '../data/light';
 import type { ObjKind } from '../data/objects';
 import type { ResKey } from '../data/resources';
 import { NEIGH4 } from '../world/world';
+import { PUMP } from '../data/water';
+import { SHAFT_X } from '../data/constants';
+import { flooded } from './water';
 import { D, type Decimal } from './decimal';
 import { canPay, flat, pay } from './economy';
 import type { Game } from './game';
@@ -21,6 +24,7 @@ export function helperOffered(s: GameState, id: HelperId): boolean {
   if (s.helpers[id]) return true;
   if (id === 'lamps') return s.miners.length > 0 || s.stats.caveIns > 0;
   if (id === 'pell') return s.story.ever.some((l) => l === 'beetle' || l === 'moth' || l === 'eel');
+  if (id === 'pumps') return s.story.ever.includes('flooded');
   return s.stats.collapses > 0;
 }
 
@@ -96,6 +100,48 @@ export function stepHelpers(g: Game, dt: number): void {
   if (s.helpers.lamps) lamplighters(g);
   if (s.helpers.props && s.buildings.kiln > 0 && s.res.support.lt(HELPER_FX.keepSupports))
     if (pay(s, flat(CRAFTS.support.cost))) s.res.support = s.res.support.add(CRAFTS.support.makes);
+  if (s.helpers.pumps) pumpCrew(g);
+}
+
+/** Any flooded tile within a pump's reach of (px, py). */
+function wetNear(g: Game, px: number, py: number): boolean {
+  const r = PUMP.radius;
+  for (let y = py - r; y <= py + r; y++)
+    for (let x = px - r; x <= px + r; x++)
+      if ((x - px) ** 2 + (y - py) ** 2 <= r * r && flooded(g, x, y)) return true;
+  return false;
+}
+
+/** Bram's pump crew: dry pumps come back to stock, stock goes to the water, and there is always one in hand. */
+function pumpCrew(g: Game): void {
+  const s = g.state;
+  const w = g.world;
+  for (const [k, o] of Object.entries(s.world.objects)) {
+    if (o !== 'pump') continue;
+    const i = Number(k);
+    const x = i % w.w;
+    const y = (i - x) / w.w;
+    if (wetNear(g, x, y)) continue;
+    delete s.world.objects[k];
+    s.res.pump = s.res.pump.add(1);
+    w.touch(x, y);
+  }
+  const cost = flat(CRAFTS.pump.cost);
+  if (s.res.pump.lt(HELPER_FX.keepPumps) && canPay(s, cost)) {
+    pay(s, cost);
+    s.res.pump = s.res.pump.add(CRAFTS.pump.makes);
+  }
+  if (s.res.pump.lt(1)) return;
+  // the deepest reachable dry tile with water in a pump's reach, nearest the shaft, not crowding another pump
+  const r = reach(g);
+  const xs = Array.from({ length: w.w - 2 }, (_, k) => k + 1).sort(
+    (a, b) => Math.abs(a - SHAFT_X) - Math.abs(b - SHAFT_X),
+  );
+  for (let y = g.reachMaxY; y > g.reachMaxY - HELPER_FX.pumpRows && y > 0; y--)
+    for (const x of xs) {
+      if (!r[w.idx(x, y)] || flooded(g, x, y) || near(g, 'pump', x, y, 3) || !wetNear(g, x, y)) continue;
+      if (placeFromStock(g, x, y, 'pump')) return;
+    }
 }
 
 /** Miners light their own faces from stock; the village keeps the stock topped up. */
