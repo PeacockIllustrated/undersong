@@ -1,7 +1,8 @@
-// Settings (M5-01, ADR-024): motion, text size, shape marks and number style. Saved apart from the game.
+// Settings (M5-01, ADR-024): motion, text size, shape marks, sound and number style. Saved apart from the game.
 import { useEffect, useState } from 'preact/hooks';
 import { TEXT_SCALES, onSettings, reducedMotion, setSettings, settings, type Settings } from '../settings';
 import { SETTINGS_TEXT } from '../story/settings';
+import { SOUND_LEVELS } from '../data/sounds';
 
 /** Puts the current settings on the page root: data-motion for CSS, --ts for text size. */
 export function useApplySettings(): void {
@@ -91,6 +92,20 @@ export function SettingsPanel() {
           [false, t.off],
         ]}
         set={(marks) => setSettings({ marks })}
+      />
+      <Choice
+        label={t.sound.label}
+        hint={t.sound.hint}
+        value={s.sound}
+        options={SOUND_LEVELS.map((v, i) => [v as number, t.levels[i]!] as const)}
+        set={(sound) => setSettings({ sound })}
+      />
+      <Choice
+        label={t.music.label}
+        hint={t.music.hint}
+        value={s.music}
+        options={SOUND_LEVELS.map((v, i) => [v as number, t.levels[i]!] as const)}
+        set={(music) => setSettings({ music })}
       />
       <Choice
         label={t.numbers.label}

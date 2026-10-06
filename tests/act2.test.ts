@@ -152,7 +152,7 @@ describe('Echo carry-overs', () => {
 });
 
 describe('offline progress', () => {
-  it('plays short absences on in full, with no summary (ADR-024)', () => {
+  it('plays short absences on in full, with no summary (ADR-026)', () => {
     const g = createGame(2);
     const t0 = g.state.totalT;
     expect(catchUp(g, 30_000)).toBeNull();

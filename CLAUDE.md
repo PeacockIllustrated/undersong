@@ -57,6 +57,7 @@ npm run test           # Vitest
 npm run lint:sprites   # palette, size and naming checks on assets/sprites
 npm run sim -- --until=first-cavein   # headless balance sim, prints time-to-milestone
 npm run sim -- --until=act2 --minutes=480   # plays on through Cave-ins to the end of Act II
+npm run sim -- --until=first-cavein --strict   # exits non-zero if a target misses ±15% (CI runs this)
 npm run build          # production build
 ```
 

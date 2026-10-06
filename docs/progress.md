@@ -12,6 +12,13 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · R-01 to R-05 Review fixes and sound
+
+Done: from the code review Tom approved. Offline catch-up now pays in full (8 h away: 942 tiles against 927 in real time, was 626), and coming back no longer freezes the page (8 h with 40 miners: about 1 s, was 9.1 s). Absences under a minute play on instead of being lost. The balance sim has `--strict`; CI runs Act I strictly on every PR, and a nightly workflow runs the longer acts. Sound: synthesised effects for digging, ore, the forge, purchases, pests, chests, records, biomes, collapses and the Cave-in; each verse plays the Undersong so far; a drone that deepens with depth; Sound and The hum in Settings; M mutes (ADR-026, ADR-027).
+State: `npm run check` green (71 tests). Both Act I and Act II sims give exactly the same output as main, so live pacing is unchanged. Sound was checked in a headless browser for errors only; nobody has listened to it yet.
+Next: M5-05 balance pass (offline returns now pay more), M5-04 launch.
+Questions for Tom: does the sound feel right? Every number is in `src/data/sounds.ts`.
+
 ## 2026-10-06 · M5-03 Achievements
 
 Done: 18 achievements (ADR-025): verses known, biomes reached, Cave-ins, a full bunkhouse, chests, every helper, charms, Echoes, both endings and Endless Depth. Earned ones are kept in `story.ever` as `ach:<id>`, which already survives a Cave-in and is already saved, so there is no save change. The Survey Book lists them all, locked ones with what earns them. A toast announces each; several at once share one toast, which is what an older save sees the first time it loads.

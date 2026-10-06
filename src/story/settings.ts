@@ -22,6 +22,18 @@ export const SETTINGS_TEXT = {
     label: 'Shape marks',
     hint: 'A moon over faces too dark to work at full speed, and a heat badge on rock too hot to work, so neither relies on colour.',
   },
+  sound: {
+    label: 'Sound',
+    hint: 'Picks, ore, the forge, purchases and the verses. Press M to mute or unmute.',
+  },
+  music: {
+    label: 'The hum',
+    hint: 'A low drone under the mountain that deepens as you dig.',
+  },
+  levels: ['Off', 'Low', 'Medium', 'High'],
+  muted: 'Sound off',
+  unmuted: 'Sound on',
+  mutedSub: 'Press M again to bring it back',
   numbers: {
     label: 'Numbers',
     hint: 'Big numbers as 1.5M, or as 1.50e6.',

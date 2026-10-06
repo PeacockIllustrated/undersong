@@ -270,13 +270,23 @@ Epics: Ember Deep with heat and cooling, the Hollow Heart with old shafts from e
 
 Epics: layered music and sound effects, a full balance pass, accessibility (reduced motion, text scale, light shown by more than colour), achievements, settings, and launch on the web (Vercel) and itch.io.
 **Exit:** public release.
-Sound moved to its own update in another thread at Tom's request (2026-10-06), so it has no ticket here.
+Sound moved to its own update in another thread at Tom's request (2026-10-06): see R · Review fixes and sound below.
 
 - [x] **M5-01 Settings.** A Settings panel from the menu, saved apart from the game: motion, text size, shape marks, number style (ADR-024). Sound rows join it with the sound update.
 - [x] **M5-02 Accessibility.** Reduced motion (device or setting) stops screen shake and every animation; text scales to 1.3×; dark faces and faces too hot to work are shown by shape as well as colour.
 - [x] **M5-03 Achievements.** Milestones worth a badge across cycles, shown in the Survey Book, kept through a Cave-in.
 - [ ] **M5-04 Launch.** An itch.io build (relative paths, zipped), a title and description, and a short how-to-play on first load.
 - [ ] **M5-05 Balance pass.** After the offline catch-up fixes land: re-run every act's sim and retune anything outside ±15%.
+
+## R · Review fixes and sound (Tom's request, ADR-026, ADR-027)
+
+From the code review in `/mnt/project-files/reviews/undersong-code-review.md`.
+
+- [x] **R-01 Offline pays in full.** Catch-up steps carry leftover work; 8 h away lands within 5% of real time (test).
+- [x] **R-02 No freeze on return.** Frontier and face cache; 8 h with 40 miners catches up in about 1 s, live play unchanged.
+- [x] **R-03 Short absences count.** Under a minute plays on at full speed (canon §4.8 amended).
+- [x] **R-04 Pacing gate.** `--strict`; Act I sim on every PR, Act II, Act III and the ending nightly.
+- [x] **R-05 Sound.** Synthesised effects for every event, the verse song, the hum, Sound and The hum settings, M to mute (canon §16).
 
 ---
 
@@ -289,5 +299,4 @@ Good ideas that are out of scope right now. Add to this list instead of building
 
 - Foreman 4-frame walk cycle, rope-coil and winch item sprites (finishes M0-07; do with M1 haulage).
 - Render-only lamp glow passes through rock; consider occluding it by solid tiles.
-- Sound (M5 epic), but a dig thunk and a smelt clink would help feel sooner.
 - Miners walk between faces instantly; animate the walk.

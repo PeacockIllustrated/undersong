@@ -28,6 +28,8 @@ import { PICKS } from './data/items';
 import { BIOMES, biomeAt } from './data/biomes';
 import { HELPERS } from './data/helpers';
 import { toast } from './ui/feedback';
+import { Ears } from './audio/ears';
+import { SETTINGS_TEXT } from './story/settings';
 import { RES_ICON } from './ui/icons';
 import type { ResKey } from './data/resources';
 import './ui/style.css';
@@ -84,8 +86,19 @@ function boot(): void {
     },
   });
 
-  // Esc clears the Foreman's dig queue
+  const ears = new Ears();
+  // Esc clears the Foreman's dig queue; M mutes
   window.addEventListener('keydown', (e) => {
+    if (
+      e.key.toLowerCase() === 'm' &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey &&
+      !(e.target instanceof HTMLInputElement)
+    ) {
+      const on = ears.toggleMute();
+      toast(on ? SETTINGS_TEXT.unmuted : SETTINGS_TEXT.muted, on ? undefined : SETTINGS_TEXT.mutedSub);
+    }
     if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]'))
       dispatch({ type: 'cancelDig' });
   });
@@ -171,6 +184,7 @@ function boot(): void {
       n++;
     }
     if (n === MAX_TICKS_PER_FRAME) acc = 0;
+    ears.frame(game.g, { x: cam.x, y: cam.y, w: renderer.viewW, h: renderer.viewH }, now);
     handleEvents(game.g, renderer, now);
     input.update(dt / 1000);
     if (following) {

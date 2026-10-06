@@ -50,7 +50,12 @@ function faces(g: Game): number[] {
     const mat = w.mat[i]!;
     if (!canDig(mat, tier) || y <= w.surf[x]!) continue;
     const def = MATERIALS[mat]!;
-    if (def.isOre || def.drop?.res === 'spores' || x === SHAFT_X || (y > w.surf[x]! + 2 && oreNear(g, x, y, tier)))
+    if (
+      def.isOre ||
+      def.drop?.res === 'spores' ||
+      x === SHAFT_X ||
+      (y > w.surf[x]! + 2 && oreNear(g, x, y, tier))
+    )
       list.push(i);
   }
   g.faces = { tier, list };
@@ -141,7 +146,7 @@ export function minerRate(g: Game, m: Miner): number {
  */
 function work(g: Game, m: Miner, dt: number): void {
   let left = dt;
-  for (let t = m.target; t; ) {
+  for (let t = m.target; t;) {
     const rate = minerRate(g, m);
     const need = hardnessAt(g.world.hardnessOf(t.x, t.y), g.world.depth(t.y));
     if (dt < COARSE_STEP_S || rate <= 0 || m.work + rate * left < need) {

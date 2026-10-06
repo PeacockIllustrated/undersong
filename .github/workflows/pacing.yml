@@ -1,0 +1,24 @@
+name: pacing
+# The long balance runs, every night and on demand. Each fails if a canon §5 target misses by more than ±15%.
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+jobs:
+  sim:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        run:
+          - --until=act2 --minutes=480
+          - --until=act3 --minutes=600
+          - --until=ending --minutes=1200
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run sim -- ${{ matrix.run }} --strict

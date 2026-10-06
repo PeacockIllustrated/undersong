@@ -27,7 +27,7 @@ const MAX_STEPS = 1200;
 export function catchUp(g: Game, awayMs: number): AwaySummary | null {
   if (!(awayMs > 0)) return null;
   if (awayMs < OFFLINE.minS * 1000) {
-    // a quick look at another app: the village simply played on, at full speed and with no summary (ADR-024)
+    // a quick look at another app: the village simply played on, at full speed and with no summary (ADR-026)
     for (let t = TICK_MS; t <= awayMs; t += TICK_MS) step(g, TICK_MS);
     g.events.length = 0;
     return null;
