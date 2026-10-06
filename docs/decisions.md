@@ -200,3 +200,10 @@ Decision:
 - Eighteen badges, thresholds in `src/data/achievements.ts`, names and wording in `src/story/achievements.ts`. They pay nothing: no balance change, so the pacing targets stand.
 - Each is checked about once a second and, once earned, stored in `story.ever` as `ach:<id>`. That list already survives a Cave-in and is already in the save, so `SAVE_VERSION` stays at 5. An older save earns what it already qualifies for on its first load.
 - The Survey Book lists every achievement, with locked ones showing what earns them, so they double as goals. A toast announces each one; several earned together share one toast.
+
+## ADR-028 · How the balance sim measures Act III
+
+**Context.** In the M5-05 pass, 2 of 9 Act III runs never finished. Both were bot faults: Act III end used this run's depth (`maxDepthD`), which a Cave-in resets, while the Act IV bot already used the best depth ever (`bestDepthD`); and the bot stopped mining toward the aquamarine pick at a stale 20-aquamarine threshold, below its real cost.
+**Decision.** Act III ends when 1000 ft has ever been reached and Verses VI to X are known, matching `inAct4`. The bot keeps mining ore while it can't yet pay for the aquamarine pick, read from `nextPick`.
+**Result.** Act III median 341 min (target 390), all 9 seeds finish; ending median 659 min from 7 seeds (target 690). No game numbers changed.
+

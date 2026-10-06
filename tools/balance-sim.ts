@@ -333,7 +333,9 @@ function act2Foreman(g: Game): void {
   }
   // Act III: below 400 ft the water decides. Without a pump to set, go get silver for one
   else if (inAct3(s) && s.stats.maxDepthD >= GLOWROOT.d1) {
-    const needSilver = s.res.pump.lt(1) || s.pickTier < 4 || (s.pickTier < 5 && s.res.aquamarine.lt(20));
+    // short of the aquamarine pick (aquamarine or silver): keep mining ore until it is paid for
+    const pick = nextPick(s);
+    const needSilver = s.res.pump.lt(1) || s.pickTier < 4 || (s.pickTier < 5 && !!pick && !canPay(s, pick));
     if (needSilver && dig(nearestOre(g, 14))) return;
   }
   if (s.stats.maxDepthD < goalD(s)) {
@@ -580,7 +582,9 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         if (glowDone && act2.glowroot === undefined) act2.glowroot = s.totalT;
         if (s.verses.known[4] && act2.verse4 === undefined) act2.verse4 = s.totalT;
         if (s.stats.maxDepthD >= GLOWROOT.d1 && act2.ft400 === undefined) act2.ft400 = s.totalT;
-        const act3Done = s.stats.maxDepthD >= GEODES.d1 && s.verses.known.slice(5, 10).every(Boolean);
+        // Act III is behind the village once 1000 ft has ever been reached and Verses VI to X are known, the same
+        // test inAct4 uses: a Cave-in between the two doesn't undo either, for a player or the bot
+        const act3Done = s.stats.bestDepthD >= GEODES.d1 && s.verses.known.slice(5, 10).every(Boolean);
         if (s.stats.maxDepthD >= GEODES.d1 && act2.ft1000 === undefined) act2.ft1000 = s.totalT;
         if (act3Done && act2.act3 === undefined) {
           act2.act3 = s.totalT;
