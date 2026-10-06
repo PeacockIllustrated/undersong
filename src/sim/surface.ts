@@ -66,14 +66,16 @@ export function harvest(g: Game, i: number, byHand: boolean): boolean {
 
 const mealDef = (id: MealId): (typeof MEALS)[number] => MEALS.find((m) => m.id === id)!;
 
-export function mealCost(s: GameState, id: MealId): Costs {
+export function mealCost(s: GameState, id: MealId): Costs | null {
   const m = mealDef(id);
+  if (s.surface.meals[id] >= m.max) return null;
   return [{ res: 'barley', amount: D(m.base).mul(D(m.growth).pow(s.surface.meals[id])).ceil() }];
 }
 
 export function eatMeal(g: Game, id: MealId): boolean {
   const s = g.state;
-  if (!s.surface.tansy || !pay(s, mealCost(s, id))) return false;
+  const c = mealCost(s, id);
+  if (!s.surface.tansy || !c || !pay(s, c)) return false;
   s.surface.meals[id]++;
   g.events.push({ kind: 'bought', what: `meal:${id}` });
   first(g, `meal_${id}`);
@@ -165,14 +167,16 @@ export function chop(g: Game, i: number, byHand: boolean): boolean {
 
 const woodDef = (id: WoodBuyId): (typeof WOOD_BUYS)[number] => WOOD_BUYS.find((b) => b.id === id)!;
 
-export function woodCost(s: GameState, id: WoodBuyId): Costs {
+export function woodCost(s: GameState, id: WoodBuyId): Costs | null {
   const b = woodDef(id);
+  if (s.surface.wood[id] >= b.max) return null;
   return [{ res: 'timber', amount: D(b.base).mul(D(b.growth).pow(s.surface.wood[id])).ceil() }];
 }
 
 export function buyWood(g: Game, id: WoodBuyId): boolean {
   const s = g.state;
-  if (!s.surface.rook || !pay(s, woodCost(s, id))) return false;
+  const c = woodCost(s, id);
+  if (!s.surface.rook || !c || !pay(s, c)) return false;
   s.surface.wood[id]++;
   g.events.push({ kind: 'bought', what: `wood:${id}` });
   return true;

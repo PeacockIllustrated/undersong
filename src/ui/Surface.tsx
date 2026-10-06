@@ -26,14 +26,23 @@ export function fieldsReady(s: State): number {
   const pc = plotCost(s);
   return (
     (pc && canPay(s, pc) ? 1 : 0) +
-    MEALS.filter((m) => canPay(s, mealCost(s, m.id))).length +
+    MEALS.filter((m) => {
+      const c = mealCost(s, m.id);
+      return !!c && canPay(s, c);
+    }).length +
     (!feasting(s) && s.surface.feast >= feastNeed(s) ? 1 : 0)
   );
 }
 
 export function woodReady(s: State): number {
   const sc = saplingCost(s);
-  return (sc && canPay(s, sc) ? 1 : 0) + WOOD_BUYS.filter((b) => canPay(s, woodCost(s, b.id))).length;
+  return (
+    (sc && canPay(s, sc) ? 1 : 0) +
+    WOOD_BUYS.filter((b) => {
+      const c = woodCost(s, b.id);
+      return !!c && canPay(s, c);
+    }).length
+  );
 }
 
 export function Fields({ ui }: { ui: UiBridge }) {
@@ -86,6 +95,12 @@ export function Fields({ ui }: { ui: UiBridge }) {
           {MEALS.map((m) => {
             const c = mealCost(s, m.id);
             const lv = sf.meals[m.id];
+            if (!c)
+              return (
+                <p class="small" key={m.id}>
+                  {m.name}: as much as the cookhouse can make. {m.text} · +{Math.round(m.per * lv * 100)}% now
+                </p>
+              );
             return (
               <div class="row" key={m.id}>
                 <button
@@ -188,16 +203,22 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
                 {b.text}: +{Math.round(b.per * 100)}% each
                 {lv > 0 ? `, +${Math.round(b.per * lv * 100)}% now` : ''}.
               </p>
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, c) ? 'can' : ''}`}
-                  disabled={!canPay(s, c)}
-                  onClick={() => ui.dispatch({ type: 'buyWood', id: b.id })}
-                >
-                  {b.id === 'cottage' ? 'Raise a cottage' : lv ? 'Stoke it higher' : 'Build the hearth'}
-                </button>
-                <Cost costs={c} have={s.res} />
-              </div>
+              {c ? (
+                <div class="row">
+                  <button
+                    class={`btn ${canPay(s, c) ? 'can' : ''}`}
+                    disabled={!canPay(s, c)}
+                    onClick={() => ui.dispatch({ type: 'buyWood', id: b.id })}
+                  >
+                    {b.id === 'cottage' ? 'Raise a cottage' : lv ? 'Stoke it higher' : 'Build the hearth'}
+                  </button>
+                  <Cost costs={c} have={s.res} />
+                </div>
+              ) : (
+                <p class="small">
+                  {b.id === 'cottage' ? 'The valley has no room for more.' : 'As hot as it will burn.'}
+                </p>
+              )}
             </div>
           </section>
         );

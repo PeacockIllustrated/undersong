@@ -30,11 +30,21 @@ export interface MealDef {
   growth: number;
   /** Bonus per level: miners for bread, hand-mining for porridge. */
   per: number;
+  /** Most levels in one run: the cookhouse only feeds so many. */
+  max: number;
 }
 /** canon §17.2 the cookhouse. Levels last the run, like the whetstone. */
 export const MEALS: readonly MealDef[] = [
-  { id: 'bread', name: 'Miner’s bread', text: 'Miners dig faster', base: 10, growth: 1.5, per: 0.15 },
-  { id: 'porridge', name: 'Foreman’s porridge', text: 'You dig faster', base: 8, growth: 1.5, per: 0.12 },
+  { id: 'bread', name: 'Miner’s bread', text: 'Miners dig faster', base: 10, growth: 1.8, per: 0.05, max: 3 },
+  {
+    id: 'porridge',
+    name: 'Foreman’s porridge',
+    text: 'You dig faster',
+    base: 8,
+    growth: 1.8,
+    per: 0.05,
+    max: 3,
+  },
 ];
 
 /** canon §17.2 the feast bell: crops harvested fill it; ringing it doubles every worker for a while. */
@@ -76,11 +86,21 @@ export interface WoodBuyDef {
   base: number;
   growth: number;
   per: number;
+  /** Most levels in one run. */
+  max: number;
 }
 /** canon §17.3 what timber buys. Levels reset on a Cave-in. */
 export const WOOD_BUYS: readonly WoodBuyDef[] = [
-  { id: 'hearth', name: 'Charcoal hearth', text: 'The forge works faster', base: 20, growth: 1.6, per: 0.5 },
-  { id: 'cottage', name: 'Cottage', text: 'Miners dig faster', base: 5, growth: 1.3, per: 0.02 },
+  {
+    id: 'hearth',
+    name: 'Charcoal hearth',
+    text: 'The forge works faster',
+    base: 20,
+    growth: 1.8,
+    per: 0.25,
+    max: 2,
+  },
+  { id: 'cottage', name: 'Cottage', text: 'Miners dig faster', base: 5, growth: 1.3, per: 0.02, max: 5 },
 ];
 
 /** canon §17.3 pit props: a support from timber instead of bricks. */

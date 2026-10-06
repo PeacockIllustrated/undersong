@@ -163,7 +163,7 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Stone            | 4                     | Rubble                      | 1–2                       |
 | Copper ore       | 4                     | 2 Copper ore                | 1                         |
 | Tin ore          | 4                     | 2 Tin ore                   | 1                         |
-| Slate            | 6                     | Rubble                      | 2+                        |
+| Slate            | 7 (M6, ADR-029)       | Rubble                      | 2+                        |
 | Iron ore         | 8                     | 2 Iron ore (was 1; ADR-017) | 2                         |
 | Glowcap cluster  | 2                     | 2 Glowcap spores            | 2                         |
 | Silver ore       | 14                    | 1 Silver ore                | 3                         |
@@ -175,7 +175,7 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Basalt           | 60 (ADR-023)          | Rubble                      | 5                         |
 | Heartrock        | 78 (ADR-023)          | Rubble                      | 6                         |
 | Old brick        | 10                    | 1 Brick                     | shrines, drowned town     |
-| Singing stone    | 14                    | —                           | the Geodes' own rock (M3) |
+| Singing stone    | 17 (M6, ADR-029)      | —                           | the Geodes' own rock (M3) |
 
 ### 8.1 Pick gates (ADR-017)
 
@@ -278,7 +278,7 @@ Three branches of six. Each needs the one above it in its branch.
 
 | Thing            | Value                                                                                                                                                                  |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Singing stone    | The Geodes' base rock. Hardness 14, needs the silver pick                                                                                                              |
+| Singing stone    | The Geodes' base rock. Hardness 17, needs the silver pick                                                                                                              |
 | Resonant crystal | Rings around Verses IX and X                                                                                                                                           |
 | Shard golem      | 20% chance when resonant crystal is mined. Stops miners within 4 until tapped 3 times                                                                                  |
 | Song-loom        | 25 Resonant crystal + 20 Silver bars × 1.15ⁿ; offered from 700 ft. Weaves charms                                                                                       |
@@ -390,8 +390,8 @@ Everything on the surface only adds: no hunger, no spoiling, no penalty for an e
 
 | Thing              | Cost                 | Effect                       |
 | ------------------ | -------------------- | ---------------------------- |
-| Miner’s bread      | 10 × 1.5ⁿ barley     | miners +15% a level          |
-| Foreman’s porridge | 8 × 1.5ⁿ barley      | hand-mining +12% a level     |
+| Miner’s bread      | 10 × 1.8ⁿ barley     | miners +5% a level, up to 3  |
+| Foreman’s porridge | 8 × 1.8ⁿ barley      | hand-mining +5% a level, up to 3 |
 
 Meals reset on a Cave-in. The feast bell fills by 1 per harvest (10 for a golden ear) and needs 150, ×1.6 per feast this run. Ringing it gives 45 s of every worker ×2 (the village multiplier) with crops growing ×3.
 
@@ -404,8 +404,8 @@ Meals reset on a Cave-in. The feast bell fills by 1 per harvest (10 for a golden
 | Saplings         | 3 Copper × 1.15ⁿ (n = trees standing)                                                 |
 | Stages           | young at 3 min, grown at 8 min, old at 20 min                                         |
 | Felling          | 0 / 4 / 12 / 40 timber for sapling / young / grown / old; ×2 by hand (tap a tree)     |
-| Charcoal hearth  | 20 × 1.6ⁿ timber; the forge works +50% a level                                        |
-| Cottage          | 5 × 1.3ⁿ timber; miners +2% each; drawn in a back row                                 |
+| Charcoal hearth  | 20 × 1.8ⁿ timber; the forge works +25% a level, up to 2                               |
+| Cottage          | 5 × 1.3ⁿ timber; miners +2% each, up to 5; drawn in a back row                        |
 | Pit prop         | a support for 3 timber instead of bricks, whenever timber is the more plentiful       |
 
 Hearth and cottage levels reset on a Cave-in. Trees do not.

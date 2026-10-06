@@ -219,4 +219,5 @@ Decision:
 - Pit props: a support costs timber instead of bricks whenever timber is the more plentiful, so the Kiln recipe never becomes a choice the player has to manage.
 - Save v6 adds `surface`. `migrate()` now also fills any resource key a save is missing, which covers barley and timber and any resource added later.
 - The act crops (M6-07) and the tally board (rest of M6-06) are left for a follow-up PR.
-**Result.** See the M6 entry in progress.md for the pacing numbers.
+- Balance: uncapped meals made the ending about 35% faster (a meals-off run took one seed from 454 to 790 min), because long final runs bought many levels. Meals, the hearth and cottages are now capped per run (3, 2 and 5 levels). Act III sat at −12.6% before M6, so any surface speed pushed it out of band; slate goes from hardness 6 to 7 and singing stone from 14 to 17 to make room.
+**Result.** Act I unchanged and strict-green (First Cave-in 31.6 min). Act III and the ending are still being tuned; see progress.md.

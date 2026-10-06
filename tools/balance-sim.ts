@@ -29,7 +29,16 @@ import { heatAt } from '../src/sim/heat';
 import { HEAT } from '../src/data/heat';
 import { endingReady } from '../src/sim/ending';
 import { HEART_CENTER_D } from '../src/world/generator';
-import { feastNeed, feasting, isElder, mealCost, plotCost, saplingCost, treeStage, woodCost } from '../src/sim/surface';
+import {
+  feastNeed,
+  feasting,
+  isElder,
+  mealCost,
+  plotCost,
+  saplingCost,
+  treeStage,
+  woodCost,
+} from '../src/sim/surface';
 import { MEALS, WOODLOT, WOOD_BUYS } from '../src/data/surface';
 
 const args = Object.fromEntries(
@@ -273,7 +282,8 @@ function tendSurface(g: Game): void {
     !!c && canPay(s, c) && c[0]!.amount.lte(s.res.copperBar.mul(0.1)) && s.miners.length >= 2;
   if (spare(plotCost(s))) apply(g, { type: 'buyPlot' });
   for (const m of [...MEALS].sort((a, b) => sf.meals[a.id] - sf.meals[b.id]))
-    if (canPay(s, mealCost(s, m.id))) apply(g, { type: 'eatMeal', id: m.id });
+    if (canPay(s, mealCost(s, m.id) ?? [{ res: 'barley', amount: s.res.barley.add(1) }]))
+      apply(g, { type: 'eatMeal', id: m.id });
   if (!sf.rook) return;
   sf.trees.forEach((t, i) => {
     if (!s.helpers.rook && !isElder(t) && t.stood === 0 && treeStage(t) >= WOODLOT.stageS.length)
@@ -281,8 +291,10 @@ function tendSurface(g: Game): void {
   });
   if (spare(saplingCost(s))) apply(g, { type: 'plantSapling' });
   // keep a few timber for pit props; spend the rest on the cheaper of hearth and cottage
-  for (const b of [...WOOD_BUYS].sort((a, c) => woodCost(s, a.id)[0]!.amount.cmp(woodCost(s, c.id)[0]!.amount)))
-    if (s.res.timber.gte(woodCost(s, b.id)[0]!.amount.add(6))) apply(g, { type: 'buyWood', id: b.id });
+  const price = (id: (typeof WOOD_BUYS)[number]['id']): number =>
+    woodCost(s, id)?.[0]!.amount.toNumber() ?? Infinity;
+  for (const b of [...WOOD_BUYS].sort((a, c) => price(a.id) - price(c.id)))
+    if (s.res.timber.gte(price(b.id) + 6)) apply(g, { type: 'buyWood', id: b.id });
 }
 
 /** The whetstone: an engaged player takes the cheap levels at once, later ones from spare copper. */
@@ -672,7 +684,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     );
   if (ACT2)
     console.log(
-      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses}`,
+      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses} · surface bread ${s.surface.meals.bread} porridge ${s.surface.meals.porridge} hearth ${s.surface.wood.hearth} cottages ${s.surface.wood.cottage} feasts ${s.surface.feasts} plots ${s.surface.plots.length} trees ${s.surface.trees.map((t) => t.stood).join('/')}`,
     );
   return {
     ...(first1 ?? s.stats.firsts),
