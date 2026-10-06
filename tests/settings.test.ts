@@ -7,13 +7,24 @@ describe('settings', () => {
   it('falls back to the defaults for anything unknown or out of range', () => {
     expect(clean({})).toEqual(DEFAULTS);
     expect(
-      clean({ motion: 'wobbly' as never, textScale: 7, marks: 'yes' as never, numbers: 'roman' as never }),
+      clean({
+        motion: 'wobbly' as never,
+        textScale: 7,
+        marks: 'yes' as never,
+        numbers: 'roman' as never,
+        sound: 0.5,
+        music: -1,
+      }),
     ).toEqual(DEFAULTS);
-    expect(clean({ motion: 'reduced', textScale: 1.3, marks: false, numbers: 'scientific' })).toEqual({
+    expect(
+      clean({ motion: 'reduced', textScale: 1.3, marks: false, numbers: 'scientific', sound: 0, music: 1 }),
+    ).toEqual({
       motion: 'reduced',
       textScale: 1.3,
       marks: false,
       numbers: 'scientific',
+      sound: 0,
+      music: 1,
     });
   });
 

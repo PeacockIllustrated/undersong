@@ -4,6 +4,7 @@ import { OFFLINE } from '../data/upgrades';
 import type { Decimal } from '../sim/decimal';
 import type { Game } from '../sim/game';
 import { step } from '../sim/step';
+import { TICK_MS } from '../data/constants';
 
 export interface AwaySummary {
   /** Wall-clock time away, in seconds. */
@@ -19,9 +20,18 @@ export interface AwaySummary {
 /** Most sim steps a catch-up may take; longer absences use longer steps. */
 const MAX_STEPS = 1200;
 
-/** canon §4.8: credit `min(t, cap) × eff` of village time, simulated in coarse steps with pests and collapses held off. */
+/**
+ * canon §4.8: credit `min(t, cap) × eff` of village time, simulated in coarse steps with pests and collapses held off.
+ * Absences under a minute play on in full.
+ */
 export function catchUp(g: Game, awayMs: number): AwaySummary | null {
-  if (!(awayMs >= OFFLINE.minS * 1000)) return null;
+  if (!(awayMs > 0)) return null;
+  if (awayMs < OFFLINE.minS * 1000) {
+    // a quick look at another app: the village simply played on, at full speed and with no summary (ADR-026)
+    for (let t = TICK_MS; t <= awayMs; t += TICK_MS) step(g, TICK_MS);
+    g.events.length = 0;
+    return null;
+  }
   const s = g.state;
   const long = s.upgrades.longShift === 1;
   const capMs = (long ? OFFLINE.longShift.capH : OFFLINE.capH) * 3600_000;

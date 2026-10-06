@@ -33,6 +33,10 @@ export interface Game {
   reachDirty: boolean;
   /** Deepest row of the reach (valid after reach() runs). */
   reachMaxY: number;
+  /** Solid tiles beside the reach, in scan order (row by row): the faces anyone could work. Rebuilt with the reach. */
+  frontier: number[];
+  /** The frontier faces a miner would consider for one pick tier, worked out once per reach. */
+  faces: { tier: number; list: number[] } | null;
   /** True while catching up on time away: pests and collapses wait for the player. */
   offline?: boolean;
   /** Tiles whose water may still move (not saved: rebuilt from the water itself on load). */

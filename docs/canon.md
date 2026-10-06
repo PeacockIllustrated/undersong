@@ -67,7 +67,7 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 | 4.5  | Light factor              | `L ≥ 0.6 → 1.0`, `0.3 ≤ L < 0.6 → 0.7`, `L < 0.3 → 0.4`                                                                                                                                                                        |
 | 4.6  | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult × lightFactor)` (was 2.5; tuned by the balance sim, ADR-015). `lightFactor` (§4.5) applies only from 150 ft down (ADR-017); above that it is 1                              |
 | 4.7  | Vein Rush                 | `mult = min(5, 1 + 0.25 × chain)`; the chain grows with each ore tile mined next to (8-way) the last one, and resets on non-ore or after the Foreman stands idle 1.2 s                                                         |
-| 4.8  | Offline gain              | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; Long Shift 16 h, eff 0.75; max cap 24 h, eff 1.0. Absences under 60 s are not counted. Pests and collapses wait while you are away                                          |
+| 4.8  | Offline gain              | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; Long Shift 16 h, eff 0.75; max cap 24 h, eff 1.0. Absences under 60 s play on at full speed, with no summary (ADR-026). Pests and collapses wait while you are away         |
 | 4.9  | Haul throughput           | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles`                                                                                                                                                       |
 | 4.10 | Cave-in unlock            | `maxDepth_ft ≥ 300` **and** Verse II found                                                                                                                                                                                     |
 | 4.11 | Echo power                | every worker's rate × `(1 + 0.03 × echoesEverEarned)` (ADR-017)                                                                                                                                                                |
@@ -345,3 +345,25 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 
 - _Seal the shaft:_ Endless Depth. The floor of the Heart opens 64 rows at a time whenever the mine comes within 24 rows of the bottom, through the biome looks of §2 in turn.
 - _Sing the last verse:_ New Song+. Each song sung adds 50% to the Echoes from every Cave-in after it, and the verses come back sung: their two lines the other way round. The verse text itself never changes.
+
+## §16 Sound (ADR-027)
+
+All sound is synthesised; recipes live in `src/data/sounds.ts`.
+
+| Cue                  | When                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| Chip                 | every 270 ms while the Foreman works a face (one swing)                                   |
+| Break                | a tile breaks: soft earth, stone, ore (with a glint), crystal and singing stone (ringing) |
+| Far break            | a miner breaks a tile on screen                                                           |
+| Drop                 | ore into the pack; +2 semitones per Vein Rush link, at most +12                           |
+| Smelt                | a bar from the forge (at most one every 1.8 s)                                            |
+| Bought               | anything bought                                                                           |
+| Refused, pest, pop   | a tap that can't be acted on; a pest appears on screen; a pest is cleared                 |
+| Chest, record, biome | a chest opens; a new depth record; a new biome this run                                   |
+| Collapse, Cave-in    | a roof fall; the Cave-in                                                                  |
+
+**The Undersong** (one note per verse, I–XII, in Hz): 440, 523.25, 587.33, 659.25, 587.33, 783.99, 659.25, 880, 783.99, 659.25, 587.33, 440. Finding a verse plays the song so far, ending on that verse's note, at most five notes.
+
+**The hum**: a root and a fifth under a 520 Hz low-pass, deepening with depth (gain 0.05 at the top of Topsoil to 0.16 at 381 tiles). Roots by biome: Holloway none, Topsoil 55, Glowroot 65.41, Flooded Halls 49, Singing Geodes 73.42, Ember Deep 46.25, Hollow Heart 55.
+
+**Levels**: Sound and The hum are each Off, Low (0.35), Medium (0.7) or High (1). Defaults: Sound Medium, The hum Low.

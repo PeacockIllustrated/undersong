@@ -17,6 +17,8 @@ export const SHAFT_X = 40;
 // Simulation timing. dev-bible §1.2
 export const TICK_MS = 100;
 export const MAX_TICKS_PER_FRAME = 50;
+/** A step at least this long (in seconds) is a catch-up step: workers carry leftover work onto the next tile. */
+export const COARSE_STEP_S = 0.5;
 export const AUTOSAVE_MS = 30_000;
 
 export const SAVE_KEY = 'undersong.save';

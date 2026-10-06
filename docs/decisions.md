@@ -148,6 +148,30 @@ Decision:
 - The ending target moves from 14 h to 11 h 30. Act IV keeps the five hours the design bible gives it, after Act III's new end at 6 h 30 (ADR-021).
   Consequences: no save change (`ending`, `ngPlus` and `endlessRows` were already in the state). The ending and scene wording is Claude's and open to Tom's edits.
 
+**ADR-026 · Offline catch-up that pays in full, and pacing as a CI gate** · 2026-10-06 · Accepted (from Tom's go-ahead on the code review)
+Context: a review of main found that coarse catch-up steps (12 to 36 s) let each miner break at most one tile per step and threw the leftover work away, so 8 h away paid about two thirds of what real time would (626 tiles against 927). Coming back after 8 h also froze the page for 3 to 9 s, 84% of it in `chooseFace` scanning the whole grid for every miner. The balance sim never failed anything, so a pacing regression could merge silently.
+Decision:
+
+- A step of at least `COARSE_STEP_S` (0.5 s) is a catch-up step. In one, a miner or the Foreman that finishes a tile spends the time left over on its next face. Live play (100 ms ticks) is untouched: both balance sims give exactly the same output as before.
+- The reach build also collects the frontier (every solid tile beside the reach), and the faces a miner would consider are cached per pick tier until the mine changes. `chooseFace` keeps its scoring and its row-by-row tie-break. 8 h with 40 miners now catches up in about 1 s.
+- Absences under a minute (canon §4.8) now play on at full speed with no summary, instead of being lost. A phone user who glances at a message no longer loses that time.
+- `npm run sim -- --strict` exits non-zero when a target misses by more than ±15%. CI runs the Act I sim strictly on every PR (it is deterministic and takes seconds); a nightly workflow runs Act II, Act III and the ending.
+  Consequences: offline returns pay what the canon formula promises, which is more than before; M5-05's balance pass should look at it. No save change.
+
+**ADR-027 · Sound** · 2026-10-06 · Accepted (Tom: sound as the next quality-of-life update)
+Context: the game had no audio at all. The taste report's biggest asks are constant feedback and readable jumps, and a game called Undersong should be heard.
+Decision:
+
+- Every sound is synthesised with Web Audio from small recipes in `src/data/sounds.ts` (tones and filtered noise with an envelope). No audio files and no new dependency.
+- Sounds follow sim events, the way the renderer's effects do, and never touch the sim. The Foreman is always heard; miners, and pests turning up, only when they are on screen. Sounds are panned by where they happen.
+- The pick strikes in time with the Foreman's swing while a face is being worked, so a long dig is never silent. Ore chimes into the pack, a step higher for each link of a Vein Rush, up to an octave.
+- Each material family has its own crunch: soft earth, stone, ore with a glint, and ringing crystal.
+- A verse plays the Undersong: one note per verse (canon §16), the song so far up to the verse just found. The tune grows as the player finds more of it.
+- A low drone, "the hum", follows the biome the Foreman stands in and deepens with depth. Holloway on the surface is quiet.
+- Every cue has a minimum gap, and everything runs through a soft limiter, so a busy mine never turns into noise.
+- Settings get Sound and The hum rows (Off, Low, Medium, High), saved with the other settings. M mutes and unmutes. Audio starts on the first touch or key (browsers require it) and is suspended while the tab is hidden.
+  Consequences: no save or balance change. The sound design is mine and open to Tom's ear; every number is in `src/data/sounds.ts`.
+
 ---
 
 ## Open questions for Tom

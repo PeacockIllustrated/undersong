@@ -1,5 +1,5 @@
 // Headless balance sim: a bot plays like an engaged player and reports time to each canon §5 milestone.
-// Usage: npm run sim -- [--seeds=5] [--until=first-cavein] [--minutes=90]
+// Usage: npm run sim -- [--seeds=5] [--until=first-cavein] [--minutes=90] [--strict]
 import { TICK_MS, SHAFT_X } from '../src/data/constants';
 import { MATERIALS, canDig, isMineable } from '../src/data/materials';
 import { lightFactor } from '../src/data/light';
@@ -678,3 +678,5 @@ console.log(
   `\nDepth reached (ft): ${runs.map((r) => r.depth).join(', ')} · miners: ${runs.map((r) => r.miners).join(', ')}`,
 );
 console.log(ok ? '\nAll pacing targets within ±15%.' : '\nSome pacing targets are outside ±15%.');
+// --strict makes a miss fail the run, so CI catches pacing regressions
+if (!ok && args.strict === 'true') process.exitCode = 1;
