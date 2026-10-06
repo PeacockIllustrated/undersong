@@ -11,6 +11,8 @@ export const LIGHT = {
   torchDeepFromD: 38,
   /** Lanterns burn brighter and reach further, at a Lumen upkeep. */
   lantern: 1.5,
+  /** The drowned town's windows. canon §12 */
+  oldLamp: 0.8,
   /** Range bound used by incremental relighting: max strength / min decay. */
   margin: 19,
   /** Render-only glow around the Foreman (ADR-010). Never affects the sim. */

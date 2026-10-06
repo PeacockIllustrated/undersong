@@ -1,8 +1,9 @@
 // Hired miners: they work the face nearest the shaft, preferring ore, and slow down in the dark. canon §4.4, §4.5
 import { lightFactor } from '../data/light';
 import { MATERIALS, canDig, isMineable } from '../data/materials';
-import { PICKS } from '../data/items';
 import { PESTS } from '../data/economy';
+import { EELS } from '../data/water';
+import { besideWater } from './water';
 import { SHAFT_X } from '../data/constants';
 import { NEIGH4 } from '../world/world';
 import { hardnessAt } from './formulas';
@@ -12,7 +13,7 @@ import type { Miner, Tile } from './state';
 import { makeRng } from './rng';
 import { say } from './story';
 import { mineTile } from './dig';
-import { deepMult, minerMult, pestMult } from './power';
+import { deepMult, minerMult, pestMult, pickPower } from './power';
 
 function taken(g: Game, x: number, y: number, self: Miner): boolean {
   const f = g.state.foreman;
@@ -88,7 +89,7 @@ export function minerRate(g: Game, m: Miner): number {
   const t = m.target;
   if (!t) return 0;
   const s = g.state;
-  const power = PICKS[s.pickTier]?.power ?? 1;
+  const power = pickPower(s);
   return power * lightFactor(g.world.faceLight(t.x, t.y)) * minerMult(s) * deepMult(s, g.world.depth(t.y));
 }
 
@@ -128,6 +129,15 @@ export function stepMiners(g: Game, dt: number): void {
         g.events.push({ kind: 'pest', x: m.x, y: m.y, cleared: false });
         say(g, 'beetle');
       }
+    }
+    // Cave eels bite at miners working from the water's edge (canon §12)
+    const wet = m.stalledBy === null ? (besideWater(g, t.x, t.y) ?? besideWater(g, m.x, m.y)) : null;
+    if (wet && !g.offline && rng.next() < EELS.chancePerSec * dt) {
+      const id = s.nextId++;
+      s.pests.push({ id, kind: 'eel', x: wet.x, y: wet.y, born: s.t, minerId: m.id });
+      m.stalledBy = id;
+      g.events.push({ kind: 'pest', x: wet.x, y: wet.y, cleared: false });
+      say(g, 'eel');
     }
   }
   s.rng = rng.state();

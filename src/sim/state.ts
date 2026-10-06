@@ -6,7 +6,7 @@ import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface Tile {
   x: number;
@@ -102,6 +102,8 @@ export interface GameState {
   haulAcc: number;
   kilnProgress: number;
   lampProgress: number;
+  /** Fraction of a water unit the pumps have banked toward their next unit. */
+  pumpAcc: number;
   /** Village helpers hired (level by id). They stay through a Cave-in. canon §14 */
   helpers: Partial<Record<HelperId, number>>;
   /** Seconds banked toward Pell's next shoo. */
@@ -114,8 +116,8 @@ export interface GameState {
   world: {
     diffs: Record<string, number>;
     objects: Record<string, ObjKind>;
-    /** Water levels, run-length encoded, or null when untouched. */
-    water: string | null;
+    /** Water levels (0–8) of every tile whose water has changed since the mountain was made. */
+    water: Record<string, number>;
     endlessRows: number;
     oldShaftD: number;
   };
@@ -178,6 +180,7 @@ export function newGame(seed: number): GameState {
     haulAcc: 0,
     kilnProgress: 0,
     lampProgress: 0,
+    pumpAcc: 0,
     helpers: {},
     helperAcc: 0,
     miners: [],
@@ -194,7 +197,7 @@ export function newGame(seed: number): GameState {
       idleMs: 0,
       lastOre: null,
     },
-    world: { diffs: {}, objects: {}, water: null, endlessRows: 0, oldShaftD: 0 },
+    world: { diffs: {}, objects: {}, water: {}, endlessRows: 0, oldShaftD: 0 },
     echoes: ZERO(),
     echoesEver: ZERO(),
     upgrades: {},

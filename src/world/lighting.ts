@@ -16,6 +16,7 @@ export function sourceAt(w: World, x: number, y: number): [number, number] {
       const deep = w.depth(y) >= LIGHT.torchDeepFromD && !w.torchSteady;
       warm = Math.max(warm, (deep ? LIGHT.torchDeep : LIGHT.torch) * w.torchMult);
     } else if (o === 'lantern' && w.lanternsLit && !w.dimmed.has(i)) warm = Math.max(warm, LIGHT.lantern);
+    else if (o === 'oldlamp') warm = Math.max(warm, LIGHT.oldLamp);
   } else {
     const e = MATERIALS[m]?.emit;
     if (e) {

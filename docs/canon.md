@@ -89,7 +89,7 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 | First Cave-in available | 30 min (was 45; see ADR-020) |
 | Echoes from a typical first Cave-in | 6–10 |
 | Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 2 h 50 min (was 4 h; see ADR-020) |
-| Act III end | 9 h |
+| Act III end: 1000 ft reached and Verses VI–X known | 6 h 30 min (was 9 h; see ADR-021) |
 | Ending reached | 14 h |
 
 ## §6 Art
@@ -171,6 +171,7 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Gold ore | 28 | 1 Gold ore | 5 |
 | Heartstone | 60 | 1 Heartstone | 6 |
 | Old brick | 10 | 1 Brick | shrines, drowned town |
+| Singing stone | 14 | — | the Geodes' own rock (M3) |
 
 ### 8.1 Pick gates (ADR-017)
 
@@ -181,7 +182,7 @@ The lowest pick that can break a material at all. Anything not listed breaks wit
 | Slate | Copper pick |
 | Iron ore | Bronze pick |
 | Silver ore, old brick | Iron pick |
-| Aquamarine | Silver pick |
+| Aquamarine, singing stone | Silver pick |
 | Resonant crystal | Aquamarine pick |
 | Basalt, ember ore, gold ore | Crystal pick |
 | Heartstone, heartrock | Ember pick |
@@ -203,7 +204,7 @@ Topsoil: copper `n1 > 0.7`, tin `n2 > 0.76`. Glowroot: iron `n1 > 0.7`, copper `
 | Bronze pick | 25 Bronze bars | pickPower 3 |
 | Rope haul | start | carrierSpeed 1 tile/s, capacity 5 |
 | Winch lift | 40 Copper bars | carrierSpeed 3 tiles/s, capacity 10 |
-| Rails (Act II) | 8 Iron bars per 10 tiles | carrierSpeed 8 tiles/s, capacity 25 |
+| Rails (Act II) | 8 Iron bars per 10 tiles, at most 80 (ADR-021) | carrierSpeed 8 tiles/s, capacity 25 |
 | Torch | 1 Copper bar for 3 | Light 1.0, no upkeep, radius limited by decay |
 
 ### 9.1 Act I extras (v0)
@@ -250,9 +251,45 @@ Three branches of six. Each needs the one above it in its branch.
 | Lantern | 1 Iron bar + 8 Lumen | Light 1.5 warm; burns 0.05 Lumen a second while lit. At 0 Lumen every lantern goes dark |
 | Support | 4 Bricks | Stops small collapses within 4 tiles |
 | Iron pick | 15 Iron bars | pickPower 5 |
-| Rails | 8 Iron bars per 10 tiles of mine depth (§9) | carrierSpeed 8, capacity 25 |
+| Rails | 8 Iron bars per 10 tiles of mine depth, at most 80 (§9, ADR-021) | carrierSpeed 8, capacity 25 |
 | Small collapse | From 150 ft: 3% per tile opened when 14+ of the 25 tiles around it are open and no support is near | Up to 5 roof tiles fall as rubble. Never on the shaft, a worker or an object, and never if it would cut anyone off |
 | Lantern moth | 1/150 per lit lantern per second | Darkens that lantern until tapped |
+
+## §12 Act III: the Flooded Halls (v0)
+
+| Thing | Value |
+|---|---|
+| Water | A level 0–8 on each open tile. It falls first, then spreads sideways to a neighbour at least 2 lower. At 4 or more a tile is flooded: nobody stands or digs in it, and reach goes around it |
+| Silver ore | Drops 2. Five ore make a bar |
+| Pump | 2 Silver bars + 6 Iron bars. Drains 12 water units a second from tiles within 6, topmost first |
+| Cave eel | 1/60 a second for each miner working beside flooded water. Stops that miner until tapped |
+| The drowned town | Four drowned houses on a street at the foot of the Halls. Each one drained (nothing inside flooded) tells a little more; Verses VI–VIII are carved on the back walls of the first three |
+| Old lamp | Still burning in the drowned houses, light 0.8 |
+| Bram’s pump crew | 8 Silver bars + 4 Iron bars. Picks up pumps standing dry, keeps 1 pump in hand, and sets pumps at the water nearest the shaft in the deepest 8 rows (canon §14) |
+
+## §13 Act III: the Singing Geodes and the Song-loom (v0)
+
+| Thing | Value |
+|---|---|
+| Singing stone | The Geodes' base rock. Hardness 14, needs the silver pick |
+| Resonant crystal | Rings around Verses IX and X |
+| Shard golem | 20% chance when resonant crystal is mined. Stops miners within 4 until tapped 3 times |
+| Song-loom | 25 Resonant crystal + 20 Silver bars × 1.15ⁿ; offered from 700 ft. Weaves charms |
+| Charm slots | 1 + Song-loom levels, at most 4 |
+| Weaving | The nth charm costs 8 + 4n crystal and 6 silver bars. Each known verse weaves once. Woven charms are kept through a Cave-in; slots beyond the first empty at a Cave-in |
+
+| Charm | Verse | Effect |
+|---|---|---|
+| Hush | I | Hand-mining +20% |
+| Name | II | Miners dig 15% faster |
+| Lantern | III | Lanterns burn 25% less Lumen |
+| Candle | IV | The Lamp-works makes 25% more Lumen |
+| Old Pick | V | Every pick hits 20% harder |
+| Window | VI | Pumps drain 50% faster |
+| River | VII | Haulage carries 50% more |
+| Lamp | VIII | Torches burn 20% brighter |
+| Crystal | IX | Shard golems wake half as often |
+| Hollow | X | Cave-ins give 15% more Echoes |
 
 ## §14 Hands about the village (ADR-020)
 
@@ -261,9 +298,10 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 | Helper | Cost | Effect |
 |---|---|---|
 | Lamplighters (Wren) | 8 Copper bars | Miners light their own dark faces from stock. The village keeps 3 torches in hand, and 2 lanterns once there is a Lamp-works (only while Lumen is above 30) |
-| Pell’s rounds I | 12 Copper bars | Pell clears the oldest pest every 4 s |
+| Pell’s rounds I | 12 Copper bars | Pell clears the oldest pest every 4 s: beetles, moths, eels, and one tap of a shard golem |
 | Pell’s rounds II | 12 Bronze bars | Every 1.5 s |
 | Bram’s props | 10 Bricks | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand |
+| Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12) |
 
 ### 14.1 Feedback
 

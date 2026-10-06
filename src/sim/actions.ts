@@ -6,6 +6,8 @@ import { PICKS } from '../data/items';
 import { UPGRADES } from '../data/upgrades';
 import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
+import type { CharmId } from '../data/charms';
+import { equip, weave } from './charms';
 import type { HelperId } from '../data/helpers';
 import { hireHelper, hitPest } from './helpers';
 import { D } from './decimal';
@@ -17,10 +19,10 @@ import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
 
-export type Tool = 'dig' | 'torch' | 'lantern' | 'support';
+export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump';
 
 /** Tools that place an object from stock. */
-export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support'];
+export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support', 'pump'];
 
 export type Action =
   | { type: 'dig'; x: number; y: number }
@@ -37,6 +39,8 @@ export type Action =
   | { type: 'buyBuilding'; id: BuildingId }
   | { type: 'setRecipe'; recipe: Recipe }
   | { type: 'buyUpgrade'; id: string }
+  | { type: 'weave'; id: CharmId }
+  | { type: 'equip'; id: CharmId }
   | { type: 'hireHelper'; id: HelperId }
   | { type: 'caveIn' }
   /** The UI has shown the oldest story event. */
@@ -98,7 +102,7 @@ function place(
   obj: ObjKind | undefined,
 ): void {
   const s = g.state;
-  const stock = kind as 'torch' | 'lantern' | 'support';
+  const stock = kind as 'torch' | 'lantern' | 'support' | 'pump';
   if (obj === kind) {
     delete s.world.objects[key];
     s.res[stock] = s.res[stock].add(1);
@@ -208,6 +212,12 @@ export function apply(g: Game, a: Action): void {
       if (u.id === 'lamplit' || u.id === 'steadyFlame') syncWorld(s, g.world);
       return;
     }
+    case 'weave':
+      weave(g, a.id);
+      return;
+    case 'equip':
+      equip(g, a.id);
+      return;
     case 'hireHelper':
       hireHelper(g, a.id);
       return;

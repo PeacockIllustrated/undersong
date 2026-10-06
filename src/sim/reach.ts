@@ -1,6 +1,7 @@
 // Which air tiles the village can walk to: the open sky and everything dug out from it.
 import { SHAFT_X } from '../data/constants';
 import { M } from '../data/materials';
+import { WATER } from '../data/water';
 import type { Game } from './game';
 
 export function reach(g: Game): Uint8Array {
@@ -24,7 +25,8 @@ export function reach(g: Game): Uint8Array {
     const tryN = (nx: number, ny: number): void => {
       if (nx < 0 || nx >= w.w || ny < 0 || ny >= w.h) return;
       const j = ny * w.w + nx;
-      if (r[j] || w.mat[j] !== M.AIR) return;
+      // nobody walks through flooded tiles (canon §12)
+      if (r[j] || w.mat[j] !== M.AIR || w.water[j]! >= WATER.deep) return;
       r[j] = 1;
       q[t++] = j;
       if (ny > g.reachMaxY) g.reachMaxY = ny;

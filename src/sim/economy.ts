@@ -1,5 +1,14 @@
 // Costs, purchases, the forge and haulage. canon §4.1, §4.9, §9.
-import { COST_GROWTH, FORGE, HAULS, MINER_BASE, SMELT, TORCH_CRAFT, WHETSTONE } from '../data/economy';
+import {
+  COST_GROWTH,
+  FORGE,
+  HAULS,
+  MINER_BASE,
+  RAIL_MAX_LOTS,
+  SMELT,
+  TORCH_CRAFT,
+  WHETSTONE,
+} from '../data/economy';
 import type { Cost } from '../data/items';
 import { PICKS } from '../data/items';
 import { HAULED, type ResKey } from '../data/resources';
@@ -8,6 +17,7 @@ import { SHAFT_X } from '../data/constants';
 import { D, Decimal } from './decimal';
 import type { Game } from './game';
 import type { GameState } from './state';
+import { charm } from './power';
 import { homecoming } from './power';
 
 export function scaled(c: Cost, owned: number, mult = 1): Decimal {
@@ -45,7 +55,7 @@ export function nextHaul(s: GameState): { res: ResKey; amount: Decimal }[] | nul
   const h = HAULS[s.haulTier + 1];
   if (!h) return null;
   // canon §9: rails are laid down the whole mine, so they cost per 10 tiles of its depth
-  const k = h.perTenTiles ? Math.max(1, Math.ceil(s.stats.maxDepthD / 10)) : 1;
+  const k = h.perTenTiles ? Math.min(RAIL_MAX_LOTS, Math.max(1, Math.ceil(s.stats.maxDepthD / 10))) : 1;
   return h.cost.map((c) => ({ res: c.res, amount: D(c.n * k) }));
 }
 
@@ -116,7 +126,7 @@ export function shaftDepth(g: Game): number {
 /** canon §4.9: ore_per_s_max = speed × capacity / shaftDepth. */
 export function haulRate(g: Game): number {
   const h = HAULS[g.state.haulTier] ?? HAULS[0]!;
-  return (h.speed * h.capacity * homecoming(g.state)) / shaftDepth(g);
+  return (h.speed * h.capacity * charm(g.state, 'river') * homecoming(g.state)) / shaftDepth(g);
 }
 
 export function stepHaul(g: Game, dt: number): void {

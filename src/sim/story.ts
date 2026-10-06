@@ -4,8 +4,13 @@ import { LINES } from '../story/lines';
 import type { Game } from './game';
 import { canCaveIn } from './cavein';
 import { BIOMES } from '../data/biomes';
+import { SHAFT_X } from '../data/constants';
+import { flooded } from './water';
+import { shaftFloor } from './miners';
 
 const GLOWROOT = BIOMES[2]!;
+const HALLS = BIOMES[3]!;
+const GEODES = BIOMES[4]!;
 
 export function say(g: Game, id: string): void {
   const st = g.state.story;
@@ -53,6 +58,29 @@ export function stepStory(g: Game): void {
     say(g, 'glowrootDone');
   }
   if (s.verses.run[2] && s.verses.run[3] && s.verses.run[4]) first(g, 'glowrootVerses');
+  // Act III
+  if (s.stats.maxDepthD >= HALLS.d0 + 2) {
+    first(g, 'halls');
+    say(g, 'hallsMeet');
+  }
+  if (s.res.silverOre.gt(0) || s.underground.silverOre.gt(0)) {
+    first(g, 'silver');
+    say(g, 'firstSilver');
+  }
+  if (s.stats.firsts.halls !== undefined && s.t % 1000 === 0 && flooded(g, SHAFT_X, shaftFloor(g) - 1))
+    say(g, 'flooded');
+  if (s.stats.firsts.pumped !== undefined) say(g, 'pumped');
+  if (s.stats.maxDepthD >= GEODES.d0 + 2) say(g, 'geodesMeet');
+  if (s.res.crystal.gt(0) || s.underground.crystal.gt(0)) {
+    first(g, 'crystal');
+    say(g, 'firstCrystal');
+  }
+  if (s.verses.run[5] && s.verses.run[6] && s.verses.run[7]) first(g, 'hallsVerses');
+  if (s.stats.maxDepthD >= GEODES.d1) {
+    first(g, 'ft1000');
+    say(g, 'geodesDone');
+  }
+  if (s.verses.run.slice(5, 10).every(Boolean)) first(g, 'act3Verses');
   if (canCaveIn(s)) {
     first(g, 'caveInReady');
     say(g, 'caveInReady');

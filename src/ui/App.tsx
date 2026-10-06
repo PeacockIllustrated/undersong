@@ -113,6 +113,9 @@ export function App({ ui }: { ui: UiBridge }) {
   const held = HUD_ORDER.filter((k) => s.res[k].gt(0) && (k !== 'rubble' || s.buildings.kiln > 0));
   const moths = s.pests.filter((p) => p.kind === 'moth');
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
+  const eels = s.pests.filter((p) => p.kind === 'eel');
+  const golems = s.pests.filter((p) => p.kind === 'golem');
+  const golemStopped = s.miners.filter((m) => golems.some((p) => p.id === m.stalledBy)).length;
   const tools: { id: Tool; sprite: string; label: string; stock?: ResKey; show: boolean; title: string }[] = [
     {
       id: 'torch',
@@ -137,6 +140,14 @@ export function App({ ui }: { ui: UiBridge }) {
       stock: 'support',
       show: s.buildings.kiln > 0 || s.res.support.gt(0),
       title: 'Tap open ground to prop the roof; supports stop collapses nearby',
+    },
+    {
+      id: 'pump',
+      sprite: 'obj-pump',
+      label: 'Pump',
+      stock: 'pump',
+      show: s.stats.firsts.halls !== undefined || s.res.pump.gt(0),
+      title: 'Tap open ground at the water’s edge to set a pump; tap a pump to take it up',
     },
   ];
   void RES_KEYS;
@@ -171,15 +182,22 @@ export function App({ ui }: { ui: UiBridge }) {
               </div>
             )}
           </div>
-          {(beetles.length > 0 || moths.length > 0) && (
+          {s.pests.length > 0 && (
             <button
               class="panel alert"
               style={{ pointerEvents: 'auto' }}
-              onClick={() => ui.lookAt(s.pests[0]!.x, s.pests[0]!.y)}
+              onClick={() => {
+                const p = golems[0] ?? eels[0] ?? beetles[0] ?? s.pests[0]!;
+                ui.lookAt(p.x, p.y);
+              }}
             >
-              {beetles.length > 0
-                ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
-                : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
+              {golems.length > 0
+                ? `Shard golem · ${golemStopped} miner${golemStopped === 1 ? '' : 's'} stopped. Tap it ${golems[0]!.hp ?? 1} more time${(golems[0]!.hp ?? 1) > 1 ? 's' : ''}.`
+                : eels.length > 0
+                  ? `Eels · ${eels.length} miner${eels.length > 1 ? 's' : ''} bitten.`
+                  : beetles.length > 0
+                    ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
+                    : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
               Show me
             </button>
           )}

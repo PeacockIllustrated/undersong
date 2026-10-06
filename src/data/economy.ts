@@ -92,10 +92,11 @@ export const CRAFTS = {
     makes: 1,
   },
   support: { cost: [{ res: 'brick', n: 4 }] as Cost[], makes: 1 },
+  // mostly iron: the first pump has to be affordable from the silver above the waterline
   pump: {
     cost: [
-      { res: 'silverBar', n: 6 },
-      { res: 'ironBar', n: 4 },
+      { res: 'silverBar', n: 2 },
+      { res: 'ironBar', n: 6 },
     ] as Cost[],
     makes: 1,
   },
@@ -117,10 +118,13 @@ export const MOTHS = { chancePerSec: 1 / 150 };
 
 /** Echoes earned (lifetime) speed every worker by this much each. canon §4.11 */
 export const ECHO_POWER = 0.03;
+/** Rails are charged for at most this many 10-tile lots, so a village reaching the Halls can still afford them (ADR-021). */
+export const RAIL_MAX_LOTS = 10;
+
 export const HAULS: readonly HaulDef[] = [
   { name: 'Rope haul', speed: 1, capacity: 5, cost: [] },
   { name: 'Winch lift', speed: 3, capacity: 10, cost: [{ res: 'copperBar', n: 40 }] },
-  // canon §9: rails cost 8 iron bars per 10 tiles of shaft (charged on the shaft depth when built)
+  // canon §9: rails cost 8 iron bars per 10 tiles of shaft (charged on the shaft depth when built), at most 10 lots (ADR-021)
   { name: 'Rails', speed: 8, capacity: 25, cost: [{ res: 'ironBar', n: 8 }], perTenTiles: true },
   { name: 'Water lift', speed: 15, capacity: 60, cost: [{ res: 'silverBar', n: 40 }] },
   { name: 'Steam lift', speed: 30, capacity: 150, cost: [{ res: 'goldBar', n: 40 }] },

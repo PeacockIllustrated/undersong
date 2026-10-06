@@ -147,6 +147,102 @@ export const LINES: Record<string, Line> = {
     who: 'wren',
     text: 'Water below. I can hear it through the stone. The lanterns won’t like it, and neither will you.',
   },
+  // Act III: the Flooded Halls and the Singing Geodes. The drowned town is Holloway.
+  hallsMeet: {
+    id: 'hallsMeet',
+    who: 'wren',
+    text: 'Look down, Foreman. There are lights under the water. Windows. Somebody built a village down here.',
+  },
+  firstSilver: {
+    id: 'firstSilver',
+    who: 'bram',
+    text: 'Silver. Five to a bar, same as the rest. Two bars and some iron make a pump, and a pump makes a road.',
+  },
+  flooded: {
+    id: 'flooded',
+    who: 'bram',
+    text: 'The shaft is taking water. Nobody can dig standing in that. Craft a pump and set it at the water’s edge.',
+  },
+  pumped: {
+    id: 'pumped',
+    who: 'wren',
+    text: 'Listen to it drink. Keep it going and we’ll see what those windows belong to.',
+  },
+  eel: {
+    id: 'eel',
+    who: 'pell',
+    text: 'Something in the water bit a miner’s boot! Tap it and it lets go.',
+  },
+  house0: {
+    id: 'house0',
+    who: 'bram',
+    text: 'That’s a forge. That’s my forge, Foreman. Same crack in the anvil. I’ve never been down here in my life.',
+  },
+  house1: {
+    id: 'house1',
+    who: 'wren',
+    text: 'My lamp-works. My wicks, trimmed the way I trim them, and the lamp still burning. I didn’t light it. I must have.',
+  },
+  house2: {
+    id: 'house2',
+    who: 'pell',
+    text: 'There’s a little bed in this one, and a carved bird on the sill. I carved that bird. I carved it last week.',
+  },
+  house3: {
+    id: 'house3',
+    who: 'foreman',
+    text: 'The last house is mine. There is a Survey Book on the table, open, and every page is full.',
+  },
+  verse5: {
+    id: 'verse5',
+    who: 'wren',
+    text: 'Every lit window is one we’re still keeping. So somebody kept these for us. Who keeps ours?',
+  },
+  verse6: {
+    id: 'verse6',
+    who: 'pell',
+    text: 'The river carried us here. Foreman, did we come down the mountain, or up it?',
+  },
+  verse7: {
+    id: 'verse7',
+    who: 'bram',
+    text: 'It’s Holloway. Holloway under the water, street for street, and older than Holloway. We’ve lived here before.',
+  },
+  geodesMeet: {
+    id: 'geodesMeet',
+    who: 'pell',
+    text: 'The rocks are singing! Not humming, singing. Can you hear the words?',
+  },
+  firstCrystal: {
+    id: 'firstCrystal',
+    who: 'wren',
+    text: 'Crystal that sings back. Bring twenty-five up with some silver and we can build a loom to weave the verses into it.',
+  },
+  golem: {
+    id: 'golem',
+    who: 'bram',
+    text: 'The crystal got up and walked! Hit it. Hit it again. They come apart if you keep at it.',
+  },
+  firstCharm: {
+    id: 'firstCharm',
+    who: 'pell',
+    text: 'It’s warm. The charm sings the verse back, in Mum’s voice. Wear it, Foreman. It helps.',
+  },
+  verse8: {
+    id: 'verse8',
+    who: 'pell',
+    text: 'Sing to the stone and the stone sings it all. I did, Foreman. It sang my name back to me.',
+  },
+  verse9: {
+    id: 'verse9',
+    who: 'foreman',
+    text: 'We sealed it, and slept, and woke, and came. All of us. Every cycle. Holloway is what is left each time the mountain forgets.',
+  },
+  geodesDone: {
+    id: 'geodesDone',
+    who: 'wren',
+    text: 'Heat coming up through the floor. Whatever we sealed down there, we’re nearly back to it.',
+  },
   // Helpers (ADR-020): each takes a chore away
   helper_lamps: {
     id: 'helper_lamps',
@@ -157,6 +253,11 @@ export const LINES: Record<string, Line> = {
     id: 'helper_pell',
     who: 'pell',
     text: 'I’ll do the rounds! Beetles, moths, anything. I’m faster than you anyway.',
+  },
+  helper_pumps: {
+    id: 'helper_pumps',
+    who: 'bram',
+    text: 'My lads will mind the pumps. Wherever the water climbs, there’ll be a pump drinking it.',
   },
   helper_props: {
     id: 'helper_props',

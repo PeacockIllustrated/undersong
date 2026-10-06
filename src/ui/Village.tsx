@@ -17,6 +17,10 @@ import { canPay, haulRate, minerCost, nextHaul, nextPick, torchCost, whetstoneCo
 import { minerRate } from '../sim/miners';
 import { buildingCost, buildingDef, buildingOffered, craftCost, lanterns, lumenUpkeep } from '../sim/village';
 import { lumenMult } from '../sim/power';
+import { CHARMS } from '../data/charms';
+import { PUMP } from '../data/water';
+import { canWeave, charmSlots, weaveCost } from '../sim/charms';
+import { pumpRate } from '../sim/water';
 import { HELPERS, HELPER_FX } from '../data/helpers';
 import { helperCost, helperOffered } from '../sim/helpers';
 import { bottleneck } from './feedback';
@@ -103,6 +107,53 @@ function Craft({ ui, id, label, s }: { ui: UiBridge; id: CraftId; label: string;
       </button>
       <Cost costs={c} have={s.res} />
       <span class="small">{fmt(s.res[id])} in hand</span>
+    </div>
+  );
+}
+
+/** canon §13: weave each known verse once, slot up to 1 + loom levels. */
+function Charms({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const cost = weaveCost(s);
+  const slots = charmSlots(s);
+  return (
+    <div class="charms">
+      <p class="small">
+        {s.charms.equipped.length} of {slots} charm slot{slots > 1 ? 's' : ''} in use. Woven charms are kept
+        through a Cave-in.
+      </p>
+      {CHARMS.filter((c) => s.verses.known[c.verse]).map((c) => {
+        const owned = s.charms.owned.includes(c.id);
+        const on = s.charms.equipped.includes(c.id);
+        return (
+          <div class="row charm" key={c.id}>
+            <img class="icon" src={spriteURL('charm')} alt="" />
+            <span class="grow">
+              <b>{c.name}</b> · {c.text}
+            </span>
+            {owned ? (
+              <button
+                class={`btn ${on ? 'primary' : ''}`}
+                disabled={!on && s.charms.equipped.length >= slots}
+                onClick={() => ui.dispatch({ type: 'equip', id: c.id })}
+              >
+                {on ? 'Worn' : 'Wear'}
+              </button>
+            ) : (
+              <>
+                <button
+                  class="btn"
+                  disabled={!canWeave(s, c.id) || !canPay(s, cost)}
+                  onClick={() => ui.dispatch({ type: 'weave', id: c.id })}
+                >
+                  Weave
+                </button>
+                <Cost costs={cost} have={s.res} />
+              </>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -225,7 +276,7 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             <p>
               {s.miners.length === 0
                 ? 'Miners work the nearest ore on their own and send it up the shaft. They dig slowly in the dark.'
-                : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by beetles` : ''}. About ${rate.toFixed(1)} hardness a second.`}
+                : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by pests` : ''}. About ${rate.toFixed(1)} hardness a second.`}
             </p>
             <div class="row">
               <button
@@ -320,6 +371,24 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             from the stone you dig by hand.
           </p>
           <Craft ui={ui} id="support" label={`Make a support`} s={s} />
+        </Building>
+
+        {(s.stats.firsts.halls !== undefined || s.res.pump.gt(0)) && (
+          <section class="card">
+            <img class="icon" src={spriteURL('obj-pump')} alt="" />
+            <div class="grow">
+              <h3>Pumps · {fmt(s.res.pump)} in hand</h3>
+              <p>
+                Each pump drains {pumpRate(ui.game).toFixed(0)} water a second within {PUMP.radius} tiles,
+                from the top down. Nobody can dig standing in a flooded tunnel. Use the Pump tool to set one.
+              </p>
+              <Craft ui={ui} id="pump" label="Make a pump" s={s} />
+            </div>
+          </section>
+        )}
+
+        <Building ui={ui} id="songloom">
+          <Charms ui={ui} />
         </Building>
 
         <section class="card">
