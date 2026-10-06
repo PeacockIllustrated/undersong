@@ -22,7 +22,18 @@ import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
 import type { MealId, WoodBuyId } from '../data/surface';
-import { buyPlot, buyWood, chop, eatMeal, harvest, plantSapling, ringFeast, surfaceTap } from './surface';
+import {
+  buyPlot,
+  buyWood,
+  chop,
+  eatMeal,
+  harvest,
+  plantCrop,
+  plantSapling,
+  ringFeast,
+  surfaceTap,
+  workCellar,
+} from './surface';
 
 export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump' | 'vent';
 
@@ -53,6 +64,8 @@ export type Action =
   | { type: 'harvest'; plot: number }
   | { type: 'chop'; tree: number }
   | { type: 'buyPlot' }
+  | { type: 'plantCrop'; crop: 'cress' | 'pepper' }
+  | { type: 'workCellar' }
   | { type: 'plantSapling' }
   | { type: 'eatMeal'; id: MealId }
   | { type: 'buyWood'; id: WoodBuyId }
@@ -272,6 +285,12 @@ export function apply(g: Game, a: Action): void {
       return;
     case 'buyPlot':
       buyPlot(g);
+      return;
+    case 'plantCrop':
+      plantCrop(g, a.crop);
+      return;
+    case 'workCellar':
+      workCellar(g);
       return;
     case 'plantSapling':
       plantSapling(g);

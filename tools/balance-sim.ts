@@ -36,6 +36,9 @@ import {
   mealCost,
   plotCost,
   saplingCost,
+  cellarCost,
+  paddyCost,
+  hotbedCost,
   treeStage,
   woodCost,
 } from '../src/sim/surface';
@@ -281,6 +284,12 @@ function tendSurface(g: Game): void {
   const spare = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
     !!c && canPay(s, c) && c[0]!.amount.lte(s.res.copperBar.mul(0.1)) && s.miners.length >= 2;
   if (spare(plotCost(s))) apply(g, { type: 'buyPlot' });
+  // act crops (M6-07): the cellar, paddies and hot-beds, each from a quarter of what is in hand
+  const spareAny = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
+    !!c && c.every((x) => s.res[x.res].mul(0.25).gte(x.amount));
+  if (spareAny(cellarCost(s))) apply(g, { type: 'workCellar' });
+  if (spareAny(paddyCost(s))) apply(g, { type: 'plantCrop', crop: 'cress' });
+  if (spareAny(hotbedCost(s))) apply(g, { type: 'plantCrop', crop: 'pepper' });
   for (const m of [...MEALS].sort((a, b) => sf.meals[a.id] - sf.meals[b.id]))
     if (canPay(s, mealCost(s, m.id) ?? [{ res: 'barley', amount: s.res.barley.add(1) }]))
       apply(g, { type: 'eatMeal', id: m.id });

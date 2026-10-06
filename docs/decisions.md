@@ -221,3 +221,13 @@ Decision:
 - The act crops (M6-07) and the tally board (rest of M6-06) are left for a follow-up PR.
 - Balance: uncapped meals made the ending about 35% faster (a meals-off run took one seed from 454 to 790 min), because long final runs bought many levels. Meals, the hearth and cottages are now capped per run (3, 2 and 5 levels). Act III sat at −12.6% before M6, so any surface speed pushed it out of band; slate goes from hardness 6 to 7 and singing stone from 14 to 17 to make room.
 **Result.** Act I strict-green (First Cave-in 31.6 min). Act III median 359 min (target 390), ending about 689 (target 690), 9 seeds each.
+
+## ADR-030 · Act crops are plots turned over, tied to each act's system
+
+**Context.** The Holloway Above proposal gave each act a crop: glowcaps in a root cellar (II), cress watered by the pumps (III), firepeppers warmed by ember ore (IV). The field row east of the shaft has no room for new beds, and the proposal called paddies "flooded plots".
+**Decision.**
+- Paddies and hot-beds are barley plots turned over (`Plot.crop`), so they share the field row and the 12-plot cap. The player trades barley they no longer need (its meals cap at 3) for the act's crop.
+- Paddies are capped at 2 per pump placed, and paddies past that stand dry rather than wither (the surface only adds, ADR-029). Hot-beds wait while there is no ember ore, and each harvest burns 1.
+- The cellar is drawn in the cross-section under the cookhouse, over the soil, and does not touch the tile grid.
+- Cress and firepepper are new village resources. Save v7 adds soup and broth levels and the cellar state.
+- Costs and caps are my own call, in `src/data/surface.ts` and canon §17.6. Pacing is checked after merge with the act3 and ending sims (the M6 working rule: ship, then tune).

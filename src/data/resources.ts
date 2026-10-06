@@ -24,6 +24,8 @@ export const RES_KEYS = [
   // from the surface (canon §17)
   'barley',
   'timber',
+  'cress',
+  'pepper',
   // placeable stock
   'torch',
   'lantern',
@@ -56,6 +58,8 @@ export const RES_NAMES: Record<ResKey, string> = {
   lumen: 'Lumen',
   barley: 'Barley',
   timber: 'Timber',
+  cress: 'Cress',
+  pepper: 'Firepepper',
   torch: 'Torch',
   lantern: 'Lantern',
   support: 'Support',
@@ -86,6 +90,8 @@ export const RES_SHORT: Record<ResKey, string> = {
   lumen: 'Lumen',
   barley: 'Barley',
   timber: 'Timber',
+  cress: 'Cress',
+  pepper: 'Firepepper',
   torch: 'Torch',
   lantern: 'Lantern',
   support: 'Support',

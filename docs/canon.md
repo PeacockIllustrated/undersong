@@ -392,6 +392,8 @@ Everything on the surface only adds: no hunger, no spoiling, no penalty for an e
 | ------------------ | -------------------- | ---------------------------- |
 | Miner’s bread      | 10 × 1.8ⁿ barley     | miners +5% a level, up to 3  |
 | Foreman’s porridge | 8 × 1.8ⁿ barley      | hand-mining +5% a level, up to 3 |
+| Cress soup         | 10 × 1.8ⁿ cress      | haulage +20% a level, up to 3 |
+| Pepper broth       | 10 × 1.8ⁿ firepepper | miners take 0.1 off a face's heat a level, up to 3 |
 
 Meals reset on a Cave-in. The feast bell fills by 1 per harvest (10 for a golden ear) and needs 150, ×1.6 per feast this run. Ringing it gives 45 s of every worker ×2 (the village multiplier) with crops growing ×3.
 
@@ -418,3 +420,14 @@ A tree that stands through 3 Cave-ins is an elder: never felled, it drops 2 timb
 
 The cairn by the headframe holds a stone for each of the last 5 Cave-ins. Each stone is marked with how deep that run went and the change from the run before. The tally board shows goods per second from each source (your pick, the miners' ore as it comes up the shaft, chests, Tansy's fields, Rook's woodlot), averaged over the last 60 to 120 s. Rubble does not count. The tally is a reading and is not saved.
 
+### 17.6 Act crops (ADR-030)
+
+Each act's crop hangs off a system that act already has. Paddies and hot-beds are barley plots turned over to another crop (the last barley plot is used); they ripen in the same 90 s, yield 3 (6 by hand), never come up golden, and count 1 toward the feast bell.
+
+| Act | Thing | Cost | Effect |
+| --- | ----- | ---- | ------ |
+| II  | Root cellar under the cookhouse | 4 Iron bars + 6 Bricks to dig, then 10 spores to seed; offered once the Lamp-works stands | 1 spore every 5 s |
+| III | Cress paddy | 3 Silver bars × 1.15ⁿ (n = paddies) | grows cress; each pump in the mine waters 2 paddies, the rest stand dry |
+| IV  | Firepepper hot-bed | 3 Gold bars × 1.15ⁿ (n = hot-beds), up to 4; offered from the Ember Deep (250 tiles) | grows firepeppers while ember ore is in hand; each harvest burns 1 ember ore |
+
+The cellar, paddies, hot-beds, soup and broth reset on a Cave-in.

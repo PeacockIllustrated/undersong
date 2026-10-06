@@ -140,3 +140,64 @@ def cottage(v):
     return c
 write('props', 'cottage', [cottage(0), cottage(1)], anchor=(16, 23), comment='frames: thatch, tile; they alternate along the row')
 print('surface sprites ok')
+
+# --- M6-07 act crops (ADR-030): cress paddies, firepepper hot-beds, the glowcap cellar ---
+def paddy(c, wet=True):
+    c.rect(0, 12, 16, 4, 'b'); c.hline(0, 15, 12, 'c')
+    if wet:
+        c.rect(1, 12, 14, 2, 'C'); c.hline(2, 13, 12, 'D'); c.px(4, 12, 'E'); c.px(11, 13, 'E')
+    else:
+        c.rect(1, 12, 14, 2, 'a'); c.px(5, 12, 'b'); c.px(10, 13, 'b')
+
+def cress(stage, wet=True):
+    c = Cv(16, 16); paddy(c, wet)
+    leaf, hi = ('h', 'i') if wet else ('y', 'c')
+    for i, x in enumerate((3, 8, 12)):
+        h = (2, 4, 6, 7)[stage] + (i % 2)
+        c.vline(x, 12 - h, 11, 'g')
+        for k in range(1, h, 2):
+            c.px(x - 1, 12 - k, leaf); c.px(x + 1, 11 - k, leaf)
+        c.px(x, 11 - h, hi)
+        if stage == 3: c.px(x - 1, 11 - h, 'i'); c.px(x + 1, 12 - h, 'i'); c.px(x, 10 - h, 'W')
+    return c
+write('crops', 'crop-cress', [cress(0), cress(1), cress(2), cress(3), cress(1, False)], comment='frames: sprout, leafy, tall, ripe, dry (no pump waters it)')
+
+def hotbed(c, warm=True):
+    c.rect(0, 11, 16, 5, 'R'); c.hline(0, 15, 11, 'o'); c.rect(1, 12, 14, 2, 'a')
+    for x in range(2, 14, 3):
+        c.px(x, 13, 'S' if warm else 's'); c.px(x + 1, 12, 'T' if warm else 't')
+
+def pepper(stage, warm=True):
+    c = Cv(16, 16); hotbed(c, warm)
+    for i, x in enumerate((4, 11)):
+        h = (2, 4, 6, 7)[stage]
+        c.vline(x, 11 - h, 11, 'g')
+        c.px(x - 1, 11 - h + 1, 'h'); c.px(x + 1, 11 - h + 2, 'h'); c.px(x, 10 - h, 'i')
+        if stage >= 2: c.px(x - 2, 12 - h, 'h'); c.px(x + 2, 11 - h, 'i')
+        if stage == 3:
+            for dx, dy in ((-1, 3), (1, 4), (2, 2)): c.vline(x + dx, 11 - h + dy, 12 - h + dy, 'S'); c.px(x + dx, 11 - h + dy, 'T')
+    return c
+write('crops', 'crop-pepper', [pepper(0), pepper(1), pepper(2), pepper(3), pepper(1, False)], comment='frames: sprout, leafy, flowering, ripe, cold (no ember ore)')
+
+def cellar(seeded):
+    c = Cv(16, 16)
+    c.rect(0, 0, 16, 16, 'a'); c.rect(1, 1, 14, 13, 'k'); c.hline(1, 14, 14, 'b'); c.hline(0, 15, 15, 'c')
+    c.vline(2, 1, 13, 'c'); c.vline(13, 1, 13, 'c'); c.hline(2, 13, 1, 'c')  # props and lintel
+    c.rect(3, 12, 10, 2, 'b')  # the bed
+    if seeded:
+        for x, h in ((4, 3), (7, 5), (10, 4), (12, 2)):
+            c.vline(x, 12 - h, 11, 'W'); c.hline(x - 1, x + 1, 11 - h, 'H'); c.px(x, 10 - h, 'J')
+        c.px(6, 4, 'J'); c.px(11, 3, 'H')
+    return c
+write('props', 'cellar', [cellar(False), cellar(True)], anchor=(8, 0), comment="the glowcap root cellar under Tansy's cookhouse; frames: empty, seeded")
+
+cr = Cv(16, 16)
+for x, top in ((5, 4), (8, 2), (11, 5)):
+    cr.vline(x, top, 13, 'g'); cr.px(x - 1, top + 1, 'i'); cr.px(x + 1, top + 3, 'h'); cr.px(x - 1, top + 5, 'h'); cr.px(x, top - 1, 'i')
+cr.hline(4, 12, 13, 'C'); cr.hline(5, 11, 14, 'D')
+write('items', 'cress', [cr])
+pp = Cv(16, 16)
+pp.vline(8, 1, 3, 'g'); pp.hline(7, 9, 3, 'h')
+for y in range(4, 14): pp.hline(6 + (y > 10), 10 - (y > 11), y, 'S')
+pp.vline(7, 5, 10, 'T'); pp.px(8, 14, 'R'); pp.vline(10, 5, 11, 'R')
+write('items', 'pepper', [pp])

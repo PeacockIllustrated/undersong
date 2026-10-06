@@ -1,10 +1,27 @@
 // Holloway above (M6): Tansy's fields and cookhouse, and Rook's woodlot. canon §17
-import { CAIRN, FEAST, FIELDS, MEALS, WOODLOT, WOOD_BUYS, PIT_PROP } from '../data/surface';
+import {
+  ACT_CROPS,
+  CAIRN,
+  FEAST,
+  FIELDS,
+  MEALS,
+  WOODLOT,
+  WOOD_BUYS,
+  PIT_PROP,
+  type MealDef,
+} from '../data/surface';
 import { TALLY_SOURCES, tallyRates, type TallySource } from '../sim/tally';
 import { canPay } from '../sim/economy';
 import {
+  cellarCost,
+  cellarOffered,
   feastNeed,
   feasting,
+  growing,
+  hotbedCost,
+  hotbedsOffered,
+  paddyCost,
+  pumpsPlaced,
   isElder,
   mealCost,
   plotCost,
@@ -23,15 +40,25 @@ type State = UiBridge['game']['state'];
 
 const STAGE = ['sapling', 'young', 'grown', 'old'];
 
+/** A meal's effect at level lv, for buttons and toasts. Pepper broth is heat, not a percentage. */
+export const mealFx = (m: MealDef, lv: number): string =>
+  m.id === 'broth' ? `+${(m.per * lv).toFixed(1)} heat` : `+${Math.round(m.per * lv * 100)}%`;
+
+/** A meal shows once its crop grows here (or some of the crop is in hand). */
+const mealShown = (s: State, m: MealDef): boolean =>
+  m.res === 'barley' || s.res[m.res].gt(0) || s.surface.plots.some((p) => p.crop === m.res);
+
+const can = (s: State, c: ReturnType<typeof paddyCost>): boolean => !!c && canPay(s, c);
+
 /** Things on the Fields tab the player can do now, for the tab's count. */
 export function fieldsReady(s: State): number {
   const pc = plotCost(s);
   return (
     (pc && canPay(s, pc) ? 1 : 0) +
-    MEALS.filter((m) => {
-      const c = mealCost(s, m.id);
-      return !!c && canPay(s, c);
-    }).length +
+    (can(s, paddyCost(s)) ? 1 : 0) +
+    (can(s, hotbedCost(s)) ? 1 : 0) +
+    (can(s, cellarCost(s)) ? 1 : 0) +
+    MEALS.filter((m) => mealShown(s, m) && can(s, mealCost(s, m.id))).length +
     (!feasting(s) && s.surface.feast >= feastNeed(s) ? 1 : 0)
   );
 }
@@ -89,18 +116,20 @@ export function Fields({ ui }: { ui: UiBridge }) {
         </div>
       </section>
 
+      <ActCrops ui={ui} />
+
       <section class="card">
         <img class="prop" src={spriteURL('cookhouse', on ? 1 : 0)} alt="" />
         <div class="grow">
           <h3>The cookhouse · {fmt(s.res.barley)} barley</h3>
           <p>Meals last until the Cave-in.</p>
-          {MEALS.map((m) => {
+          {MEALS.filter((m) => mealShown(s, m)).map((m) => {
             const c = mealCost(s, m.id);
             const lv = sf.meals[m.id];
             if (!c)
               return (
                 <p class="small" key={m.id}>
-                  {m.name}: as much as the cookhouse can make. {m.text} · +{Math.round(m.per * lv * 100)}% now
+                  {m.name}: as much as the cookhouse can make. {m.text} · {mealFx(m, lv)} now
                 </p>
               );
             return (
@@ -110,12 +139,12 @@ export function Fields({ ui }: { ui: UiBridge }) {
                   disabled={!canPay(s, c)}
                   onClick={() => ui.dispatch({ type: 'eatMeal', id: m.id })}
                 >
-                  {m.name} <em>+{Math.round(m.per * 100)}%</em>
+                  {m.name} <em>{mealFx(m, 1)}</em>
                 </button>
                 <Cost costs={c} have={s.res} />
                 <span class="small">
                   {m.text}
-                  {lv > 0 ? ` · +${Math.round(m.per * lv * 100)}% now` : ''}
+                  {lv > 0 ? ` · ${mealFx(m, lv)} now` : ''}
                 </span>
               </div>
             );
@@ -152,6 +181,114 @@ export function Fields({ ui }: { ui: UiBridge }) {
           </div>
         </div>
       </section>
+    </>
+  );
+}
+
+/** M6-07 act crops: the glowcap cellar (Act II), cress paddies (III) and pepper hot-beds (IV). canon §17.6 */
+function ActCrops({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const sf = s.surface;
+  const cc = cellarCost(s);
+  const pumps = pumpsPlaced(s);
+  const paddies = sf.plots.filter((p) => p.crop === 'cress').length;
+  const hotbeds = sf.plots.filter((p) => p.crop === 'pepper').length;
+  const dry = sf.plots.filter((p, i) => p.crop === 'cress' && !growing(s, i)).length;
+  const pac = paddyCost(s);
+  const hbc = hotbedCost(s);
+  const showPaddy = paddies > 0 || pumps > 0;
+  const showHot = hotbeds > 0 || hotbedsOffered(s);
+  if (!cellarOffered(s) && !showPaddy && !showHot) return null;
+  return (
+    <>
+      {cellarOffered(s) && (
+        <section class="card">
+          <img class="prop" src={spriteURL('cellar', sf.cellar >= 2 ? 1 : 0)} alt="" />
+          <div class="grow">
+            <h3>The root cellar</h3>
+            <p>
+              {sf.cellar >= 2
+                ? `Glowcaps grow in the dark under the cookhouse: a spore every ${ACT_CROPS.cellarEveryS} s for the Lamp-works.`
+                : sf.cellar === 1
+                  ? 'Dug and damp. Seed it with spores and it gives them back, one every few seconds.'
+                  : 'Dig a cellar under the cookhouse and grow glowcaps there, so the Lamp-works never runs short of spores.'}
+            </p>
+            {cc && (
+              <div class="row">
+                <button
+                  class={`btn ${canPay(s, cc) ? 'can' : ''}`}
+                  disabled={!canPay(s, cc)}
+                  onClick={() => ui.dispatch({ type: 'workCellar' })}
+                >
+                  {sf.cellar === 0 ? 'Dig the cellar' : 'Seed it'}
+                </button>
+                <Cost costs={cc} have={s.res} />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+      {showPaddy && (
+        <section class="card">
+          <img class="prop" src={spriteURL('crop-cress', 3)} alt="" />
+          <div class="grow">
+            <h3>
+              Cress paddies · {paddies} · {fmt(s.res.cress)} cress
+            </h3>
+            <p>
+              Flood a barley plot from the pumps and it grows cress for soup. Each pump in the mine waters{' '}
+              {ACT_CROPS.paddiesPerPump} paddies ({pumps} pump{pumps === 1 ? '' : 's'} now).
+            </p>
+            {dry > 0 && <p class="small">{dry} stand dry: place more pumps to water them.</p>}
+            {pac ? (
+              <div class="row">
+                <button
+                  class={`btn ${canPay(s, pac) ? 'can' : ''}`}
+                  disabled={!canPay(s, pac)}
+                  onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'cress' })}
+                >
+                  Flood a plot
+                </button>
+                <Cost costs={pac} have={s.res} />
+              </div>
+            ) : (
+              <p class="small">The pumps water every paddy they can.</p>
+            )}
+          </div>
+        </section>
+      )}
+      {showHot && (
+        <section class="card">
+          <img class="prop" src={spriteURL('crop-pepper', 3)} alt="" />
+          <div class="grow">
+            <h3>
+              Pepper hot-beds · {hotbeds} · {fmt(s.res.pepper)} peppers
+            </h3>
+            <p>
+              Build a hot-bed on a barley plot and grow firepeppers for broth. Each harvest burns{' '}
+              {ACT_CROPS.hotbedEmber} ember ore; with none in hand, the beds go cold and wait.
+            </p>
+            {hbc ? (
+              <div class="row">
+                <button
+                  class={`btn ${canPay(s, hbc) ? 'can' : ''}`}
+                  disabled={!canPay(s, hbc)}
+                  onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'pepper' })}
+                >
+                  Build a hot-bed
+                </button>
+                <Cost costs={hbc} have={s.res} />
+              </div>
+            ) : (
+              <p class="small">
+                {hotbeds >= ACT_CROPS.maxHotbeds
+                  ? 'All the hot-beds Tansy can tend.'
+                  : 'No barley plot left to build on.'}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
     </>
   );
 }

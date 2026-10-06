@@ -27,7 +27,8 @@ import { BUILDINGS, HAULS, WHETSTONE } from './data/economy';
 import { PICKS } from './data/items';
 import { BIOMES, biomeAt } from './data/biomes';
 import { HELPERS } from './data/helpers';
-import { FEAST, FIELDS, MEALS, WOOD_BUYS } from './data/surface';
+import { ACT_CROPS, FEAST, FIELDS, MEALS, WOOD_BUYS } from './data/surface';
+import { mealFx } from './ui/Surface';
 import { toast } from './ui/feedback';
 import { Ears } from './audio/ears';
 import { SETTINGS_TEXT } from './story/settings';
@@ -231,12 +232,16 @@ function announce(g: Game, what: string): void {
     toast(s.buildings[b.id] > 1 ? `${b.name} · level ${s.buildings[b.id]}` : b.name, b.text);
   } else if (what === 'plot') toast('+1 plot', `${s.surface.plots.length} of ${FIELDS.maxPlots} in barley`);
   else if (what === 'sapling') toast('A sapling', 'Rook plants it out');
+  else if (what === 'paddy') toast('A cress paddy', 'Flooded from the pumps');
+  else if (what === 'hotbed') toast('A hot-bed', 'Each pepper harvest burns one ember ore');
+  else if (what === 'cellar') toast('The root cellar', 'Seed it with spores');
+  else if (what === 'cellarSeed') toast('Glowcaps sown', `A spore every ${ACT_CROPS.cellarEveryS} s`);
   else if (what === 'feast')
     toast('The feast bell!', `Every worker ×${FEAST.mult} for ${FEAST.seconds} s, and the crops grow faster`);
   else if (what.startsWith('meal:')) {
     const m = MEALS.find((x) => x.id === what.slice(5))!;
     const n = s.surface.meals[m.id];
-    toast(`${m.name} · level ${n}`, `${m.text}: +${Math.round(m.per * n * 100)}%`);
+    toast(`${m.name} · level ${n}`, `${m.text}: ${mealFx(m, n)}`);
   } else if (what.startsWith('wood:')) {
     const b = WOOD_BUYS.find((x) => x.id === what.slice(5))!;
     const n = s.surface.wood[b.id];

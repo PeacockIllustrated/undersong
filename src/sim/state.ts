@@ -5,9 +5,9 @@ import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
-import type { MealId, WoodBuyId } from '../data/surface';
+import type { CropId, MealId, WoodBuyId } from '../data/surface';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export interface Tile {
   x: number;
@@ -66,6 +66,8 @@ export interface Glint {
 export interface Plot {
   t: number;
   golden: boolean;
+  /** Barley when absent: a plot can be flooded for cress or built into a pepper hot-bed (canon §17.6). */
+  crop?: Exclude<CropId, 'barley'>;
 }
 
 /** A tree in the woodlot. Trees are not the village: they stay through a Cave-in. canon §17.3 */
@@ -99,6 +101,9 @@ export interface Surface {
   /** Harvests and fellings in any run, for when the helpers are offered. */
   harvestsEver: number;
   chopsEver: number;
+  /** The glowcap root cellar: 0 not dug, 1 dug, 2 seeded. And seconds toward its next spore. */
+  cellar: number;
+  cellarAcc: number;
 }
 
 export function newSurface(): Surface {
@@ -107,7 +112,7 @@ export function newSurface(): Surface {
     rook: false,
     plots: [],
     trees: [],
-    meals: { bread: 0, porridge: 0 },
+    meals: { bread: 0, porridge: 0, soup: 0, broth: 0 },
     wood: { hearth: 0, cottage: 0 },
     feast: 0,
     feasts: 0,
@@ -116,6 +121,8 @@ export function newSurface(): Surface {
     tansyAcc: 0,
     harvestsEver: 0,
     chopsEver: 0,
+    cellar: 0,
+    cellarAcc: 0,
   };
 }
 

@@ -18,7 +18,7 @@ import { Fx } from './fx';
 import { PESTS } from '../data/economy';
 import { settings } from '../settings';
 import { CAIRN, FIELDS, ROOTS, WOODLOT } from '../data/surface';
-import { feasting, isElder, treeStage } from '../sim/surface';
+import { feasting, growing, isElder, treeStage } from '../sim/surface';
 
 const T = TILE_PX;
 const CPX = CHUNK * T;
@@ -243,6 +243,16 @@ export class Renderer {
     const frame = Math.floor(now / 110);
 
     this.drawRoots(game, tx0, ty0, tx1, ty1, now);
+    // M6-07: the root cellar under the cookhouse, cut away in the cross-section (drawn over the soil)
+    const cellar = game.state.surface.cellar;
+    if (cellar > 0)
+      drawSprite(
+        ctx,
+        'cellar',
+        cellar - 1,
+        COOKHOUSE_X * T + T / 2,
+        ((w.surf[COOKHOUSE_X] ?? SKY_ROWS) + 1) * T,
+      );
     this.drawCarvings(game, tx0, ty0, tx1, ty1, frame);
     this.drawObjects(w, tx0, ty0, tx1, ty1, frame);
     this.drawVillagers(game, now);
@@ -340,8 +350,9 @@ export class Renderer {
       // the fields
       sf.plots.forEach((p, i) => {
         const x = FIELDS.plotX0 + i;
-        const f = p.t >= 1 ? (p.golden ? 4 : 3) : Math.min(2, Math.floor(p.t * 3));
-        drawSprite(ctx, 'crop-barley', f, x * T + T / 2, surfY(x));
+        const f =
+          p.t >= 1 ? (p.golden ? 4 : 3) : p.crop && !growing(s, i) ? 4 : Math.min(2, Math.floor(p.t * 3));
+        drawSprite(ctx, `crop-${p.crop ?? 'barley'}`, f, x * T + T / 2, surfY(x));
         if (p.golden && Math.floor(now / 120 + i) % 5 === 0)
           this.fx.sparkle(x * T + 2 + ((now / 40) % 12), surfY(x) - 12, '#FFF2A8');
       });
