@@ -227,7 +227,7 @@ Epics: Ember Deep with heat and cooling, the Hollow Heart with old shafts from e
 - [ ] **M4-05 The ending.** The choice at the Heart; a scene for each; both close the cycle.
 - [ ] **M4-06 Endless Depth and New Song+.** Sealing opens the floor 64 rows at a time; singing adds Echoes and sings the verses back.
 - [ ] **M4-07 Heat on screen.** Hot faces glow and shimmer; "Held back by: Heat"; vent card and tool.
-- [ ] **M4-08 Balance sim to the ending.** `--until=ending` reaches the ending within ±15% of 14 h.
+- [ ] **M4-08 Balance sim to the ending.** `--until=ending` reaches the ending within ±15% of 11 h 30 (ADR-023).
 Out of scope: music, achievements and settings (M5).
 
 ## M5 · Surface: polish and launch
