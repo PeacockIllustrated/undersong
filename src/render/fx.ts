@@ -1,4 +1,5 @@
 // Small cosmetic effects: debris, sparkles, floating text, screen shake. Render-only, never the sim.
+import { drawSprite } from './sprites';
 interface Particle {
   x: number;
   y: number;
@@ -15,6 +16,10 @@ interface Floater {
   text: string;
   col: string;
   t0: number;
+  /** Optional sprite drawn to the left of the text (a resource icon). */
+  icon?: string;
+  /** How long it floats, ms. */
+  life: number;
 }
 
 export class Fx {
@@ -54,8 +59,8 @@ export class Fx {
     });
   }
 
-  float(x: number, y: number, text: string, col: string, now: number): void {
-    this.floats.push({ x, y, text, col, t0: now });
+  float(x: number, y: number, text: string, col: string, now: number, icon?: string, life = 1100): void {
+    this.floats.push({ x, y, text, col, t0: now, icon, life });
     if (this.floats.length > 30) this.floats.shift();
   }
 
@@ -80,13 +85,17 @@ export class Fx {
 
   /** Floating numbers above the light, so they always read. */
   drawOverlay(ctx: CanvasRenderingContext2D, now: number): void {
-    this.floats = this.floats.filter((f) => now - f.t0 < 1100);
+    this.floats = this.floats.filter((f) => now - f.t0 < f.life);
     ctx.font = '8px Silkscreen, monospace';
     ctx.textAlign = 'center';
     for (const f of this.floats) {
-      const k = (now - f.t0) / 1100;
+      const k = (now - f.t0) / f.life;
       const y = Math.round(f.y - k * 18);
       ctx.globalAlpha = 1 - k * k;
+      if (f.icon) {
+        const w = ctx.measureText(f.text).width;
+        drawSprite(ctx, f.icon, 0, Math.round(f.x - w / 2 - 7), y + 4);
+      }
       ctx.fillStyle = '#141A33';
       ctx.fillText(f.text, Math.round(f.x) + 1, y + 1);
       ctx.fillStyle = f.col;

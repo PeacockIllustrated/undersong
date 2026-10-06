@@ -1,15 +1,23 @@
 // Boot: load or start a game, run the fixed-step loop, draw, save. dev-bible §1.3
 import { render, h } from 'preact';
-import { AUTOSAVE_MS, MAX_TICKS_PER_FRAME, SHAFT_X, SKY_ROWS, TICK_MS, TILE_PX } from './data/constants';
+import {
+  AUTOSAVE_MS,
+  FT_PER_TILE,
+  MAX_TICKS_PER_FRAME,
+  SHAFT_X,
+  SKY_ROWS,
+  TICK_MS,
+  TILE_PX,
+} from './data/constants';
 import { MATERIALS, isMineable } from './data/materials';
-import { apply, type Action } from './sim/actions';
+import { apply, queued, type Action } from './sim/actions';
 import { createGame, loadGame, type Game } from './sim/game';
 import { step } from './sim/step';
 import { loadSprites } from './render/sprites';
 import { buildTileTextures } from './render/tiles';
 import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
-import { Input } from './render/input';
+import { HOLD_MS, Input } from './render/input';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
 import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
@@ -17,8 +25,11 @@ import { Atlas } from './ui/Atlas';
 import type { GameState } from './sim/state';
 import { BUILDINGS, HAULS, WHETSTONE } from './data/economy';
 import { PICKS } from './data/items';
+import { BIOMES, biomeAt } from './data/biomes';
 import { HELPERS } from './data/helpers';
 import { toast } from './ui/feedback';
+import { RES_ICON } from './ui/icons';
+import type { ResKey } from './data/resources';
 import './ui/style.css';
 
 loadSprites();
@@ -63,11 +74,20 @@ function boot(): void {
     },
     onPath: (tiles) => {
       following = true;
-      dispatch({ type: 'digPath', tiles });
+      // a drag that starts on a queued tile cancels the queued tiles it crosses
+      const t0 = tiles[0]!;
+      if (queued(game.g, t0.x, t0.y)) dispatch({ type: 'unqueue', tiles });
+      else dispatch({ type: 'digPath', tiles });
     },
     onPan: () => {
       following = false;
     },
+  });
+
+  // Esc clears the Foreman's dig queue
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]'))
+      dispatch({ type: 'cancelDig' });
   });
 
   const save = (): void => saveLocal(game.g.state, Date.now());
@@ -112,6 +132,15 @@ function boot(): void {
       following = false;
       cam.centerOn(x * TILE_PX + TILE_PX / 2, y * TILE_PX, renderer.viewW, renderer.viewH);
     },
+    toScreen(x, y) {
+      const k = renderer.scale / (canvas.clientWidth ? canvas.width / canvas.clientWidth : 1);
+      return {
+        x: ((x + 0.5) * TILE_PX - cam.x) * k,
+        y: ((y + 0.5) * TILE_PX - cam.y) * k,
+        w: canvas.clientWidth,
+        h: canvas.clientHeight,
+      };
+    },
     tool: 'dig',
     setTool(t) {
       this.tool = t;
@@ -150,6 +179,10 @@ function boot(): void {
     }
     cam.clamp(game.g.world.w, game.g.world.h, renderer.viewW, renderer.viewH);
     renderer.preview = input.mode === 'dig' ? input.path : [];
+    const p0 = input.path[0];
+    const h = input.hold;
+    renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
+    renderer.previewCancel = input.mode === 'dig' && !!p0 && queued(game.g, p0.x, p0.y);
     const t0 = performance.now();
     renderer.draw(game.g, cam, now);
     perf.draw = perf.draw * 0.95 + (performance.now() - t0) * 0.05;
@@ -184,14 +217,49 @@ function announce(g: Game, what: string): void {
   }
 }
 
+let lastHaulAt = 0;
+let lastBiome = -1;
+let lastBest = 0;
+
+/** Polish item 5: announce each new biome a run reaches. The first time ever, a banner; after that, a toast. */
+function biomeWatch(g: Game): void {
+  const s = g.state;
+  const b = biomeAt(s.stats.maxDepthD).id;
+  if (lastBiome >= 0 && b > lastBiome && b > 0) {
+    if (lastBest < BIOMES[b]!.d0) window.dispatchEvent(new CustomEvent('undersong:biome', { detail: b }));
+    else toast(BIOMES[b]!.name, `${BIOMES[b]!.d0 * FT_PER_TILE} ft`);
+  }
+  lastBiome = b;
+  lastBest = s.stats.bestDepthD;
+}
+
+/** Polish item 3: once a second, float what came up the shaft (the miners' finds) at the shaft head, with icons. */
+function shaftHead(g: Game, r: Renderer, now: number): void {
+  if (now - lastHaulAt < 1000) return;
+  lastHaulAt = now;
+  const gains = (Object.entries(g.hauled) as [ResKey, number][])
+    .filter(([, n]) => n >= 1)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  g.hauled = {};
+  const x = SHAFT_X * TILE_PX + 22;
+  const y = (g.world.surf[SHAFT_X]! - 1) * TILE_PX;
+  gains.forEach(([k, n], i) =>
+    r.fx.float(x, y - i * 11, `+${Math.round(n)}`, '#FFF2A8', now + i * 120, RES_ICON[k], 1600),
+  );
+}
+
 function handleEvents(g: Game, r: Renderer, now: number): void {
+  shaftHead(g, r, now);
+  biomeWatch(g);
   for (const e of g.events) {
     if (e.kind === 'mined') {
       const def = MATERIALS[e.m];
       const host = def?.host !== undefined ? MATERIALS[def.host] : def;
       if (host) r.fx.debris(e.x * TILE_PX + 8, e.y * TILE_PX + 8, host.ramp, 7);
     } else if (e.kind === 'drop') {
-      r.fx.float(e.x * TILE_PX + 8, e.y * TILE_PX + 2, `+${e.n}`, '#FFD65A', now);
+      const k = e.res as ResKey;
+      r.fx.float(e.x * TILE_PX + 12, e.y * TILE_PX + 2, `+${e.n}`, '#FFD65A', now, RES_ICON[k]);
     } else if (e.kind === 'refused') {
       r.fx.shake(1, 160, now);
       r.refused = { x: e.x, y: e.y, until: now + 300 };

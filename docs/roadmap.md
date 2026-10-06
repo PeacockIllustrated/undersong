@@ -191,6 +191,19 @@ Apply the DangerouslyFunny taste report to Acts I and II.
 - [x] **J-05 Feedback.** Toasts, record shake, "Held back by", affordable glows, Survey worth-it line (canon §14.1).
 - [x] **J-06 Retarget pacing.** Balance sim within ±15% of the new targets; tracks the longest wait with nothing to buy.
 
+## P · UI polish (Tom's request, ADR-022)
+Proposal approved by Tom: https://claude.ai/artifact/FfQQKoSRz89hwtSQXMv15k
+- [x] **P-01 Cancel queued blocks.** Tap or drag over queued tiles to take them out; Clear queue chip; Esc.
+- [x] **P-02 Readable queue.** Numbered tiles, order thread, progress bar under the face.
+- [x] **P-03 Shaft-head floats.** What came up the shaft floats at the shaft head with its icon.
+- [x] **P-04 Tip cards and NEW pips.** One tip per system, once ever; NEW on unused tools and unopened Village tabs.
+- [x] **P-05 Biome banner.** First visit to a biome drops a banner with act, depth and one line.
+- [x] **P-06 Edge arrows.** Pests, stalled miners and the nearest unfound verse, tap to look.
+- [x] **P-07 Depth ruler.** Biome bands to scale, You / Best / Homecoming marks; tap a band to look.
+- [x] **P-08 Miner faces.** Teal brackets on faces, an orange "!" on stalled miners.
+- [x] **P-09 Village tabs.** Build / Hands / Loom with counts.
+- [x] **P-10 Resource chips and phone tools.** Biome headline chips with rates, the rest in a tray; one-button tool picker on phones; hold ring.
+
 ## M3 · Drowned: Act III
 Epics: water simulation and pumps, the drowned town set piece, the Singing Geodes, the Song-loom and charms, cave eels and shard golems, and Verses VI–X.
 **Exit:** playtesters can explain what Holloway is hiding.

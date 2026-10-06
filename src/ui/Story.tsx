@@ -8,10 +8,11 @@ import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
 import { VERSE_CACHE, VERSE_POWER } from '../data/helpers';
 import { ECHO } from '../data/economy';
+import { nextTip } from '../story/tips';
 
 const PORTRAIT: Record<string, string> = { pell: 'pell', bram: 'bram', wren: 'wren', foreman: 'foreman' };
 
-export function StoryLayer({ ui }: { ui: UiBridge }) {
+export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }) {
   const ev = ui.game.state.story.events[0];
   const [shownAt, setShownAt] = useState(0);
   const [cave, setCave] = useState(0);
@@ -44,7 +45,7 @@ export function StoryLayer({ ui }: { ui: UiBridge }) {
         {cave === 2 && <p>The mountain settles. The village forgets.</p>}
       </div>
     );
-  if (!ev) return null;
+  if (!ev) return tips ? <TipCard ui={ui} /> : null;
   if (ev.kind === 'line') {
     const line = LINES[ev.id];
     if (!line) return null;
@@ -100,4 +101,35 @@ export function StoryLayer({ ui }: { ui: UiBridge }) {
     );
   }
   return null;
+}
+
+/** Polish item 4: a tip card, queued behind the story so two never stack. Shown once ever per system. */
+function TipCard({ ui }: { ui: UiBridge }) {
+  const tip = nextTip(ui.game.state);
+  if (!tip) return null;
+  const seen = (): void => ui.dispatch({ type: 'note', key: `tip:${tip.id}` });
+  const show = (): void => {
+    if (tip.show === 'water') {
+      const g = ui.game;
+      const i = [...g.wet][0];
+      if (i !== undefined) ui.lookAt(i % g.world.w, Math.floor(i / g.world.w));
+    } else if (tip.show) window.dispatchEvent(new CustomEvent('undersong:village', { detail: tip.show }));
+    seen();
+  };
+  return (
+    <div class="tip panel" role="status" aria-live="polite">
+      <b>{tip.title}</b>
+      <span>{tip.text}</span>
+      <div class="row">
+        {tip.show && (
+          <button class="btn" onClick={show}>
+            Show me
+          </button>
+        )}
+        <button class="btn primary" onClick={seen}>
+          Got it
+        </button>
+      </div>
+    </div>
+  );
 }

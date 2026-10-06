@@ -117,6 +117,15 @@ Decision:
 - Bram's pump crew (canon §14) takes the pump chore off the player, like the other helpers.
 Consequences: 7 of 9 sim seeds reach Act III end inside 10 h, median 448 min against 390. Two seeds stall at the crystal rings; the tail is an open item (M3-09).
 
+**ADR-022 · UI polish pass** · 2026-10-06 · Accepted
+Context: Tom asked for polish: cancelling queued blocks, better UI, more popups and indicators. He approved the proposal artifact (roadmap P-01..10).
+Decision:
+- Queued tiles can be taken back out (an `unqueue` action; tapping a queued tile with Dig does it too). Esc and a Clear queue chip stop everything.
+- "Seen" marks (tips, opened Village tabs, tools first placed) live in `story.ever` as `tip:`, `tab:` and `used:` keys. That list already survives a Cave-in and is free-form, so there is no save change. A `note` action accepts only `tip:` and `tab:` keys.
+- Tip copy lives in `src/story/tips.ts`; biome banner lines in `src/story/biomes.ts`. Depth-ruler band colours are master palette entries in `src/data/biomes.ts`.
+- Overlays (tips, edge arrows, ruler) hide while a sheet is open, and a tip waits behind any story event, so two cards never stack.
+Consequences: no balance or save change. Tip and banner wording is Claude's and open to Tom's edits.
+
 ---
 
 ## Open questions for Tom

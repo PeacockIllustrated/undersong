@@ -139,6 +139,7 @@ export function stepHaul(g: Game, dt: number): void {
     const n = Decimal.min(have, Math.floor(budget));
     s.underground[k] = have.sub(n);
     add(s, k, n);
+    g.hauled[k] = (g.hauled[k] ?? 0) + n.toNumber();
     budget -= n.toNumber();
   }
   // carry over only a fraction so an empty shaft does not bank capacity
