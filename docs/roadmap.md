@@ -275,7 +275,7 @@ Sound moved to its own update in another thread at Tom's request (2026-10-06), s
 - [x] **M5-01 Settings.** A Settings panel from the menu, saved apart from the game: motion, text size, shape marks, number style (ADR-024). Sound rows join it with the sound update.
 - [x] **M5-02 Accessibility.** Reduced motion (device or setting) stops screen shake and every animation; text scales to 1.3×; dark faces and faces too hot to work are shown by shape as well as colour.
 - [x] **M5-03 Achievements.** Milestones worth a badge across cycles, shown in the Survey Book, kept through a Cave-in.
-- [ ] **M5-04 Launch.** An itch.io build (relative paths, zipped), a title and description, and a short how-to-play on first load.
+- [x] **M5-04 Launch.** An itch.io build (relative paths, zipped by `npm run build:itch`), page text in `docs/itch-page.md`, a favicon and page description. How to play is covered by the intro line, the one-time tips and the controls in the menu. Publishing the itch.io page needs Tom's account.
 - [ ] **M5-05 Balance pass.** After the offline catch-up fixes land: re-run every act's sim and retune anything outside ±15%.
 
 ---

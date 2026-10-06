@@ -12,7 +12,8 @@
     "test": "vitest run",
     "lint:sprites": "tsx tools/lint-sprites.ts",
     "sim": "tsx tools/balance-sim.ts",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run lint:sprites"
+    "check": "npm run typecheck && npm run lint && npm run test && npm run lint:sprites",
+    "build:itch": "npm run build && tsx tools/pack-itch.ts"
   },
   "repository": {
     "type": "git",

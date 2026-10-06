@@ -12,6 +12,14 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M5-04 Launch build
+
+Done: `npm run build:itch` builds and zips the game for itch.io (`tools/pack-itch.ts`, no new dependency). The zip was tested served from a subfolder at itch's embed size. Page text, upload settings and tags are in `docs/itch-page.md`. Added a favicon and a page description.
+State: `npm run check` green.
+Not done: the itch.io page itself, which needs Tom's account.
+Next: M5-05 balance pass, once the offline catch-up fixes from the code review thread are in.
+Questions for Tom: do you want the itch.io page made? I can't create it from here; upload the zip from the latest build, or ask for the zip and I'll attach it.
+
 ## 2026-10-06 · M5-03 Achievements
 
 Done: 18 achievements (ADR-025): verses known, biomes reached, Cave-ins, a full bunkhouse, chests, every helper, charms, Echoes, both endings and Endless Depth. Earned ones are kept in `story.ever` as `ach:<id>`, which already survives a Cave-in and is already saved, so there is no save change. The Survey Book lists them all, locked ones with what earns them. A toast announces each; several at once share one toast, which is what an older save sees the first time it loads.
