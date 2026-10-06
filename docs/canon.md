@@ -71,6 +71,10 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 | 4.9 | Haul throughput | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles` |
 | 4.10 | Cave-in unlock | `maxDepth_ft ≥ 300` **and** Verse II found |
 | 4.11 | Echo power | every worker's rate × `(1 + 0.03 × echoesEverEarned)` (ADR-017) |
+| 4.12 | Homecoming | after a Cave-in, every worker, the forge and the haul run ×3 until this run is 60% as deep as your best (ADR-020) |
+| 4.13 | Verse power and cache | every verse ever known speeds every worker by 5%. Each verse found in a run pays its cache: I 10 and II 15 copper bars; III 8, IV 10, V 12 iron bars; VI–X 8, 10, 12, 15, 20 silver bars; XI 15 and XII 25 gold bars (ADR-020) |
+| 4.14 | Whetstone | `cost(n) = 2 × 1.45^n` copper bars; each level +12% hand-mining. Resets on a Cave-in (ADR-020) |
+| 4.15 | Village power | `echo power × verse power × homecoming` multiplies every worker |
 
 ## §5 Pacing targets
 
@@ -81,10 +85,10 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 | First bar smelted | 1 min (was 5; see ADR-015) |
 | First miner hired | 8 min (was 2; see ADR-015) |
 | Verse I found | 10 min |
-| 150 ft (Glowroot entrance visible) | 20 min (was 30; see ADR-015) |
-| First Cave-in available | 45 min |
+| 150 ft (Glowroot entrance visible) | 17 min (was 20; see ADR-020) |
+| First Cave-in available | 30 min (was 45; see ADR-020) |
 | Echoes from a typical first Cave-in | 6–10 |
-| Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 4 h |
+| Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 2 h 50 min (was 4 h; see ADR-020) |
 | Act III end | 9 h |
 | Ending reached | 14 h |
 
@@ -229,8 +233,8 @@ Three branches of six. Each needs the one above it in its branch.
 | Lamps | Glowcap Gardens | 14 | Glowcaps give twice the spores |
 | Lamps | Moth Ward | 22 | Beetles, moths and wisps come half as often |
 | Lamps | Bright Pages | 45 | The Lamp-works makes 50% more Lumen |
+| Memory | Pell’s Hum | 2 | The nearest unfound verse glints within 20 tiles (first in the branch, ADR-020) |
 | Memory | Remembered Rope | 3 | Start each run with the Winch lift |
-| Memory | Pell’s Hum | 5 | The nearest unfound verse glints within 20 tiles |
 | Memory | Bram’s Ledger | 9 | Start each run with 30 copper bars and 10 tin bars |
 | Memory | Old Shafts | 16 | The shaft is already dug to half your best depth |
 | Memory | Long Shift | 28 | Away time counts for 16 h at 75% (§4.8) |
@@ -249,3 +253,22 @@ Three branches of six. Each needs the one above it in its branch.
 | Rails | 8 Iron bars per 10 tiles of mine depth (§9) | carrierSpeed 8, capacity 25 |
 | Small collapse | From 150 ft: 3% per tile opened when 14+ of the 25 tiles around it are open and no support is near | Up to 5 roof tiles fall as rubble. Never on the shaft, a worker or an object, and never if it would cut anyone off |
 | Lantern moth | 1/150 per lit lantern per second | Darkens that lantern until tapped |
+
+## §14 Hands about the village (ADR-020)
+
+Each helper takes over a chore soon after it first appears, and stays through a Cave-in.
+
+| Helper | Cost | Effect |
+|---|---|---|
+| Lamplighters (Wren) | 8 Copper bars | Miners light their own dark faces from stock. The village keeps 3 torches in hand, and 2 lanterns once there is a Lamp-works (only while Lumen is above 30) |
+| Pell’s rounds I | 12 Copper bars | Pell clears the oldest pest every 4 s |
+| Pell’s rounds II | 12 Bronze bars | Every 1.5 s |
+| Bram’s props | 10 Bricks | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand |
+
+### 14.1 Feedback
+
+- Every purchase raises a big toast naming the jump (pick ×power, haul ×speed, +1 miner).
+- Passing your best depth after a Cave-in shakes the screen; again every 25 tiles.
+- "Held back by" names the one thing slowing the village most: pests, haulage, light or nothing left to dig.
+- The Village button shows a dot when something there is affordable; the Survey button glows when an Echo upgrade is affordable or a Cave-in is ready.
+

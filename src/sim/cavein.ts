@@ -67,12 +67,14 @@ export function resetRun(s: GameState): void {
   s.underground = emptyRes();
   s.buildings = { forge: 1, lampworks: 0, kiln: 0, songloom: 0 };
   s.pickTier = s.heirloomTier;
+  s.whetstone = 0;
   s.haulTier = s.upgrades.rememberedRope ? 1 : 0;
   s.forge = { progress: 0, recipe: 'auto', next: 0 };
   s.haulAcc = 0;
   s.kilnProgress = 0;
   s.lampProgress = 0;
   s.pumpAcc = 0;
+  s.helperAcc = 0;
   s.miners = [];
   s.pests = [];
   s.glints = [];

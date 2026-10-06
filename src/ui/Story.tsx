@@ -5,6 +5,9 @@ import { VERSES } from '../story/verses';
 import { RES_NAMES } from '../data/resources';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
+import { RES_ICON } from './icons';
+import { VERSE_CACHE, VERSE_POWER } from '../data/helpers';
+import { ECHO } from '../data/economy';
 
 const PORTRAIT: Record<string, string> = { pell: 'pell', bram: 'bram', wren: 'wren', foreman: 'foreman' };
 
@@ -68,10 +71,19 @@ export function StoryLayer({ ui }: { ui: UiBridge }) {
     );
   if (ev.kind === 'verse') {
     const v = VERSES[ev.verse]!;
+    const cache = VERSE_CACHE[ev.verse]!;
     return (
       <div class="sheet-wrap verse-wrap">
         <div class="verse-card" role="dialog" aria-label={`Verse ${v.n}`}>
           <div class="verse-n">Verse {v.n}</div>
+          <ul class="loot">
+            <li>
+              <img src={spriteURL(RES_ICON[cache.res])} alt="" />+{cache.n}{' '}
+              {RES_NAMES[cache.res].toLowerCase()}s
+            </li>
+            {!ev.again && <li class="gold">+{Math.round(VERSE_POWER * 100)}% to all work, forever</li>}
+            <li>+{Math.round(ECHO.perVerse * 100)}% Echoes at this Cave-in</li>
+          </ul>
           <p class="verse-text">
             {v.lines[0]}
             <br />

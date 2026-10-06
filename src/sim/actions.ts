@@ -8,8 +8,10 @@ import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
 import type { CharmId } from '../data/charms';
 import { equip, weave } from './charms';
+import type { HelperId } from '../data/helpers';
+import { hireHelper, hitPest } from './helpers';
 import { D } from './decimal';
-import { minerCost, nextHaul, nextPick, pay, torchCost } from './economy';
+import { minerCost, nextHaul, nextPick, pay, torchCost, whetstoneCost } from './economy';
 import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
 import { makeRng } from './rng';
@@ -31,6 +33,7 @@ export type Action =
   | { type: 'hireMiner' }
   | { type: 'buyPick' }
   | { type: 'buyHaul' }
+  | { type: 'whetstone' }
   | { type: 'craftTorches' }
   | { type: 'craft'; id: CraftId }
   | { type: 'buyBuilding'; id: BuildingId }
@@ -38,6 +41,7 @@ export type Action =
   | { type: 'buyUpgrade'; id: string }
   | { type: 'weave'; id: CharmId }
   | { type: 'equip'; id: CharmId }
+  | { type: 'hireHelper'; id: HelperId }
   | { type: 'caveIn' }
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' };
@@ -72,19 +76,7 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
   const s = g.state;
   const pest = s.pests.find((p) => p.x === x && p.y === y);
   if (pest) {
-    // shard golems take a few taps
-    if (pest.hp !== undefined && pest.hp > 1) {
-      pest.hp--;
-      g.events.push({ kind: 'pest', x, y, cleared: false });
-      return;
-    }
-    s.pests = s.pests.filter((p) => p !== pest);
-    for (const m of s.miners) if (m.stalledBy === pest.id) m.stalledBy = null;
-    if (pest.kind === 'moth') {
-      g.world.dimmed.delete(g.world.idx(x, y));
-      g.world.touch(x, y);
-    }
-    g.events.push({ kind: 'pest', x, y, cleared: true });
+    hitPest(g, pest);
     return;
   }
   const key = String(g.world.idx(x, y));
@@ -182,6 +174,11 @@ export function apply(g: Game, a: Action): void {
       g.events.push({ kind: 'bought', what: 'pick' });
       return;
     }
+    case 'whetstone':
+      if (!pay(s, whetstoneCost(s))) return;
+      s.whetstone++;
+      g.events.push({ kind: 'bought', what: 'whetstone' });
+      return;
     case 'buyHaul': {
       const c = nextHaul(s);
       if (!c || !pay(s, c)) return;
@@ -220,6 +217,9 @@ export function apply(g: Game, a: Action): void {
       return;
     case 'equip':
       equip(g, a.id);
+      return;
+    case 'hireHelper':
+      hireHelper(g, a.id);
       return;
     case 'caveIn':
       caveIn(g);

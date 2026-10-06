@@ -182,6 +182,15 @@ Epics: the Lamp-works and Lumen budget, lantern placement, glowcap light, rails 
 - [x] **M2-10 Balance sim to Act II.** `--until=act2` plays through Cave-ins; Glowroot cleared within ±15% of 4 h. PR #3
 - [x] **M2-11 Smooth lighting** (Tom's request). ADR-018. PR #3
 
+## J · Juice pass (Tom's request, ADR-020)
+Apply the DangerouslyFunny taste report to Acts I and II.
+- [x] **J-01 Helpers.** Lamplighters, Pell's rounds, Bram's props (canon §14). Survive the Cave-in.
+- [x] **J-02 Homecoming.** ×3 after a Cave-in until 60% of best depth (canon §4.12).
+- [x] **J-03 Verse loot.** Cache and permanent 5% per verse, shown on the verse card (canon §4.13).
+- [x] **J-04 Whetstone.** Cheap repeatable copper sink (canon §4.14).
+- [x] **J-05 Feedback.** Toasts, record shake, "Held back by", affordable glows, Survey worth-it line (canon §14.1).
+- [x] **J-06 Retarget pacing.** Balance sim within ±15% of the new targets; tracks the longest wait with nothing to buy.
+
 ## M3 · Drowned: Act III
 Epics: water simulation and pumps, the drowned town set piece, the Singing Geodes, the Song-loom and charms, cave eels and shard golems, and Verses VI–X.
 **Exit:** playtesters can explain what Holloway is hiding.

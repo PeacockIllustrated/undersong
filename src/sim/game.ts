@@ -19,6 +19,8 @@ export type SimEvent =
   | { kind: 'verse'; verse: number; x: number; y: number }
   | { kind: 'rush'; mult: number; x: number; y: number }
   | { kind: 'collapse'; x: number; y: number }
+  /** A new depth record since the last Cave-in. */
+  | { kind: 'record'; ft: number }
   | { kind: 'caveIn' };
 
 export interface Game {

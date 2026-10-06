@@ -96,20 +96,21 @@ export const UPGRADES: readonly UpgradeDef[] = [
     requires: 'mothWard',
   },
   // Memory
+  // ADR-020: Pell's Hum comes first and cheap, so verses are easy to find from the second run on
+  {
+    id: 'pellsHum',
+    name: 'Pell’s Hum',
+    branch: 'memory',
+    cost: 2,
+    text: 'The nearest unfound verse glints when you are within 20 tiles.',
+  },
   {
     id: 'rememberedRope',
     name: 'Remembered Rope',
     branch: 'memory',
     cost: 3,
     text: 'Start each run with the Winch lift.',
-  },
-  {
-    id: 'pellsHum',
-    name: 'Pell’s Hum',
-    branch: 'memory',
-    cost: 5,
-    text: 'The nearest unfound verse glints when you are within 20 tiles.',
-    requires: 'rememberedRope',
+    requires: 'pellsHum',
   },
   {
     id: 'bramsLedger',
@@ -117,7 +118,7 @@ export const UPGRADES: readonly UpgradeDef[] = [
     branch: 'memory',
     cost: 9,
     text: 'Start each run with 30 copper bars and 10 tin bars.',
-    requires: 'pellsHum',
+    requires: 'rememberedRope',
   },
   {
     id: 'oldShafts',

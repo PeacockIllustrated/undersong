@@ -4,8 +4,9 @@ import { RES_KEYS, type ResKey } from '../data/resources';
 import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
+import type { HelperId } from '../data/helpers';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface Tile {
   x: number;
@@ -93,6 +94,8 @@ export interface GameState {
   underground: Record<ResKey, Decimal>;
   buildings: { forge: number; lampworks: number; kiln: number; songloom: number };
   pickTier: number;
+  /** Whetstone levels this run (canon §9.2). */
+  whetstone: number;
   haulTier: number;
   forge: { progress: number; recipe: Recipe; next: number };
   /** Fractional ore waiting to be hauled up this tick. */
@@ -101,6 +104,10 @@ export interface GameState {
   lampProgress: number;
   /** Fraction of a water unit the pumps have banked toward their next unit. */
   pumpAcc: number;
+  /** Village helpers hired (level by id). They stay through a Cave-in. canon §14 */
+  helpers: Partial<Record<HelperId, number>>;
+  /** Seconds banked toward Pell's next shoo. */
+  helperAcc: number;
   miners: Miner[];
   pests: Pest[];
   glints: Glint[];
@@ -167,12 +174,15 @@ export function newGame(seed: number): GameState {
     underground: emptyRes(),
     buildings: { forge: 1, lampworks: 0, kiln: 0, songloom: 0 },
     pickTier: 0,
+    whetstone: 0,
     haulTier: 0,
     forge: { progress: 0, recipe: 'auto', next: 0 },
     haulAcc: 0,
     kilnProgress: 0,
     lampProgress: 0,
     pumpAcc: 0,
+    helpers: {},
+    helperAcc: 0,
     miners: [],
     pests: [],
     glints: [],

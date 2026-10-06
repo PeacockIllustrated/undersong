@@ -32,12 +32,21 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 3;
     return o as Raw;
   },
-  // v3 → v4 (M3): water levels kept as per-tile diffs, the pumps' banked fraction.
+  // v3 → v4 (juice pass, ADR-020): village helpers.
   3: (s) => {
+    const o = s as Record<string, any>;
+    o.helpers = {};
+    o.whetstone = 0;
+    o.helperAcc = 0;
+    o.v = 4;
+    return o as Raw;
+  },
+  // v4 → v5 (M3): water levels kept as per-tile diffs, the pumps' banked fraction.
+  4: (s) => {
     const o = s as Record<string, any>;
     if (o.world) o.world.water = {};
     o.pumpAcc = 0;
-    o.v = 4;
+    o.v = 5;
     return o as Raw;
   },
 };

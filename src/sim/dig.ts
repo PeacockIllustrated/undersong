@@ -5,6 +5,8 @@ import { UPGRADE_FX } from '../data/upgrades';
 import { charm, deepMult, handsMult, pickPower, rushStep } from './power';
 import { lightFactor } from '../data/light';
 import { BIOMES } from '../data/biomes';
+import { FT_PER_TILE } from '../data/constants';
+import { VERSE_CACHE } from '../data/helpers';
 import { NEIGH4, type Carving } from '../world/world';
 import { D } from './decimal';
 import { FOREMAN_RATE, hardnessAt } from './formulas';
@@ -81,8 +83,15 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
   const def = MATERIALS[m];
   world.set(x, y, M.AIR);
   state.stats.tilesMined++;
+  const best = state.stats.bestDepthD;
   state.stats.maxDepthD = Math.max(state.stats.maxDepthD, world.depth(y));
   state.stats.bestDepthD = Math.max(state.stats.bestDepthD, state.stats.maxDepthD);
+  // past your old best: say so the first time, then every 100 ft
+  if (state.stats.caveIns > 0 && state.stats.bestDepthD > best) {
+    const k = state.stats.firsts.record === undefined || state.stats.bestDepthD % 25 === 0;
+    if (k) g.events.push({ kind: 'record', ft: state.stats.bestDepthD * FT_PER_TILE });
+    first(g, 'record');
+  }
   if (def?.drop) {
     const { res } = def.drop;
     const n =
@@ -150,6 +159,10 @@ export function readVerse(g: Game, c: Carving): void {
   const again = s.verses.known[c.verse] === true;
   s.verses.run[c.verse] = true;
   s.verses.known[c.verse] = true;
+  // ADR-020: a verse is loot. It pays out bars on the spot
+  const cache = VERSE_CACHE[c.verse]!;
+  s.res[cache.res] = s.res[cache.res].add(cache.n);
+  g.events.push({ kind: 'drop', x: c.x, y: c.y, res: cache.res, n: cache.n });
   s.story.events.push({ kind: 'verse', verse: c.verse, again });
   g.events.push({ kind: 'verse', verse: c.verse, x: c.x, y: c.y });
   first(g, `verse${c.verse}`);
