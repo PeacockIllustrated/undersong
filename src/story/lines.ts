@@ -147,6 +147,22 @@ export const LINES: Record<string, Line> = {
     who: 'wren',
     text: 'Water below. I can hear it through the stone. The lanterns won’t like it, and neither will you.',
   },
+  // Helpers (ADR-020): each takes a chore away
+  helper_lamps: {
+    id: 'helper_lamps',
+    who: 'wren',
+    text: 'Leave the lights to me and the miners. You dig.',
+  },
+  helper_pell: {
+    id: 'helper_pell',
+    who: 'pell',
+    text: 'I’ll do the rounds! Beetles, moths, anything. I’m faster than you anyway.',
+  },
+  helper_props: {
+    id: 'helper_props',
+    who: 'bram',
+    text: 'I’ll keep an eye on the roof. If it groans, there’ll be a prop under it before it drops.',
+  },
   surveyOld: {
     id: 'surveyOld',
     who: 'foreman',

@@ -21,6 +21,7 @@ import { reach } from './reach';
 import { makeRng } from './rng';
 import type { GameState } from './state';
 import { first, say } from './story';
+import { propRoof } from './helpers';
 
 export function buildingDef(id: BuildingId): (typeof BUILDINGS)[number] {
   return BUILDINGS.find((b) => b.id === id)!;
@@ -159,6 +160,11 @@ export function maybeCollapse(g: Game, x: number, y: number): void {
   const roll = rng.next();
   s.rng = rng.state();
   if (roll >= COLLAPSE.chance) return;
+  // Bram's props: a support from stock goes up before the roof can come down
+  if (propRoof(g, x, y)) {
+    first(g, 'propped');
+    return;
+  }
 
   const busy = (t: { x: number; y: number }): boolean =>
     (s.foreman.x === t.x && s.foreman.y === t.y) ||

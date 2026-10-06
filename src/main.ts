@@ -15,6 +15,10 @@ import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
 import { Atlas } from './ui/Atlas';
 import type { GameState } from './sim/state';
+import { BUILDINGS, HAULS, WHETSTONE } from './data/economy';
+import { PICKS } from './data/items';
+import { HELPERS } from './data/helpers';
+import { toast } from './ui/feedback';
 import './ui/style.css';
 
 loadSprites();
@@ -154,6 +158,32 @@ function boot(): void {
   requestAnimationFrame(frame);
 }
 
+/** ADR-020: every purchase says, in one big line, what it just did for you. */
+function announce(g: Game, what: string): void {
+  const s = g.state;
+  const ratio = (a: number, b: number): string => `×${(a / b).toFixed(2).replace(/\.?0+$/, '')}`;
+  if (what === 'pick') {
+    const p = PICKS[s.pickTier]!;
+    toast(p.name, `${ratio(p.power, PICKS[s.pickTier - 1]!.power)} dig speed for you and every miner`);
+  } else if (what === 'miner') toast(`+1 miner`, `${s.miners.length} at work`);
+  else if (what === 'whetstone')
+    toast(
+      `Whetstone · level ${s.whetstone}`,
+      `Your hand-mining +${Math.round(WHETSTONE.perLevel * s.whetstone * 100)}%`,
+    );
+  else if (what === 'haul') {
+    const h = HAULS[s.haulTier]!;
+    const o = HAULS[s.haulTier - 1]!;
+    toast(h.name, `${ratio(h.speed * h.capacity, o.speed * o.capacity)} haulage`);
+  } else if (what.startsWith('helper:')) {
+    const h = HELPERS.find((x) => x.id === what.slice(7))!;
+    toast(h.name, 'One less chore');
+  } else if (what === 'kiln' || what === 'lampworks' || what === 'songloom') {
+    const b = BUILDINGS.find((x) => x.id === what)!;
+    toast(s.buildings[b.id] > 1 ? `${b.name} · level ${s.buildings[b.id]}` : b.name, b.text);
+  }
+}
+
 function handleEvents(g: Game, r: Renderer, now: number): void {
   for (const e of g.events) {
     if (e.kind === 'mined') {
@@ -185,6 +215,11 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       r.fx.shake(2, 600, now);
       for (let i = 0; i < 3; i++)
         r.fx.debris(e.x * TILE_PX + 8, (e.y - 2 + i) * TILE_PX, ['#5F6487', '#373A52', '#141A33'], 8);
+    } else if (e.kind === 'bought') {
+      announce(g, e.what);
+    } else if (e.kind === 'record') {
+      r.fx.shake(1, 300, now);
+      toast(`New record · ${e.ft} ft`, 'Deeper than any cycle before');
     } else if (e.kind === 'caveIn') {
       r.invalidate();
       r.fx.shake(3, 1500, now);

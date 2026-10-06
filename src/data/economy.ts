@@ -126,6 +126,9 @@ export const HAULS: readonly HaulDef[] = [
   { name: 'Steam lift', speed: 30, capacity: 150, cost: [{ res: 'goldBar', n: 40 }] },
 ];
 
+/** canon §9.2 Whetstone (ADR-020): a cheap, always-there buy. Each level sharpens the Foreman's hand-mining. */
+export const WHETSTONE = { base: 2, growth: 1.45, perLevel: 0.12 };
+
 /** canon §9 Torch: 1 copper bar makes 3. */
 export const TORCH_CRAFT = { cost: { res: 'copperBar', n: 1 } as Cost, makes: 3 };
 

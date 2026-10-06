@@ -5,7 +5,7 @@ import { MATERIALS, canDig, isMineable } from '../src/data/materials';
 import { lightFactor } from '../src/data/light';
 import { apply } from '../src/sim/actions';
 import { canCaveIn, echoGain } from '../src/sim/cavein';
-import { minerCost, nextHaul, nextPick, canPay } from '../src/sim/economy';
+import { minerCost, nextHaul, nextPick, canPay, whetstoneCost } from '../src/sim/economy';
 import { buildingCost, buildingOffered, canCraft } from '../src/sim/village';
 import { UPGRADES } from '../src/data/upgrades';
 import { BIOMES } from '../src/data/biomes';
@@ -17,6 +17,8 @@ import { NEIGH4 } from '../src/world/world';
 import type { ResKey } from '../src/data/resources';
 import type { Decimal } from '../src/sim/decimal';
 import { line4 } from '../src/sim/geom';
+import { villageAffordable } from '../src/ui/feedback';
+import { helperCost, helperOffered } from '../src/sim/helpers';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -34,13 +36,13 @@ const GLOWROOT = BIOMES[2]!;
 
 // canon §5 (ADR-015). A target with `atMost` passes when the median is at or under it.
 const TARGETS: [string, string, number, boolean?][] = ACT2
-  ? [['glowroot', 'Glowroot cleared (Act II)', 240]]
+  ? [['glowroot', 'Glowroot cleared (Act II)', 170]]
   : [
       ['bar', 'First bar smelted', 1, true],
       ['miner', 'First miner hired', 8],
       ['verse0', 'Verse I found', 10],
-      ['ft150', '150 ft', 20],
-      ['caveInReady', 'First Cave-in available', 45],
+      ['ft150', '150 ft', 17],
+      ['caveInReady', 'First Cave-in available', 30],
     ];
 
 const mins = (ms: number | undefined): string =>
@@ -172,9 +174,32 @@ function spendEchoes(g: Game): void {
   }
 }
 
+/** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
+function hireHelpers(g: Game): void {
+  const s = g.state;
+  for (const id of ['lamps', 'pell', 'props'] as const) {
+    const c = helperCost(s, id);
+    if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
+    if (id !== 'props' && s.miners.length < 2) continue;
+    if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
+  }
+}
+
+/** The whetstone: an engaged player takes the cheap levels at once, later ones from spare copper. */
+function sharpen(g: Game): void {
+  const s = g.state;
+  for (;;) {
+    const c = whetstoneCost(s)[0]!.amount;
+    if (s.res.copperBar.lt(c) || (s.whetstone >= 2 && c.gt(s.res.copperBar.mul(0.2)))) return;
+    apply(g, { type: 'whetstone' });
+  }
+}
+
 /** Act I shopping. */
 function shop(g: Game): void {
   const s = g.state;
+  hireHelpers(g);
+  sharpen(g);
   const mc = minerCost(s).amount;
   const pick = nextPick(s);
   if (s.miners.length === 0) {
@@ -304,6 +329,7 @@ function shopA2(g: Game): void {
         : 'auto',
   });
   shopAct2(g);
+  hireHelpers(g);
   if (s.miners.length > 0 && s.res.torch.lt(2) && s.res.copperBar.gte(3)) apply(g, { type: 'craftTorches' });
 }
 
@@ -316,6 +342,9 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
   let deepest = 0;
   let lastDeeper = 0;
   let first1: Record<string, number> | null = null;
+  let lastBuyable = 0;
+  let gap = 0;
+  let gapAt = 0;
   const act2: { glowroot?: number; verse4?: number; ft400?: number; caveIns: number[] } = { caveIns: [] };
   const limit = MINUTES * 60 * 1000;
   for (let t = 0; t < limit; t += TICK_MS) {
@@ -348,6 +377,11 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
           const t2 = deepestDiggable(g);
           if (t2) apply(g, { type: 'dig', x: t2.x, y: t2.y });
         }
+      }
+      if (s.cycle === 1 && s.t <= 15 * 60_000) {
+        if (villageAffordable(g)) lastBuyable = s.t;
+        if (s.t - lastBuyable > gap) gapAt = lastBuyable;
+        gap = Math.max(gap, s.t - lastBuyable);
       }
       if (act2Mode) shopA2(g);
       else shop(g);
@@ -411,6 +445,8 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     ...(first1 ?? s.stats.firsts),
     echoes: first1?.echoes ?? echoGain(s).toNumber(),
     depth: s.stats.maxDepthD * 4,
+    gap,
+    gapAt,
     miners: s.miners.length,
     ...(act2.glowroot !== undefined ? { glowroot: act2.glowroot } : {}),
   };
@@ -435,6 +471,9 @@ for (const [k, name, target, atMost] of TARGETS) {
   );
 }
 const ech = median(runs.map((r) => r.echoes));
+console.log(
+  `${'Longest wait, nothing to buy'.padEnd(28)}  first 15 min · median ${(median(runs.map((r) => r.gap ?? 0)) / 1000).toFixed(0)} s · ${runs.map((r) => ((r.gap ?? 0) / 1000).toFixed(0) + 's@' + ((r.gapAt ?? 0) / 60000).toFixed(1)).join(' ')}`,
+);
 if (!ACT2)
   console.log(
     `${'Echoes at first Cave-in'.padEnd(28)}  6–10   ${String(ech).padStart(6)}   ${runs.map((r) => String(r.echoes).padStart(5)).join(' ')} ${ech >= 6 && ech <= 10 ? '✓' : '✗'}`,
