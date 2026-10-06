@@ -1,0 +1,45 @@
+{
+  "name": "undersong",
+  "version": "0.1.0",
+  "description": "An incremental mining game in side-on pixel cross-section. A village digs toward a song under the mountain, and finds out it has dug here before.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && prettier --check \"src/**/*.{ts,tsx,css}\" \"tools/**/*.ts\" \"tests/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tools/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "vitest run",
+    "lint:sprites": "tsx tools/lint-sprites.ts",
+    "sim": "tsx tools/balance-sim.ts",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run lint:sprites"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeacockIllustrated/undersong.git"
+  },
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/PeacockIllustrated/undersong/issues"
+  },
+  "homepage": "https://github.com/PeacockIllustrated/undersong#readme",
+  "dependencies": {
+    "break_eternity.js": "^2.1.3",
+    "lz-string": "^1.5.0",
+    "preact": "^10.29.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@preact/preset-vite": "^2.10.6",
+    "@types/node": "^22.20.5",
+    "eslint": "^9.39.5",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vite": "^6.4.4",
+    "vitest": "^3.2.7"
+  },
+  "private": true,
+  "type": "module"
+}

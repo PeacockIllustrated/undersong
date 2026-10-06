@@ -1,0 +1,102 @@
+// Every countable resource. canon §1, §9.
+export const RES_KEYS = [
+  // ores and finds
+  'copperOre',
+  'tinOre',
+  'ironOre',
+  'silverOre',
+  'aquamarine',
+  'crystal',
+  'emberOre',
+  'goldOre',
+  'heartstone',
+  'spores',
+  'rubble',
+  // bars and goods
+  'copperBar',
+  'tinBar',
+  'bronzeBar',
+  'ironBar',
+  'silverBar',
+  'goldBar',
+  'brick',
+  'lumen',
+  // placeable stock
+  'torch',
+  'lantern',
+  'support',
+  'pump',
+  'vent',
+] as const;
+
+export type ResKey = (typeof RES_KEYS)[number];
+
+export const RES_NAMES: Record<ResKey, string> = {
+  copperOre: 'Copper ore',
+  tinOre: 'Tin ore',
+  ironOre: 'Iron ore',
+  silverOre: 'Silver ore',
+  aquamarine: 'Aquamarine',
+  crystal: 'Resonant crystal',
+  emberOre: 'Ember ore',
+  goldOre: 'Gold ore',
+  heartstone: 'Heartstone',
+  spores: 'Glowcap spores',
+  rubble: 'Rubble',
+  copperBar: 'Copper bar',
+  tinBar: 'Tin bar',
+  bronzeBar: 'Bronze bar',
+  ironBar: 'Iron bar',
+  silverBar: 'Silver bar',
+  goldBar: 'Gold bar',
+  brick: 'Brick',
+  lumen: 'Lumen',
+  torch: 'Torch',
+  lantern: 'Lantern',
+  support: 'Support',
+  pump: 'Pump',
+  vent: 'Cooling vent',
+};
+
+/** Short HUD labels. */
+export const RES_SHORT: Record<ResKey, string> = {
+  copperOre: 'Cu ore',
+  tinOre: 'Sn ore',
+  ironOre: 'Fe ore',
+  silverOre: 'Ag ore',
+  aquamarine: 'Aqua',
+  crystal: 'Crystal',
+  emberOre: 'Ember',
+  goldOre: 'Au ore',
+  heartstone: 'Heart',
+  spores: 'Spores',
+  rubble: 'Rubble',
+  copperBar: 'Cu',
+  tinBar: 'Sn',
+  bronzeBar: 'Bronze',
+  ironBar: 'Fe',
+  silverBar: 'Ag',
+  goldBar: 'Au',
+  brick: 'Brick',
+  lumen: 'Lumen',
+  torch: 'Torch',
+  lantern: 'Lantern',
+  support: 'Support',
+  pump: 'Pump',
+  vent: 'Vent',
+};
+
+/** Ores that travel up the shaft (haulage, canon §4.9). Hand-mined finds go straight to the foreman's pack. */
+export const HAULED: readonly ResKey[] = [
+  'copperOre',
+  'tinOre',
+  'ironOre',
+  'silverOre',
+  'aquamarine',
+  'crystal',
+  'emberOre',
+  'goldOre',
+  'heartstone',
+  'spores',
+  'rubble',
+];
