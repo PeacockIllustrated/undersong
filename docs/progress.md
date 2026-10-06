@@ -12,7 +12,38 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
-## 2026-10-06 · M0 Bedrock (in progress), build journal
+## 2026-10-06 · M1 First Verse
+Done: the whole Act I loop. Forge with recipes, picks, the Bunkhouse and miners, rope and winch haulage, torches, Vein Rush, burrow beetles, old chests, Verses I and II with Pell's and Bram's lines, the Cave-in, the Survey Book and the five Echo upgrades. Save v2 with a migration. PR #2.
+
+**Directions taken**
+- **The Survey Book starts with pages already filled in, in the Foreman's own hand.** It is the first hint that the village has done this before, and it costs nothing to build.
+- **Reach.** The village only works rock that touches air connected to the sky (ADR-016). Sealed caves and their chests stay sealed until you dig in.
+- **Miners choose their own faces**: exposed ore first, then rock with ore close behind it, then the shaft floor. No micromanagement, but torches decide how fast they go.
+- **Pacing retune (ADR-015).** Canon asked for the first miner before the first bar, which can't happen. The sim also had the Cave-in at 14 minutes. Hand-mining is slower and copper richer now, and the targets for the first bar, first miner and 150 ft are revised. Question for Tom below.
+- **The forge bug the sim found:** re-selecting the same recipe reset its progress, so a player tapping it would never get a bar.
+
+Balance sim (9 seeds):
+```
+Milestone                    target   median   per seed
+First bar smelted               ≤1m     0.5m    0.4   0.4   0.6   0.5   0.5   0.4   0.4   0.5   1.9 ✓
+First miner hired                8m     8.9m    4.2   6.7   7.7   8.9   9.7   4.5  10.6  10.7  15.1 ✓
+Verse I found                   10m     9.4m   29.6   4.9  16.2   2.8  15.1   6.9  17.1   9.4   3.1 ✓
+150 ft                          20m    17.9m   17.4  17.9  17.1  15.5  23.5  16.4  19.7  21.7  20.8 ✓
+First Cave-in available         45m    51.7m   54.1  61.4  38.8  41.7  52.6  29.1  49.5  51.7  63.1 ✓
+Echoes at first Cave-in       6–10        8       9     8     8     9     8     8     8     8     8 ✓
+
+Depth reached (ft): 308, 300, 300, 300, 324, 300, 300, 344, 300 · miners: 2, 2, 3, 2, 2, 2, 2, 1, 1
+
+All pacing targets within ±15%.
+```
+
+State: `npm run check` green (29 tests), build green. Desktop and phone checked with a mid-game save.
+Next: M2 Glowroot.
+Questions for Tom: are 1, 8 and 20 minutes right for the first bar, first miner and 150 ft (ADR-015)?
+
+---
+
+## 2026-10-06 · M0 Bedrock, build journal
 Tom asked to see the directions taken as the build goes, so each milestone entry now carries a short journal of the calls made and why.
 
 **How I'm working**

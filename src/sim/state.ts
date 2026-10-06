@@ -3,8 +3,9 @@ import type { ObjKind } from '../data/objects';
 import { RES_KEYS, type ResKey } from '../data/resources';
 import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
+import type { Recipe } from '../data/economy';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface Tile {
   x: number;
@@ -22,8 +23,8 @@ export interface Foreman {
   work: number;
   /** Vein Rush chain (canon §4.7). */
   chain: number;
-  /** Run time (ms) of the last ore tile mined, for the chain window. */
-  lastOreT: number;
+  /** Ms the foreman has stood idle; a Vein Rush breaks after the window. */
+  idleMs: number;
   lastOre: Tile | null;
 }
 
@@ -69,6 +70,7 @@ export interface SurveyEntry {
 export type StoryEvent =
   | { kind: 'verse'; verse: number; again: boolean }
   | { kind: 'line'; id: string }
+  | { kind: 'rush'; mult: number }
   | { kind: 'chest'; res: ResKey; n: string }
   | { kind: 'unlock'; id: string }
   | { kind: 'collapse'; x: number; y: number }
@@ -90,7 +92,9 @@ export interface GameState {
   buildings: { forge: number; lampworks: number; kiln: number; songloom: number };
   pickTier: number;
   haulTier: number;
-  forge: { progress: number; alloy: boolean };
+  forge: { progress: number; recipe: Recipe; next: number };
+  /** Fractional ore waiting to be hauled up this tick. */
+  haulAcc: number;
   kilnProgress: number;
   miners: Miner[];
   pests: Pest[];
@@ -109,8 +113,17 @@ export interface GameState {
   upgrades: Record<string, number>;
   verses: { known: boolean[]; run: boolean[] };
   survey: SurveyEntry[];
-  stats: { maxDepthD: number; bestDepthD: number; tilesMined: number; caveIns: number; chests: number };
-  story: { seen: string[]; events: StoryEvent[]; flags: Record<string, boolean> };
+  stats: {
+    maxDepthD: number;
+    bestDepthD: number;
+    tilesMined: number;
+    caveIns: number;
+    chests: number;
+    /** Run time (ms) when each milestone first happened this run, for the balance sim and the Survey Book. */
+    firsts: Record<string, number>;
+  };
+  /** seen: line ids said this run; ever: said in any run. events: waiting to be shown by the UI. */
+  story: { seen: string[]; ever: string[]; events: StoryEvent[]; flags: Record<string, boolean> };
   charms: { owned: string[]; equipped: string[] };
   ending: null | 'seal' | 'sing';
   ngPlus: number;
@@ -118,6 +131,13 @@ export interface GameState {
   /** Wall-clock ms when last saved, for offline progress. Set by the save layer, never the sim. */
   savedAt: number;
 }
+
+/** The Survey Book is never empty: earlier cycles left pages, in the Foreman's own hand. */
+export const OLD_PAGES: readonly SurveyEntry[] = [
+  { cycle: 0, depthFt: 1424, verses: 12, echoes: '?', hand: 'old' },
+  { cycle: 0, depthFt: 1424, verses: 12, echoes: '?', hand: 'old' },
+  { cycle: 0, depthFt: 1424, verses: 12, echoes: '?', hand: 'old' },
+];
 
 export function emptyRes(): Record<ResKey, Decimal> {
   const r = {} as Record<ResKey, Decimal>;
@@ -138,29 +158,30 @@ export function newGame(seed: number): GameState {
     buildings: { forge: 1, lampworks: 0, kiln: 0, songloom: 0 },
     pickTier: 0,
     haulTier: 0,
-    forge: { progress: 0, alloy: false },
+    forge: { progress: 0, recipe: 'auto', next: 0 },
+    haulAcc: 0,
     kilnProgress: 0,
     miners: [],
     pests: [],
     glints: [],
     nextId: 1,
     foreman: {
-      x: SHAFT_X,
-      y: SKY_ROWS,
+      x: SHAFT_X - 1,
+      y: SKY_ROWS - 1,
       target: null,
       queue: [],
       work: 0,
       chain: 0,
-      lastOreT: -1e9,
+      idleMs: 0,
       lastOre: null,
     },
     world: { diffs: {}, objects: {}, water: null, endlessRows: 0, oldShaftD: 0 },
     echoes: ZERO(),
     upgrades: {},
     verses: { known: new Array(12).fill(false), run: new Array(12).fill(false) },
-    survey: [],
-    stats: { maxDepthD: 0, bestDepthD: 0, tilesMined: 0, caveIns: 0, chests: 0 },
-    story: { seen: [], events: [], flags: {} },
+    survey: OLD_PAGES.map((p) => ({ ...p })),
+    stats: { maxDepthD: 0, bestDepthD: 0, tilesMined: 0, caveIns: 0, chests: 0, firsts: {} },
+    story: { seen: [], ever: [], events: [], flags: {} },
     charms: { owned: [], equipped: [] },
     ending: null,
     ngPlus: 0,

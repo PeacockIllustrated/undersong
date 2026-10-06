@@ -20,7 +20,7 @@ const PRE_DUG = 3;
 
 /** Where each verse is carved: biome band (depth tiles) and which side of the shaft. */
 export const VERSE_BANDS: readonly { d0: number; d1: number }[] = [
-  { d0: 10, d1: 20 }, // I
+  { d0: 7, d1: 14 }, // I
   { d0: 24, d1: 36 }, // II
   { d0: 42, d1: 58 }, // III
   { d0: 60, d1: 78 }, // IV
@@ -157,7 +157,7 @@ function carveFeatures(w: World, S: number, opts: GenOptions): void {
   const Y = (d: number): number => SKY_ROWS + d;
 
   // Shaft collar: a few tiles pre-dug, and a clear column so the start reads well.
-  for (let d = 1; d <= PRE_DUG; d++) w.mat[Y(d) * w.w + SHAFT_X] = M.AIR;
+  for (let d = 0; d <= PRE_DUG; d++) w.mat[Y(d) * w.w + SHAFT_X] = M.AIR;
   for (let d = 1; d <= 6; d++) {
     for (const dx of [-1, 1]) {
       const i = Y(d) * w.w + SHAFT_X + dx;
@@ -235,7 +235,7 @@ function placeCarvings(w: World, S: number): void {
       y = Y(HEART_CENTER_D) + 8;
     } else {
       const side = v % 2 === 0 ? -1 : 1;
-      x = SHAFT_X + side * rng.int(9, 20);
+      x = SHAFT_X + side * (v < 2 ? rng.int(6, 12) : rng.int(9, 20));
       x = Math.max(3, Math.min(w.w - 4, x));
       y = Y(rng.int(band.d0, band.d1));
       // bed it in solid rock so it is found by digging, not by accident

@@ -1,10 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- migrations work on untyped old saves */
 // One migration per SAVE_VERSION bump. Players never lose a save (golden rule 5).
 import { newGame, SAVE_VERSION, type GameState } from '../sim/state';
 
 type Raw = { v: number } & Record<string, unknown>;
 
 /** MIGRATIONS[n] upgrades a version-n save to n + 1. */
-const MIGRATIONS: Record<number, (s: Raw) => Raw> = {};
+const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
+  // v1 → v2 (M1): forge recipes, haulage carry, Vein Rush idle timer, milestone times, lines said in any run.
+  1: (s) => {
+    const o = s as Record<string, any>;
+    o.forge = { progress: o.forge?.progress ?? 0, recipe: 'auto', next: 0 };
+    o.haulAcc = 0;
+    if (o.foreman) {
+      delete o.foreman.lastOreT;
+      o.foreman.idleMs = 0;
+    }
+    if (o.stats) o.stats.firsts = {};
+    if (o.story) o.story.ever = [...(o.story.seen ?? [])];
+    o.v = 2;
+    return o as Raw;
+  },
+};
 
 export function migrate(raw: Raw): GameState {
   let s = raw;

@@ -8,6 +8,7 @@ import { SHAFT_X, SKY_ROWS, TICK_MS } from '../src/data/constants';
 import { exportString, fromJSON, importString, toJSON } from '../src/save/codec';
 import { readFileSync } from 'node:fs';
 import { Decimal } from '../src/sim/decimal';
+import { SAVE_VERSION } from '../src/sim/state';
 
 /** First solid tile below the pre-dug shaft collar. */
 function shaftFloor(g: ReturnType<typeof createGame>): number {
@@ -80,10 +81,15 @@ describe('saves', () => {
     expect(() => fromJSON('{"hello":1}')).toThrow(/Undersong/);
   });
 
-  it('loads the v1 fixture', () => {
-    const text = readFileSync(new URL('./fixtures/saves/v1.json', import.meta.url), 'utf8');
-    const g = loadGame(fromJSON(text));
-    expect(g.state.seed).toBe(1234);
-    expect(g.world.get(SHAFT_X, SKY_ROWS + 3)).toBe(M.AIR);
-  });
+  for (const v of [1, 2]) {
+    it(`loads the v${v} fixture`, () => {
+      const text = readFileSync(new URL(`./fixtures/saves/v${v}.json`, import.meta.url), 'utf8');
+      const g = loadGame(fromJSON(text));
+      expect(g.state.v).toBe(SAVE_VERSION);
+      expect(g.state.seed).toBe(1234);
+      expect(g.world.get(SHAFT_X, SKY_ROWS + 3)).toBe(M.AIR);
+      expect(g.state.forge.recipe).toBe('auto');
+      expect(g.state.res.rubble).toBeInstanceOf(Decimal);
+    });
+  }
 });

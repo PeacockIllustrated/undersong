@@ -11,7 +11,7 @@ import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
 import { Input } from './render/input';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
-import { App } from './ui/App';
+import { App, type UiBridge } from './ui/App';
 import { Atlas } from './ui/Atlas';
 import type { GameState } from './sim/state';
 import './ui/style.css';
@@ -49,10 +49,10 @@ function boot(): void {
 
   const input = new Input(canvas, cam, {
     scale: () => renderer.scale,
-    isDiggable: (x, y) => isMineable(game.g.world.get(x, y)),
+    isDiggable: (x, y) => ui.tool === 'dig' && isMineable(game.g.world.get(x, y)),
     onTap: (x, y) => {
-      following = true;
-      dispatch({ type: 'dig', x, y });
+      if (ui.tool === 'dig') following = true;
+      dispatch({ type: 'tap', x, y, tool: ui.tool });
     },
     onPath: (tiles) => {
       following = true;
@@ -75,7 +75,7 @@ function boot(): void {
   });
   window.addEventListener('beforeunload', save);
 
-  const ui = {
+  const ui: UiBridge = {
     get game() {
       return game.g;
     },
@@ -88,6 +88,15 @@ function boot(): void {
     },
     recenter: () => {
       following = true;
+    },
+    lookAt(x, y) {
+      following = false;
+      cam.centerOn(x * TILE_PX + TILE_PX / 2, y * TILE_PX, renderer.viewW, renderer.viewH);
+    },
+    tool: 'dig',
+    setTool(t) {
+      this.tool = t;
+      canvas.style.cursor = t === 'torch' ? 'cell' : 'crosshair';
     },
   };
   render(h(App, { ui }), uiRoot);
@@ -135,6 +144,25 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
     } else if (e.kind === 'refused') {
       r.fx.shake(1, 160, now);
       r.refused = { x: e.x, y: e.y, until: now + 300 };
+    } else if (e.kind === 'pest') {
+      if (e.cleared) r.fx.debris(e.x * TILE_PX + 8, e.y * TILE_PX + 10, ['#373A52', '#5F6487', '#141A33'], 6);
+    } else if (e.kind === 'chest') {
+      for (let i = 0; i < 6; i++) r.fx.sparkle(e.x * TILE_PX + 8, e.y * TILE_PX + 4, '#FFD65A');
+    } else if (e.kind === 'verse') {
+      r.fx.shake(1, 300, now);
+      for (let i = 0; i < 14; i++)
+        r.fx.sparkle(e.x * TILE_PX + 8, e.y * TILE_PX + 8, i % 2 ? '#FFF2A8' : '#FFD65A');
+    } else if (e.kind === 'rush') {
+      r.fx.float(
+        e.x * TILE_PX + 8,
+        e.y * TILE_PX - 4,
+        `×${e.mult.toFixed(2).replace(/0$/, '')}`,
+        '#5FF0D8',
+        now,
+      );
+    } else if (e.kind === 'caveIn') {
+      r.invalidate();
+      r.fx.shake(3, 1500, now);
     }
   }
   g.events.length = 0;

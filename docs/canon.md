@@ -65,8 +65,8 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 | 4.3 | Echo gain on Cave-in | `floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × versesFoundThisRun) )` |
 | 4.4 | Miner output | `ore_per_s = pickPower × lightFactor / H(d)` |
 | 4.5 | Light factor | `L ≥ 0.6 → 1.0`, `0.3 ≤ L < 0.6 → 0.7`, `L < 0.3 → 0.4` |
-| 4.6 | Hand-mining time per tile | `seconds = H(d) / (pickPower × 2.5 × veinRushMult)` |
-| 4.7 | Vein Rush | `mult = min(5, 1 + 0.25 × chain)`; chain resets after 1.2 s without mining a connected ore tile |
+| 4.6 | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult)` (was 2.5; tuned by the balance sim, ADR-015) |
+| 4.7 | Vein Rush | `mult = min(5, 1 + 0.25 × chain)`; the chain grows with each ore tile mined next to (8-way) the last one, and resets on non-ore or after the Foreman stands idle 1.2 s |
 | 4.8 | Offline gain | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; max cap 24 h, eff 1.0 |
 | 4.9 | Haul throughput | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles` |
 | 4.10 | Cave-in unlock | `maxDepth_ft ≥ 300` **and** Verse II found |
@@ -77,10 +77,10 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 
 | Milestone | Target |
 |---|---|
-| First miner hired | 2 min |
-| First bar smelted | 5 min |
+| First bar smelted | 1 min (was 5; see ADR-015) |
+| First miner hired | 8 min (was 2; see ADR-015) |
 | Verse I found | 10 min |
-| 150 ft (Glowroot entrance visible) | 30 min |
+| 150 ft (Glowroot entrance visible) | 20 min (was 30; see ADR-015) |
 | First Cave-in available | 45 min |
 | Echoes from a typical first Cave-in | 6–10 |
 | Glowroot cleared (Act II end) | 4 h |
@@ -153,9 +153,9 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Material | H_material | Drops | Biome |
 |---|---|---|---|
 | Dirt | 1 | — | 1 |
-| Stone | 3 | — | 1–2 |
-| Copper ore | 4 | 1 Copper ore | 1 |
-| Tin ore | 4 | 1 Tin ore | 1 |
+| Stone | 4 | Rubble | 1–2 |
+| Copper ore | 4 | 2 Copper ore | 1 |
+| Tin ore | 4 | 2 Tin ore | 1 |
 | Slate | 6 | — | 2+ |
 | Iron ore | 8 | 1 Iron ore | 2 |
 | Glowcap cluster | 2 | 2 Glowcap spores | 2 |
@@ -180,12 +180,21 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Rails (Act II) | 8 Iron bars per 10 tiles | carrierSpeed 8 tiles/s, capacity 25 |
 | Torch | 1 Copper bar for 3 | Light 1.0, no upkeep, radius limited by decay |
 
+### 9.1 Act I extras (v0)
+
+| Thing | Value |
+|---|---|
+| Burrow beetle | Appears at a miner working a face with light below 0.3, chance 1/90 per second; stops that miner until tapped |
+| Old chest | One roll: 3–8 copper bars, 2–5 tin bars or 3–6 torches |
+| Miner choice | Exposed ore nearest the shaft first, then rock with ore within 2 tiles, then the shaft floor |
+| Miners' rubble | Left in the mine, not hauled |
+
 ## §10 Echo upgrades: M1 set (v0)
 
 | Upgrade | Branch | Cost (Echoes) | Effect |
 |---|---|---|---|
 | Steady Hands | Hands | 1 | Hand-mining +25% |
 | Cheap Bunks | Hands | 2 | Miner cost −10% |
-| Lamplit | Lamps | 2 | Torches decay 15% slower |
+| Lamplit | Lamps | 2 | Torchlight 15% stronger (reads as reaching further) |
 | Remembered Rope | Memory | 3 | Start each run with the Winch lift |
 | Pell’s Hum | Memory | 5 | The nearest unfound verse glints when within 20 tiles |

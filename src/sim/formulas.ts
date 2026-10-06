@@ -8,7 +8,7 @@ export function hardnessAt(hMaterial: number, depthTiles: number): number {
 }
 
 /** canon §4.6 work rate of the foreman, in hardness units per second. */
-export const FOREMAN_RATE = 2.5;
+export const FOREMAN_RATE = 1.15;
 
 /** canon §4.6 seconds to hand-mine one tile. */
 export function handMineSeconds(hMaterial: number, depthTiles: number, pickPower: number, mult = 1): number {
