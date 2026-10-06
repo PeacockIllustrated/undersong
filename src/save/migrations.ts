@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- migrations work on untyped old saves */
 // One migration per SAVE_VERSION bump. Players never lose a save (golden rule 5).
-import { newGame, SAVE_VERSION, type GameState } from '../sim/state';
+import { RES_KEYS } from '../data/resources';
+import { newGame, newSurface, SAVE_VERSION, type GameState } from '../sim/state';
+import { Decimal } from '../sim/decimal';
 
 type Raw = { v: number } & Record<string, unknown>;
 
@@ -49,6 +51,13 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 5;
     return o as Raw;
   },
+  // v5 → v6 (M6, ADR-028): Holloway above. Barley and timber are filled in below with every other missing resource.
+  5: (s) => {
+    const o = s as Record<string, any>;
+    o.surface = newSurface();
+    o.v = 6;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {
@@ -61,5 +70,10 @@ export function migrate(raw: Raw): GameState {
   // Fill any field a save is missing with the new-game default, so additive changes stay safe.
   const base = newGame(typeof s.seed === 'number' ? s.seed : 1) as unknown as Record<string, unknown>;
   for (const k of Object.keys(base)) if (!(k in s)) s[k] = base[k];
+  // a resource added since the save was written starts at zero
+  for (const bag of ['res', 'underground'] as const) {
+    const r = s[bag] as Record<string, unknown>;
+    for (const k of RES_KEYS) if (!(r[k] instanceof Decimal)) r[k] = new Decimal(0);
+  }
   return s as unknown as GameState;
 }

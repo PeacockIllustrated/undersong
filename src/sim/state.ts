@@ -5,8 +5,9 @@ import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
+import type { MealId, WoodBuyId } from '../data/surface';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface Tile {
   x: number;
@@ -59,6 +60,63 @@ export interface Glint {
   y: number;
   until: number;
   kind: 'glint' | 'hum';
+}
+
+/** A field plot: growth from 0 to 1 (ripe), and whether it ripened golden. canon §17.1 */
+export interface Plot {
+  t: number;
+  golden: boolean;
+}
+
+/** A tree in the woodlot. Trees are not the village: they stay through a Cave-in. canon §17.3 */
+export interface Tree {
+  /** Index into WOODLOT.slots. */
+  slot: number;
+  /** Seconds it has been growing. */
+  age: number;
+  /** Cave-ins it has stood through. */
+  stood: number;
+}
+
+/** Holloway above (ADR-028). The fields, meals and timber buys reset on a Cave-in; trees and the tallies stay. */
+export interface Surface {
+  /** Tansy has come up the valley road this run. */
+  tansy: boolean;
+  /** Rook has come this run. */
+  rook: boolean;
+  plots: Plot[];
+  trees: Tree[];
+  meals: Record<MealId, number>;
+  wood: Record<WoodBuyId, number>;
+  /** Crops toward the feast bell, feasts rung this run, and the run time (ms) the current feast ends. */
+  feast: number;
+  feasts: number;
+  feastUntil: number;
+  /** Tansy rings the bell herself when it is full (needs Tansy's hands). */
+  autoFeast: boolean;
+  /** Seconds banked toward Tansy's next harvest. */
+  tansyAcc: number;
+  /** Harvests and fellings in any run, for when the helpers are offered. */
+  harvestsEver: number;
+  chopsEver: number;
+}
+
+export function newSurface(): Surface {
+  return {
+    tansy: false,
+    rook: false,
+    plots: [],
+    trees: [],
+    meals: { bread: 0, porridge: 0 },
+    wood: { hearth: 0, cottage: 0 },
+    feast: 0,
+    feasts: 0,
+    feastUntil: 0,
+    autoFeast: false,
+    tansyAcc: 0,
+    harvestsEver: 0,
+    chopsEver: 0,
+  };
 }
 
 export interface SurveyEntry {
@@ -145,6 +203,7 @@ export interface GameState {
   ending: null | 'seal' | 'sing';
   ngPlus: number;
   heirloomTier: number;
+  surface: Surface;
   /** Wall-clock ms when last saved, for offline progress. Set by the save layer, never the sim. */
   savedAt: number;
 }
@@ -218,6 +277,7 @@ export function newGame(seed: number): GameState {
     ending: null,
     ngPlus: 0,
     heirloomTier: 0,
+    surface: newSurface(),
     savedAt: 0,
   };
 }

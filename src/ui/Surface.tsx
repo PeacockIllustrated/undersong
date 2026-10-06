@@ -1,0 +1,211 @@
+// Holloway above (M6): Tansy's fields and cookhouse, and Rook's woodlot. canon §17
+import { FEAST, FIELDS, MEALS, WOODLOT, WOOD_BUYS, PIT_PROP } from '../data/surface';
+import { canPay } from '../sim/economy';
+import {
+  feastNeed,
+  feasting,
+  isElder,
+  mealCost,
+  plotCost,
+  ripe,
+  saplingCost,
+  treeStage,
+  woodCost,
+} from '../sim/surface';
+import { spriteURL } from '../render/sprites';
+import type { UiBridge } from './App';
+import { Cost } from './Village';
+import { fmt } from './format';
+
+type State = UiBridge['game']['state'];
+
+const STAGE = ['sapling', 'young', 'grown', 'old'];
+
+/** Things on the Fields tab the player can do now, for the tab's count. */
+export function fieldsReady(s: State): number {
+  const pc = plotCost(s);
+  return (
+    (pc && canPay(s, pc) ? 1 : 0) +
+    MEALS.filter((m) => canPay(s, mealCost(s, m.id))).length +
+    (!feasting(s) && s.surface.feast >= feastNeed(s) ? 1 : 0)
+  );
+}
+
+export function woodReady(s: State): number {
+  const sc = saplingCost(s);
+  return (sc && canPay(s, sc) ? 1 : 0) + WOOD_BUYS.filter((b) => canPay(s, woodCost(s, b.id))).length;
+}
+
+export function Fields({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const sf = s.surface;
+  const pc = plotCost(s);
+  const need = feastNeed(s);
+  const on = feasting(s);
+  const left = Math.ceil((sf.feastUntil - s.t) / 1000);
+  const r = ripe(s);
+  return (
+    <>
+      <section class="card">
+        <img class="prop" src={spriteURL('tansy')} alt="" />
+        <div class="grow">
+          <h3>
+            Tansy’s fields · {sf.plots.length} plot{sf.plots.length === 1 ? '' : 's'}
+          </h3>
+          <p>
+            Barley ripens in {FIELDS.ripenS} s and gives {FIELDS.yield}, or {FIELDS.yield * FIELDS.handMult}{' '}
+            when you reap it yourself: tap a ripe plot east of the shaft. About one ear in{' '}
+            {Math.round(1 / FIELDS.goldenChance)} comes up golden and pays ×{FIELDS.goldenMult}.
+          </p>
+          <p class="small">
+            {r > 0 ? `${r} ripe now.` : 'Nothing ripe yet.'}
+            {s.helpers.tansy ? ' Tansy reaps whatever ripens.' : ''}
+          </p>
+          {pc ? (
+            <div class="row">
+              <button
+                class={`btn ${canPay(s, pc) ? 'can' : ''}`}
+                disabled={!canPay(s, pc)}
+                onClick={() => ui.dispatch({ type: 'buyPlot' })}
+              >
+                Dig a new plot
+              </button>
+              <Cost costs={pc} have={s.res} />
+            </div>
+          ) : (
+            <p class="small">Every plot on the hillside is sown.</p>
+          )}
+        </div>
+      </section>
+
+      <section class="card">
+        <img class="prop" src={spriteURL('cookhouse', on ? 1 : 0)} alt="" />
+        <div class="grow">
+          <h3>The cookhouse · {fmt(s.res.barley)} barley</h3>
+          <p>Meals last until the Cave-in.</p>
+          {MEALS.map((m) => {
+            const c = mealCost(s, m.id);
+            const lv = sf.meals[m.id];
+            return (
+              <div class="row" key={m.id}>
+                <button
+                  class={`btn ${canPay(s, c) ? 'can' : ''}`}
+                  disabled={!canPay(s, c)}
+                  onClick={() => ui.dispatch({ type: 'eatMeal', id: m.id })}
+                >
+                  {m.name} <em>+{Math.round(m.per * 100)}%</em>
+                </button>
+                <Cost costs={c} have={s.res} />
+                <span class="small">
+                  {m.text}
+                  {lv > 0 ? ` · +${Math.round(m.per * lv * 100)}% now` : ''}
+                </span>
+              </div>
+            );
+          })}
+          <h3>The feast bell</h3>
+          <p class="small">
+            Every crop reaped fills it (a golden ear counts {FEAST.golden}). Ring it for {FEAST.seconds} s of
+            every worker ×{FEAST.mult}, with crops growing ×{FEAST.grow}.
+          </p>
+          <div class="bar">
+            <i style={{ width: `${on ? 100 : Math.min(100, (sf.feast / need) * 100)}%` }} />
+          </div>
+          <div class="row">
+            <button
+              class={`btn primary ${!on && sf.feast >= need ? 'can' : ''}`}
+              disabled={on || sf.feast < need}
+              onClick={() => ui.dispatch({ type: 'ringFeast' })}
+            >
+              {on ? `Feasting · ${left} s` : 'Ring the bell'}
+            </button>
+            <span class="small">{on ? '' : `${Math.min(sf.feast, need)} / ${need}`}</span>
+            {!!s.helpers.tansy && (
+              <label class="small check">
+                <input
+                  type="checkbox"
+                  checked={sf.autoFeast}
+                  onChange={(e) =>
+                    ui.dispatch({ type: 'autoFeast', on: (e.target as HTMLInputElement).checked })
+                  }
+                />{' '}
+                Tansy rings it when it’s full
+              </label>
+            )}
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+export function Woodlot({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const sf = s.surface;
+  const sc = saplingCost(s);
+  const trees = sf.trees.map((t) => (isElder(t) ? 'elder' : STAGE[treeStage(t)]!));
+  return (
+    <>
+      <section class="card">
+        <img class="prop" src={spriteURL('rook')} alt="" />
+        <div class="grow">
+          <h3>Rook’s woodlot · {fmt(s.res.timber)} timber</h3>
+          <p>
+            Trees grow young at {WOODLOT.stageS[0]! / 60} min, grown at {WOODLOT.stageS[1]! / 60} and old at{' '}
+            {WOODLOT.stageS[2]! / 60}. Felling gives {WOODLOT.chop.slice(1).join(', ')} timber, double when
+            you swing the axe: tap a tree. A tree that stands through {WOODLOT.elderAfter} Cave-ins becomes an
+            elder.
+          </p>
+          <p class="small">{trees.length ? `Standing: ${trees.join(', ')}.` : 'The woodlot is bare.'}</p>
+          {sc ? (
+            <div class="row">
+              <button
+                class={`btn ${canPay(s, sc) ? 'can' : ''}`}
+                disabled={!canPay(s, sc)}
+                onClick={() => ui.dispatch({ type: 'plantSapling' })}
+              >
+                Plant a sapling
+              </button>
+              <Cost costs={sc} have={s.res} />
+            </div>
+          ) : (
+            <p class="small">Every slot in the woodlot has a tree.</p>
+          )}
+        </div>
+      </section>
+      {WOOD_BUYS.map((b) => {
+        const c = woodCost(s, b.id);
+        const lv = sf.wood[b.id];
+        return (
+          <section class="card" key={b.id}>
+            <img class="prop" src={spriteURL(b.id === 'cottage' ? 'cottage' : 'forge', 1)} alt="" />
+            <div class="grow">
+              <h3>
+                {b.name}
+                {lv > 0 ? ` · ${lv}` : ''}
+              </h3>
+              <p>
+                {b.text}: +{Math.round(b.per * 100)}% each
+                {lv > 0 ? `, +${Math.round(b.per * lv * 100)}% now` : ''}.
+              </p>
+              <div class="row">
+                <button
+                  class={`btn ${canPay(s, c) ? 'can' : ''}`}
+                  disabled={!canPay(s, c)}
+                  onClick={() => ui.dispatch({ type: 'buyWood', id: b.id })}
+                >
+                  {b.id === 'cottage' ? 'Raise a cottage' : lv ? 'Stoke it higher' : 'Build the hearth'}
+                </button>
+                <Cost costs={c} have={s.res} />
+              </div>
+            </div>
+          </section>
+        );
+      })}
+      <p class="small">
+        Pit props: once the Kiln is built, a support takes {PIT_PROP.n} timber in place of bricks while timber
+        is the cheaper.
+      </p>
+    </>
+  );
+}

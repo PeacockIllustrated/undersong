@@ -2,6 +2,7 @@
 import { generateWorld } from '../world/generator';
 import type { World } from '../world/world';
 import { torchMult } from './power';
+import { rootTiles } from './surface';
 import { M } from '../data/materials';
 import { wetTiles } from '../world/water';
 import { setWater, wakeWater } from './water';
@@ -14,6 +15,9 @@ export type SimEvent =
   | { kind: 'refused'; x: number; y: number; needs?: string }
   | { kind: 'drop'; x: number; y: number; res: string; n: number }
   | { kind: 'smelt'; bar: string }
+  /** Holloway above (canon §17): a plot reaped, a tree felled. x is the tile column. */
+  | { kind: 'harvest'; x: number; n: number; golden: boolean }
+  | { kind: 'chop'; x: number; n: number }
   | { kind: 'bought'; what: string }
   | { kind: 'pest'; x: number; y: number; cleared: boolean }
   | { kind: 'chest'; x: number; y: number }
@@ -63,6 +67,7 @@ export function syncWorld(state: GameState, world: World): void {
   world.torchMult = torchMult(state);
   world.torchSteady = state.upgrades.steadyFlame === 1;
   world.lanternsLit = state.res.lumen.gt(0);
+  world.soft = new Set(rootTiles(state, world));
   world.dimmed = new Set(state.pests.filter((p) => p.kind === 'moth').map((p) => p.y * world.w + p.x));
   world.touchAll();
 }

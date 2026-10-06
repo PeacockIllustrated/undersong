@@ -27,6 +27,7 @@ import { BUILDINGS, HAULS, WHETSTONE } from './data/economy';
 import { PICKS } from './data/items';
 import { BIOMES, biomeAt } from './data/biomes';
 import { HELPERS } from './data/helpers';
+import { FEAST, FIELDS, MEALS, WOOD_BUYS } from './data/surface';
 import { toast } from './ui/feedback';
 import { Ears } from './audio/ears';
 import { SETTINGS_TEXT } from './story/settings';
@@ -228,6 +229,18 @@ function announce(g: Game, what: string): void {
   } else if (what === 'kiln' || what === 'lampworks' || what === 'songloom') {
     const b = BUILDINGS.find((x) => x.id === what)!;
     toast(s.buildings[b.id] > 1 ? `${b.name} · level ${s.buildings[b.id]}` : b.name, b.text);
+  } else if (what === 'plot') toast('+1 plot', `${s.surface.plots.length} of ${FIELDS.maxPlots} in barley`);
+  else if (what === 'sapling') toast('A sapling', 'Rook plants it out');
+  else if (what === 'feast')
+    toast('The feast bell!', `Every worker ×${FEAST.mult} for ${FEAST.seconds} s, and the crops grow faster`);
+  else if (what.startsWith('meal:')) {
+    const m = MEALS.find((x) => x.id === what.slice(5))!;
+    const n = s.surface.meals[m.id];
+    toast(`${m.name} · level ${n}`, `${m.text}: +${Math.round(m.per * n * 100)}%`);
+  } else if (what.startsWith('wood:')) {
+    const b = WOOD_BUYS.find((x) => x.id === what.slice(5))!;
+    const n = s.surface.wood[b.id];
+    toast(n > 1 ? `${b.name} · ${n}` : b.name, `${b.text}: +${Math.round(b.per * n * 100)}%`);
   }
 }
 
@@ -297,6 +310,19 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       r.fx.shake(2, 600, now);
       for (let i = 0; i < 3; i++)
         r.fx.debris(e.x * TILE_PX + 8, (e.y - 2 + i) * TILE_PX, ['#5F6487', '#373A52', '#141A33'], 8);
+    } else if (e.kind === 'harvest' || e.kind === 'chop') {
+      const x = Math.floor(e.x);
+      const y = (g.world.surf[x]! - (e.kind === 'chop' ? 3 : 1)) * TILE_PX;
+      const golden = e.kind === 'harvest' && e.golden;
+      r.fx.float(
+        e.x * TILE_PX + 8,
+        y,
+        `+${e.n}`,
+        golden ? '#FFF2A8' : '#FFD65A',
+        now,
+        e.kind === 'chop' ? 'timber' : 'barley',
+      );
+      if (golden) for (let i = 0; i < 8; i++) r.fx.sparkle(e.x * TILE_PX + 8, y + 8, '#FFF2A8');
     } else if (e.kind === 'bought') {
       announce(g, e.what);
     } else if (e.kind === 'record') {

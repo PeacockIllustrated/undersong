@@ -1,4 +1,5 @@
 // The tile world: materials, water, heat and light, in flat typed arrays. dev-bible §1.4
+import { ROOTS } from '../data/surface';
 import { CHUNK, SKY_ROWS, WORLD_W } from '../data/constants';
 import { M, MATERIALS } from '../data/materials';
 import type { ObjKind } from '../data/objects';
@@ -28,6 +29,8 @@ export class World {
   lanternsLit = true;
   /** Lanterns a moth is sitting on (tile indices); they give no light until it is shooed. */
   dimmed = new Set<number>();
+  /** Tiles an elder's roots run through: softer rock (canon §17.4). Set from the state, never saved. */
+  soft = new Set<number>();
   /** Torch strength multiplier from Echo upgrades. */
   torchMult = 1;
   /** Steady Flame: torches no longer gutter in the deep. */
@@ -158,7 +161,8 @@ export class World {
   }
 
   hardnessOf(x: number, y: number): number {
-    return MATERIALS[this.get(x, y)]?.hardness ?? 0;
+    const h = MATERIALS[this.get(x, y)]?.hardness ?? 0;
+    return this.soft.size && this.soft.has(y * this.w + x) ? h * ROOTS.soften : h;
   }
 
   /** Grow the world downward (Endless Depth). New rows are filled by the caller. */

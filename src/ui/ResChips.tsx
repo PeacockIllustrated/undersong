@@ -20,7 +20,7 @@ const ORE: readonly ResKey[] = [
   'goldOre',
   'heartstone',
 ];
-const OTHER: readonly ResKey[] = ['spores', 'lumen', 'rubble', 'brick'];
+const OTHER: readonly ResKey[] = ['spores', 'lumen', 'rubble', 'brick', 'barley', 'timber'];
 const ORDER = [...BARS, ...ORE, ...OTHER];
 
 /** UI-only history for rates and flashes: real time, sampled whenever the HUD draws. */

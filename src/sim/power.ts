@@ -5,6 +5,7 @@ import { CHARM_FX, type CharmId } from '../data/charms';
 import { PICKS } from '../data/items';
 import { HOMECOMING, VERSE_POWER } from '../data/helpers';
 import type { GameState } from './state';
+import { feastMult, handFood, minerFood } from './surface';
 
 /** An equipped Song-loom charm's multiplier, or 1. canon §13 */
 export function charm(s: GameState, id: CharmId): number {
@@ -34,7 +35,7 @@ export const homeUntilD = (s: GameState): number => Math.floor(s.stats.bestDepth
 
 /** Everything that speeds every worker at once. */
 export function villageMult(s: GameState): number {
-  return echoMult(s) * verseMult(s) * homecoming(s);
+  return echoMult(s) * verseMult(s) * homecoming(s) * feastMult(s);
 }
 
 /** Deep Hands: everyone digs faster below 1000 ft. */
@@ -47,7 +48,9 @@ export function rushStep(s: GameState): number {
 }
 
 export function minerMult(s: GameState): number {
-  return villageMult(s) * (s.upgrades.strongBacks ? UPGRADE_FX.strongBacks : 1) * charm(s, 'name');
+  return (
+    villageMult(s) * (s.upgrades.strongBacks ? UPGRADE_FX.strongBacks : 1) * charm(s, 'name') * minerFood(s)
+  );
 }
 
 export function handsMult(s: GameState): number {
@@ -55,7 +58,8 @@ export function handsMult(s: GameState): number {
     villageMult(s) *
     (s.upgrades.steadyHands ? UPGRADE_FX.steadyHands : 1) *
     (1 + WHETSTONE.perLevel * s.whetstone) *
-    charm(s, 'hush')
+    charm(s, 'hush') *
+    handFood(s)
   );
 }
 

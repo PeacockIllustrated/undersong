@@ -19,6 +19,7 @@ import type { Game } from './game';
 import type { GameState } from './state';
 import { charm } from './power';
 import { homecoming } from './power';
+import { woodMult } from './surface';
 
 export function scaled(c: Cost, owned: number, mult = 1): Decimal {
   return D(c.n).mul(D(COST_GROWTH).pow(owned)).mul(mult).ceil();
@@ -75,7 +76,7 @@ export function stepForge(g: Game, dt: number): void {
     s.forge.progress = 0;
     return;
   }
-  s.forge.progress += dt * homecoming(s);
+  s.forge.progress += dt * homecoming(s) * woodMult(s, 'hearth');
   // a loop, so long catch-up steps (offline) smelt as much as real time would
   while (s.forge.progress >= FORGE.seconds) {
     const job = pickJob(s);

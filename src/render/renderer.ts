@@ -17,6 +17,8 @@ import type { Camera } from './camera';
 import { Fx } from './fx';
 import { PESTS } from '../data/economy';
 import { settings } from '../settings';
+import { FIELDS, ROOTS, WOODLOT } from '../data/surface';
+import { feasting, isElder, treeStage } from '../sim/surface';
 
 const T = TILE_PX;
 const CPX = CHUNK * T;
@@ -31,7 +33,6 @@ export const VILLAGE: readonly {
   x: number;
   key?: 'forge' | 'lampworks' | 'kiln' | 'songloom';
 }[] = [
-  { sprite: 'tree', x: 3 },
   { sprite: 'bunkhouse', x: 8 },
   { sprite: 'forge', x: 14, key: 'forge' },
   { sprite: 'lampworks', x: 20, key: 'lampworks' },
@@ -39,9 +40,12 @@ export const VILLAGE: readonly {
   { sprite: 'kiln', x: 26, key: 'kiln' },
   { sprite: 'songloom', x: 32, key: 'songloom' },
   { sprite: 'headframe', x: SHAFT_X },
-  { sprite: 'tree', x: 50 },
-  { sprite: 'tree', x: 59 },
 ];
+
+/** M6 Holloway above, render layout only: the cookhouse, the cairn, and where cottages stand in the back row. */
+const COOKHOUSE_X = 36;
+const CAIRN_X = 38;
+const COTTAGE_X = [11, 5, 17, 29, 23, 47, 53, 35, 59, 1] as const;
 
 /** Back wall shown behind dug-out tiles. */
 function wallMaterial(d: number): number {
@@ -238,6 +242,7 @@ export class Renderer {
     const ty1 = Math.min(w.h - 1, Math.ceil((camY + this.viewH) / T));
     const frame = Math.floor(now / 110);
 
+    this.drawRoots(game, tx0, ty0, tx1, ty1, now);
     this.drawCarvings(game, tx0, ty0, tx1, ty1, frame);
     this.drawObjects(w, tx0, ty0, tx1, ty1, frame);
     this.drawVillagers(game, now);
@@ -285,9 +290,118 @@ export class Renderer {
 
   private drawVillage(game: Game, now: number): void {
     const frame = Math.floor(now / 160);
+    const surfY = (x: number): number => (game.world.surf[Math.floor(x)] ?? SKY_ROWS) * T;
+    const sf = game.state.surface;
+    // cottages stand in a back row, a little up the slope behind the street
+    const cottages = Math.min(sf.wood.cottage, COTTAGE_X.length);
+    for (let i = 0; i < cottages; i++) {
+      const x = COTTAGE_X[i]!;
+      drawSprite(this.ctx, 'cottage', i, x * T + T / 2, surfY(x) - 5);
+    }
     for (const b of VILLAGE) {
       if (b.key && game.state.buildings[b.key] <= 0) continue;
-      drawSprite(this.ctx, b.sprite, frame, b.x * T + T / 2, (game.world.surf[b.x] ?? SKY_ROWS) * T);
+      drawSprite(this.ctx, b.sprite, frame, b.x * T + T / 2, surfY(b.x));
+    }
+    this.drawSurface(game, now, surfY);
+  }
+
+  /** M6: the fields, the woodlot, the cookhouse and the cairn, and the two who work them. */
+  private drawSurface(game: Game, now: number, surfY: (x: number) => number): void {
+    const s = game.state;
+    const sf = s.surface;
+    const ctx = this.ctx;
+    // the woodlot: an empty slot shows a stump once Rook is here, and a wild tree before
+    for (let k = 0; k < WOODLOT.slots.length; k++) {
+      const x = WOODLOT.slots[k]!;
+      const px = (x + 0.5) * T;
+      const t = sf.trees.find((tr) => tr.slot === k);
+      if (!t) {
+        if (sf.rook) drawSprite(ctx, 'tree-stump', 0, px, surfY(x));
+        else if (k % 2 === 0) drawSprite(ctx, 'tree', 0, px, surfY(x));
+        continue;
+      }
+      const st = treeStage(t);
+      const name = isElder(t) ? 'tree-elder' : ['tree-sapling', 'tree-young', 'tree', 'tree'][st]!;
+      drawSprite(ctx, name, 0, px, surfY(x));
+      if (isElder(t) && Math.floor(now / 140 + k) % 9 === 0)
+        this.fx.sparkle(px - 12 + ((now / 37 + k * 11) % 24), surfY(x) - 40 + ((now / 53) % 20), '#FFF2A8');
+      // an old tree ready to fell shows a small axe mark
+      if (!isElder(t) && st >= WOODLOT.stageS.length && Math.floor(now / 400) % 2 === 0)
+        this.markReady(px, surfY(x) - 50);
+    }
+    if (sf.tansy) {
+      drawSprite(
+        ctx,
+        'cookhouse',
+        feasting(s) ? Math.floor(now / 200) : 0,
+        COOKHOUSE_X * T + T / 2,
+        surfY(COOKHOUSE_X),
+      );
+      // the fields
+      sf.plots.forEach((p, i) => {
+        const x = FIELDS.plotX0 + i;
+        const f = p.t >= 1 ? (p.golden ? 4 : 3) : Math.min(2, Math.floor(p.t * 3));
+        drawSprite(ctx, 'crop-barley', f, x * T + T / 2, surfY(x));
+        if (p.golden && Math.floor(now / 120 + i) % 5 === 0)
+          this.fx.sparkle(x * T + 2 + ((now / 40) % 12), surfY(x) - 12, '#FFF2A8');
+      });
+      // Tansy walks the rows when her hands are hired, else waits by the cookhouse
+      const n = Math.max(1, sf.plots.length);
+      const walk = s.helpers.tansy ? (Math.sin(now / 2600) * 0.5 + 0.5) * (n - 1) : -1;
+      const tx = s.helpers.tansy ? FIELDS.plotX0 + walk : FIELDS.plotX0 - 0.7;
+      const facing = !!s.helpers.tansy && Math.cos(now / 2600) < 0;
+      drawSprite(ctx, 'tansy', Math.floor(now / 700) % 2, tx * T + T / 2, surfY(tx) - 1, facing);
+    }
+    if (sf.rook) {
+      // Rook stands by the eastern woodlot
+      const rx = WOODLOT.slots[2]! - 1.2;
+      drawSprite(ctx, 'rook', Math.floor(now / 760) % 2, rx * T + T / 2, surfY(rx) - 1, true);
+    }
+    if (s.stats.caveIns > 0)
+      drawSprite(ctx, 'cairn', Math.min(s.stats.caveIns, 5) - 1, CAIRN_X * T + T / 2, surfY(CAIRN_X));
+  }
+
+  /** A small white tick over an old tree: it is ready to fell. */
+  private markReady(x: number, y: number): void {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#141A33';
+    ctx.fillRect(x - 3, y - 1, 7, 6);
+    ctx.fillStyle = '#E8F4F0';
+    for (const [dx, dy] of [
+      [-2, 2],
+      [-1, 3],
+      [0, 2],
+      [1, 1],
+      [2, 0],
+    ] as const)
+      ctx.fillRect(x + dx, y + dy, 1, 1);
+  }
+
+  /** canon §17.4: an elder's roots run through the rock; copper and tin near them glint. */
+  private drawRoots(game: Game, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
+    const w = game.world;
+    if (!w.soft.size) return;
+    const ctx = this.ctx;
+    const r = ROOTS.glintRange;
+    for (const i of w.soft) {
+      const x = i % w.w;
+      const y = Math.floor(i / w.w);
+      if (x < tx0 - r || x > tx1 + r || y < ty0 - r || y > ty1 + r) continue;
+      if (x >= tx0 && x <= tx1 && y >= ty0 && y <= ty1 && isMineable(w.get(x, y))) {
+        // a root: a dark twisting line through the tile
+        const v = hash3(x, y, 77);
+        ctx.fillStyle = '#3A2A20';
+        for (let k = 0; k < T; k += 2)
+          ctx.fillRect(x * T + 6 + Math.round(Math.sin(k / 3 + v * 6) * 3), y * T + k, 2, 2);
+        ctx.fillStyle = '#6B4329';
+        ctx.fillRect(x * T + 4 + Math.round(v * 6), y * T + 9, 3, 1);
+      }
+      if (Math.floor(now / 100 + x * 7 + y) % 23 !== 0) continue;
+      for (let dy = -r; dy <= r; dy++)
+        for (let dx = -r; dx <= r; dx++) {
+          const m = w.get(x + dx, y + dy);
+          if (m === M.COPPER || m === M.TIN) this.fx.sparkle((x + dx) * T + 8, (y + dy) * T + 8, '#FFF2A8');
+        }
     }
   }
 

@@ -10,6 +10,7 @@ import { charm } from './power';
 import { CHARM } from '../data/charms';
 import type { ResKey } from '../data/resources';
 import { NEW_SONG } from '../data/heat';
+import { resetSurface } from './surface';
 
 export function maxFt(s: GameState): number {
   return s.stats.maxDepthD * FT_PER_TILE;
@@ -103,6 +104,7 @@ export function resetRun(s: GameState): void {
     for (const [k, n] of Object.entries(UPGRADE_FX.bramsLedger)) s.res[k as ResKey] = D(n);
   // only the slots that need no Song-loom carry over
   s.charms.equipped = s.charms.equipped.slice(0, CHARM.slotsBase);
+  resetSurface(s);
   s.verses.run = new Array(12).fill(false);
   s.stats.maxDepthD = 0;
   s.stats.tilesMined = 0;

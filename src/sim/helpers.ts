@@ -10,12 +10,14 @@ import { SHAFT_X } from '../data/constants';
 import { flooded } from './water';
 import { coolCache, heatAt } from './heat';
 import { HEAT } from '../data/heat';
+import { FIELDS } from '../data/surface';
 import { D, type Decimal } from './decimal';
 import { canPay, flat, pay } from './economy';
 import type { Game } from './game';
 import { reach } from './reach';
 import type { GameState, Pest } from './state';
 import { first, say } from './story';
+import { craftCost } from './village';
 
 export function helperDef(id: HelperId): (typeof HELPERS)[number] {
   return HELPERS.find((h) => h.id === id)!;
@@ -29,6 +31,8 @@ export function helperOffered(s: GameState, id: HelperId): boolean {
     return s.story.ever.some((l) => l === 'beetle' || l === 'moth' || l === 'eel' || l === 'wisp');
   if (id === 'pumps') return s.story.ever.includes('flooded');
   if (id === 'vents') return s.story.ever.includes('tooHot');
+  if (id === 'tansy') return s.surface.harvestsEver >= FIELDS.handsAfter;
+  if (id === 'rook') return s.surface.chopsEver > 0;
   return s.stats.collapses > 0;
 }
 
@@ -104,7 +108,7 @@ export function stepHelpers(g: Game, dt: number): void {
   if (s.t % 1000 !== 0 && dt < 1) return;
   if (s.helpers.lamps) lamplighters(g);
   if (s.helpers.props && s.buildings.kiln > 0 && s.res.support.lt(HELPER_FX.keepSupports))
-    if (pay(s, flat(CRAFTS.support.cost))) s.res.support = s.res.support.add(CRAFTS.support.makes);
+    if (pay(s, craftCost(s, 'support'))) s.res.support = s.res.support.add(CRAFTS.support.makes);
   if (s.helpers.pumps) pumpCrew(g);
   if (s.helpers.vents) ventCrew(g);
 }

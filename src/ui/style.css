@@ -893,11 +893,12 @@ body.atlas #ui > * {
 /* Village tabs */
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0 0 10px;
 }
 .tabs button {
-  flex: 1;
+  flex: 1 1 auto;
   font-family: var(--display);
   font-size: calc(12px * var(--ts));
   color: var(--ink-dim);
@@ -1380,4 +1381,23 @@ body.atlas #ui > * {
   font-size: calc(14px * var(--ts));
   color: #8a5a3b;
   width: 12px;
+}
+
+/* ---- M6 Holloway above ---- */
+.alert.crop {
+  border-color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.alert.crop img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+label.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
 }

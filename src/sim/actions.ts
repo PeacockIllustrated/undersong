@@ -20,6 +20,8 @@ import { makeRng } from './rng';
 import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
+import type { MealId, WoodBuyId } from '../data/surface';
+import { buyPlot, buyWood, chop, eatMeal, harvest, plantSapling, ringFeast, surfaceTap } from './surface';
 
 export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump' | 'vent';
 
@@ -46,6 +48,15 @@ export type Action =
   | { type: 'weave'; id: CharmId }
   | { type: 'equip'; id: CharmId }
   | { type: 'hireHelper'; id: HelperId }
+  /** Holloway above (canon §17). */
+  | { type: 'harvest'; plot: number }
+  | { type: 'chop'; tree: number }
+  | { type: 'buyPlot' }
+  | { type: 'plantSapling' }
+  | { type: 'eatMeal'; id: MealId }
+  | { type: 'buyWood'; id: WoodBuyId }
+  | { type: 'ringFeast' }
+  | { type: 'autoFeast'; on: boolean }
   | { type: 'caveIn' }
   /** At the Hollow Heart, with Verse XII sung: seal the shaft or sing the last verse. */
   | { type: 'chooseEnding'; which: Ending }
@@ -82,6 +93,7 @@ function enqueue(g: Game, x: number, y: number, mustBeWorkable: boolean): boolea
 
 function tap(g: Game, x: number, y: number, tool: Tool): void {
   const s = g.state;
+  if (surfaceTap(g, x, y)) return;
   const pest = s.pests.find((p) => p.x === x && p.y === y);
   if (pest) {
     hitPest(g, pest);
@@ -249,6 +261,30 @@ export function apply(g: Game, a: Action): void {
       return;
     case 'hireHelper':
       hireHelper(g, a.id);
+      return;
+    case 'harvest':
+      harvest(g, a.plot, true);
+      return;
+    case 'chop':
+      chop(g, a.tree, true);
+      return;
+    case 'buyPlot':
+      buyPlot(g);
+      return;
+    case 'plantSapling':
+      plantSapling(g);
+      return;
+    case 'eatMeal':
+      eatMeal(g, a.id);
+      return;
+    case 'buyWood':
+      buyWood(g, a.id);
+      return;
+    case 'ringFeast':
+      ringFeast(g);
+      return;
+    case 'autoFeast':
+      s.surface.autoFeast = a.on;
       return;
     case 'caveIn':
       caveIn(g);
