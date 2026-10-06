@@ -215,7 +215,7 @@ Epics: water simulation and pumps, the drowned town set piece, the Singing Geode
 - [x] **M3-06 Eels and shard golems.** Eels bite miners at the water's edge; golems wake from crystal and take three taps. Pell's rounds handle both.
 - [x] **M3-07 Act III story.** Lines for the Halls, the houses, the Geodes and the charms.
 - [x] **M3-08 Save v5.** Water diffs and pump state, with a 4→5 migration and fixtures for v4 and v5.
-- [ ] **M3-09 Balance sim to Act III.** `--until=act3` reaches Act III end within ±15% of the target.
+- [x] **M3-09 Balance sim to Act III.** `--until=act3` reaches Act III end within ±15% of the target.
 
 ## M4 · The Heart: Act IV and the ending
 Epics: Ember Deep with heat and cooling, the Hollow Heart with old shafts from earlier cycles, Verses XI–XII, both endings, Endless Depth and New Song+.

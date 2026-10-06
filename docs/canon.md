@@ -265,6 +265,8 @@ Three branches of six. Each needs the one above it in its branch.
 | Cave eel | 1/60 a second for each miner working beside flooded water. Stops that miner until tapped |
 | The drowned town | Four drowned houses on a street at the foot of the Halls. Each one drained (nothing inside flooded) tells a little more; Verses VI–VIII are carved on the back walls of the first three |
 | Old lamp | Still burning in the drowned houses, light 0.8 |
+| Silver pick | 40 Silver bars. pickPower 8 (ADR-021) |
+| Aquamarine pick | 30 Aquamarine + 20 Silver bars. pickPower 12 (ADR-021, M3-09) |
 | Bram’s pump crew | 8 Silver bars + 4 Iron bars. Picks up pumps standing dry, keeps 1 pump in hand, and sets pumps at the water nearest the shaft in the deepest 8 rows (canon §14) |
 
 ## §13 Act III: the Singing Geodes and the Song-loom (v0)
