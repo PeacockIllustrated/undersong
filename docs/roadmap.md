@@ -194,6 +194,15 @@ Apply the DangerouslyFunny taste report to Acts I and II.
 ## M3 · Drowned: Act III
 Epics: water simulation and pumps, the drowned town set piece, the Singing Geodes, the Song-loom and charms, cave eels and shard golems, and Verses VI–X.
 **Exit:** playtesters can explain what Holloway is hiding.
+- [x] **M3-01 Water.** Levels 0–8 per tile, falling-sand settling, flooded tiles block reach (canon §12).
+- [x] **M3-02 Pumps and Bram's pump crew.** Pump tool, drains topmost water first; the crew helper moves pumps to the water (canon §12, §14).
+- [x] **M3-03 The drowned town.** Four houses under water; draining each tells more, Verses VI–VIII on the back walls, old lamps still lit.
+- [x] **M3-04 Singing Geodes.** Singing stone gated at the silver pick, Verses IX–X in resonant crystal rings (canon §13).
+- [x] **M3-05 Song-loom and charms.** Ten charms, one per verse, slots from loom levels, kept through a Cave-in (canon §13).
+- [x] **M3-06 Eels and shard golems.** Eels bite miners at the water's edge; golems wake from crystal and take three taps. Pell's rounds handle both.
+- [x] **M3-07 Act III story.** Lines for the Halls, the houses, the Geodes and the charms.
+- [x] **M3-08 Save v5.** Water diffs and pump state, with a 4→5 migration and fixtures for v4 and v5.
+- [ ] **M3-09 Balance sim to Act III.** `--until=act3` reaches Act III end within ±15% of the target.
 
 ## M4 · The Heart: Act IV and the ending
 Epics: Ember Deep with heat and cooling, the Hollow Heart with old shafts from earlier cycles, Verses XI–XII, both endings, Endless Depth and New Song+.

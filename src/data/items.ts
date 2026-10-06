@@ -22,10 +22,8 @@ export const PICKS: readonly PickDef[] = [
     name: 'Silver pick',
     sprite: 'pick-silver',
     power: 8,
-    cost: [
-      { res: 'silverBar', n: 40 },
-      { res: 'ironBar', n: 20 },
-    ],
+    // all silver: iron is spent by the time the village reaches the Halls (ADR-021)
+    cost: [{ res: 'silverBar', n: 45 }],
   },
   {
     name: 'Aquamarine pick',

@@ -1,5 +1,14 @@
 // Costs, purchases, the forge and haulage. canon §4.1, §4.9, §9.
-import { COST_GROWTH, FORGE, HAULS, MINER_BASE, SMELT, TORCH_CRAFT, WHETSTONE } from '../data/economy';
+import {
+  COST_GROWTH,
+  FORGE,
+  HAULS,
+  MINER_BASE,
+  RAIL_MAX_LOTS,
+  SMELT,
+  TORCH_CRAFT,
+  WHETSTONE,
+} from '../data/economy';
 import type { Cost } from '../data/items';
 import { PICKS } from '../data/items';
 import { HAULED, type ResKey } from '../data/resources';
@@ -46,7 +55,7 @@ export function nextHaul(s: GameState): { res: ResKey; amount: Decimal }[] | nul
   const h = HAULS[s.haulTier + 1];
   if (!h) return null;
   // canon §9: rails are laid down the whole mine, so they cost per 10 tiles of its depth
-  const k = h.perTenTiles ? Math.max(1, Math.ceil(s.stats.maxDepthD / 10)) : 1;
+  const k = h.perTenTiles ? Math.min(RAIL_MAX_LOTS, Math.max(1, Math.ceil(s.stats.maxDepthD / 10))) : 1;
   return h.cost.map((c) => ({ res: c.res, amount: D(c.n * k) }));
 }
 

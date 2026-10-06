@@ -44,8 +44,8 @@ export const HELPERS: readonly HelperDef[] = [
     text: 'The crew carries pumps to wherever the water is, picks up the ones left standing dry, and makes a new pump whenever you have none in hand.',
     levels: [
       [
-        { res: 'silverBar', n: 4 },
-        { res: 'ironBar', n: 10 },
+        { res: 'silverBar', n: 8 },
+        { res: 'ironBar', n: 4 },
       ],
     ],
   },

@@ -426,6 +426,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
   const s = g.state;
   let deepest = 0;
   let lastDeeper = 0;
+  let lastProgress = 0;
   let first1: Record<string, number> | null = null;
   let lastBuyable = 0;
   let gap = 0;
@@ -486,8 +487,16 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         );
       if (canCaveIn(s) && args.until === 'first-cavein') break;
       if (ACT2) {
-        if (s.stats.maxDepthD > deepest) {
-          deepest = s.stats.maxDepthD;
+        // a new pick, haul, building or verse counts as progress too: a player saving toward one doesn't give up
+        const progress =
+          s.stats.maxDepthD * 1000 +
+          s.pickTier * 100 +
+          s.haulTier * 10 +
+          s.buildings.songloom +
+          s.verses.run.filter(Boolean).length;
+        if (s.stats.maxDepthD > deepest || progress > lastProgress) {
+          deepest = Math.max(deepest, s.stats.maxDepthD);
+          lastProgress = progress;
           lastDeeper = s.t;
         }
         const glowDone =
@@ -506,6 +515,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
           apply(g, { type: 'caveIn' });
           deepest = 0;
           lastDeeper = 0;
+          lastProgress = 0;
           spendEchoes(g);
         }
       }
