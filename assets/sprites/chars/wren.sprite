@@ -1,0 +1,53 @@
+palette: master
+size: 16x24
+frames: 2
+anchor: 8,23
+---
+................
+................
+................
+................
+.............a..
+.....WWWWW..aYa.
+....WWWWWWW.aza.
+....WqqqNqd..a..
+....Wqqqqqd..b..
+......dddd...b..
+....nmmmmmmm.b..
+....mnmmmmmm.b..
+...mmnmmmmmmmb..
+...qmnmmmmmmqb..
+....mmmmmmmm.b..
+....aaaaaaaa.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+...aaaa..aaaab..
+...aaaa..aaaab..
+................
+................
+................
+................
+................
+.............a..
+.....WWWWW..aYa.
+....WWWWWWW.aYa.
+....WqqqNqd..a..
+....Wqqqqqd..b..
+......dddd...b..
+....nmmmmmmm.b..
+....mnmmmmmm.b..
+...mmnmmmmmmmb..
+...qmnmmmmmmqb..
+....mmmmmmmm.b..
+....aaaaaaaa.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+....lmllllll.b..
+...aaaa..aaaab..
+...aaaa..aaaab..
+................

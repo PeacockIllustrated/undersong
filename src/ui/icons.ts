@@ -1,0 +1,29 @@
+// Which sprite stands for each resource in the HUD.
+import type { ResKey } from '../data/resources';
+
+export const RES_ICON: Record<ResKey, string> = {
+  copperOre: 'chunk-copper',
+  tinOre: 'chunk-tin',
+  ironOre: 'chunk-iron',
+  silverOre: 'chunk-silver',
+  aquamarine: 'chunk-aqua',
+  crystal: 'chunk-crystal',
+  emberOre: 'chunk-ember',
+  goldOre: 'chunk-gold',
+  heartstone: 'chunk-heart',
+  spores: 'spores',
+  rubble: 'rubble',
+  copperBar: 'bar-copper',
+  tinBar: 'bar-tin',
+  bronzeBar: 'bar-bronze',
+  ironBar: 'bar-iron',
+  silverBar: 'bar-silver',
+  goldBar: 'bar-gold',
+  brick: 'brick',
+  lumen: 'lumen',
+  torch: 'obj-torch',
+  lantern: 'obj-lantern',
+  support: 'obj-support',
+  pump: 'obj-pump',
+  vent: 'obj-vent',
+};

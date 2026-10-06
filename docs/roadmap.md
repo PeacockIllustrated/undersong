@@ -1,6 +1,6 @@
 # Undersong roadmap
 
-**Current milestone: M0 Bedrock**
+**Current milestone: M0 Bedrock** (PR #1; M1 starts on a stacked branch per ADR-009)
 
 Work on the first unchecked ticket in the current milestone. M0 and M1 are broken into full tickets. Later milestones are listed as epics, and they're split into tickets (using the template below) **as the first task of that milestone**. They aren't split earlier, because what we learn in each milestone changes the next one.
 
@@ -25,7 +25,7 @@ PR: (link when done)
 
 **Exit:** a lit, scrollable cross-section you can dig into with the mouse or a tap, on desktop and phone, with a save that survives a reload.
 
-### [ ] M0-01 · Repo scaffold · S
+### [x] M0-01 · Repo scaffold · S
 Goal: an empty project that builds, tests and lints.
 Acceptance:
 1. Vite, TypeScript strict and Preact are set up. `npm run dev` shows a blank canvas with the page title "Undersong".
@@ -34,8 +34,10 @@ Acceptance:
 4. The folder layout matches the map in `CLAUDE.md`, and `docs/` is copied in.
 5. CI (GitHub Actions) runs `npm run check` on every PR.
 Out of scope: any gameplay, rendering or art.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-02 · Palette and sprite format · S
+### [x] M0-02 · Palette and sprite format · S
+> Criterion 3 was replaced by the runtime atlas (ADR-011); the lint has a failing fixture per rule in `tests/sprites.test.ts`.
 Goal: art can be written as text and checked automatically.
 Acceptance:
 1. `assets/sprites/palette.json` holds the 32 colours from canon §6.1 and at least the sub-palettes used by M0 art.
@@ -44,8 +46,9 @@ Acceptance:
 4. Tests cover both tools, including one failing fixture for each lint rule.
 Out of scope: drawing the full asset set (that's M0-07).
 Depends on: M0-01.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-03 · Chunked world and generator · M
+### [x] M0-03 · Chunked world and generator · M
 Goal: a deterministic mountain cross-section exists in memory.
 Acceptance:
 1. 32×32 chunks are stored in typed arrays, as `dev-bible` §1.4 describes.
@@ -54,8 +57,10 @@ Acceptance:
 4. Chunk diffs (mined tiles) can be applied and serialised.
 Out of scope: biomes 2 and below, caves beyond simple pockets, water and heat.
 Depends on: M0-01.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-04 · Tile renderer and camera · M
+### [x] M0-04 · Tile renderer and camera · M
+> Measured with 4× CPU throttle in headless Chromium: about 1.5 ms per frame at 1280×800 and at 390×844 (×3 DPR). Read live from `window.undersongPerf`.
 Goal: you can see and scroll the world crisply.
 Acceptance:
 1. Each chunk is cached to an offscreen canvas and redrawn only when dirty.
@@ -66,8 +71,9 @@ Acceptance:
 6. 60 visible chunks render in under 8 ms per frame on a mid-range phone profile (Chrome devtools 4× CPU throttle).
 Out of scope: lighting (M0-05), sprites other than tiles.
 Depends on: M0-02, M0-03.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-05 · Two-channel lighting · M
+### [x] M0-05 · Two-channel lighting · M
 Goal: darkness and light behave as described in canon §7.
 Acceptance:
 1. A breadth-first flood fill computes warm and cool light per tile, using the decay values from canon §7.
@@ -76,8 +82,9 @@ Acceptance:
 4. Tests check exact light values for a torch in a straight stone tunnel. The values must match the strip in the design bible: 1.00, 0.92, 0.83 and so on.
 Out of scope: lanterns, Lumen and glowcaps as placeable items (M2).
 Depends on: M0-04.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-06 · Sim loop, state, save and load · M
+### [x] M0-06 · Sim loop, state, save and load · M
 Goal: a fixed-tick pure sim with saves that survive a reload.
 Acceptance:
 1. `GameState`, actions, `sim.step` and the seeded RNG are in place, as dev-bible §1 describes.
@@ -87,8 +94,10 @@ Acceptance:
 5. Fixture `tests/fixtures/saves/v1.json` exists and loads.
 Out of scope: offline progress (M2), the economy.
 Depends on: M0-01.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
 ### [ ] M0-07 · Style sheet: 20+ production assets · M
+> 67 sprites and `/#atlas` are done. Missing: the Foreman's 4-frame walk, the rope coil and winch items (they arrive with haulage in M1).
 Goal: the M1 art exists and passes the lint.
 Acceptance:
 1. Tiles, each with 4 variants: grass, dirt, stone, copper ore, tin ore.
@@ -98,8 +107,9 @@ Acceptance:
 5. Everything passes `lint:sprites`, and an `/atlas` dev route shows every sprite at ×4.
 Out of scope: Act II and later art, villagers other than the Foreman.
 Depends on: M0-02.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
-### [ ] M0-08 · Dig interaction · S
+### [x] M0-08 · Dig interaction · S
 Goal: you can dig.
 Acceptance:
 1. Clicking or tapping a solid tile next to air mines it after the time set by canon §4.6, using pickPower 1. A progress crack overlay shows over 3 frames.
@@ -108,6 +118,7 @@ Acceptance:
 4. The change persists through a save and reload.
 Out of scope: ore pickups, inventory, miners.
 Depends on: M0-04, M0-05, M0-06.
+PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
 ---
 
@@ -155,4 +166,5 @@ Epics: layered music and sound effects, a full balance pass, accessibility (redu
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.
 
-- *(empty)*
+- Foreman 4-frame walk cycle, rope-coil and winch item sprites (finishes M0-07; do with M1 haulage).
+- Render-only lamp glow passes through rock; consider occluding it by solid tiles.

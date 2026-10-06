@@ -1,0 +1,36 @@
+palette: master
+size: 16x16
+frames: 2
+---
+................
+..tttttttttttt..
+..tuuuuuuuuuut..
+..tu.E....E.ut..
+..tu..E..E..ut..
+..tu...EE...ut..
+..tuDDDEEDDDut..
+..tu...EE...ut..
+..tu..E..E..ut..
+..tu.E....E.ut..
+..tuuuuuuuuuut..
+..tttttttttttt..
+....tt....tt....
+....tt....tt....
+................
+................
+................
+..tttttttttttt..
+..tuuuuuuuuuut..
+..tu.D....D.ut..
+..tu..E..E..ut..
+..tu...EE...ut..
+..tuDDDEEDDDut..
+..tu...EE...ut..
+..tu..E..E..ut..
+..tu.D....D.ut..
+..tuuuuuuuuuut..
+..tttttttttttt..
+....tt....tt....
+....tt....tt....
+................
+................
