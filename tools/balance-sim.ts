@@ -128,9 +128,21 @@ function verseTunnel(g: Game): { x: number; y: number }[] | null {
       // a hot verse wants a vent beside the Foreman first
       if (inAct4(s)) ventFace(g, c.x, c.y);
       const f = s.foreman;
-      const tiles = line4({ x: f.x, y: f.y }, { x: c.x + Math.sign(f.x - c.x || 1), y: c.y }).filter((t) =>
+      // aim for rock beside the carving: opening it is what finds the verse (it may stand in open air)
+      const beside = NEIGH4.map(([dx, dy]) => ({ x: c.x + dx, y: c.y + dy })).filter((t) =>
         canDig(g.world.get(t.x, t.y), s.pickTier),
       );
+      const near = beside.find((t) => workable(g, t.x, t.y));
+      if (near) return [near];
+      const aim = beside[0] ?? { x: c.x + Math.sign(f.x - c.x || 1), y: c.y };
+      const tiles = line4({ x: f.x, y: f.y }, aim).filter((t) => canDig(g.world.get(t.x, t.y), s.pickTier));
+      // nothing beside it is open yet: open the rock next to that, from wherever the mine already reaches
+      if (tiles.length && !workable(g, tiles[0]!.x, tiles[0]!.y)) {
+        const w2 = beside
+          .flatMap((t) => NEIGH4.map(([dx, dy]) => ({ x: t.x + dx, y: t.y + dy })))
+          .find((t) => canDig(g.world.get(t.x, t.y), s.pickTier) && workable(g, t.x, t.y));
+        if (w2) return [w2];
+      }
       return tiles.length ? tiles : null;
     }
     const dir = Math.sign(c.x - SHAFT_X);
@@ -546,7 +558,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
         console.log(
-          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar}· aq ${s.res.aquamarine}+${s.underground.aquamarine ?? 0} loom ${s.buildings.songloom} cry ${s.res.crystal} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · run ${s.verses.run.map((k) => (k ? 1 : 0)).join("")} · vents ${s.res.vent}/${Object.values(s.world.objects).filter((o) => o === "vent").length} · Au ${s.res.goldBar} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
+          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar}· aq ${s.res.aquamarine}+${s.underground.aquamarine ?? 0} loom ${s.buildings.songloom} cry ${s.res.crystal} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · run ${s.verses.run.map((k) => (k ? 1 : 0)).join('')} · vents ${s.res.vent}/${Object.values(s.world.objects).filter((o) => o === 'vent').length} · Au ${s.res.goldBar} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
         );
       if (canCaveIn(s) && args.until === 'first-cavein') break;
       if (ACT2) {

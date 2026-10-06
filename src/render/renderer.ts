@@ -444,9 +444,13 @@ export class Renderer {
         const h = heatAt(game, x, y);
         if (h < HEAT.slowAt) continue;
         const hot = h >= HEAT.stopAt;
+        // a glowing rim on each side that faces the open mine
         ctx.fillStyle = hot ? '#E0532F' : '#FF9A3C';
-        ctx.globalAlpha = hot ? 0.35 : 0.18;
-        ctx.fillRect(x * T, y * T, T, T);
+        ctx.globalAlpha = hot ? 0.75 : 0.45;
+        if (r[i - 1]) ctx.fillRect(x * T, y * T, 2, T);
+        if (r[i + 1]) ctx.fillRect(x * T + T - 2, y * T, 2, T);
+        if (r[i - w.w]) ctx.fillRect(x * T, y * T, T, 2);
+        if (r[i + w.w]) ctx.fillRect(x * T, y * T + T - 2, T, 2);
         if (hot) {
           // rising haze: two pixels climbing the face
           ctx.globalAlpha = 0.8;
