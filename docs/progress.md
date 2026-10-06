@@ -16,8 +16,9 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 Done: Tansy's fields, the cookhouse and feast bell, Rook's woodlot, trees that stand through the Cave-in, elders and their roots, the cairn, the Look up button, ripe and feast chips, Fields and Woodlot tabs, save v6 with a migration and fixture, canon §17, ADR-029. The sim bot now tends the surface.
 State: `npm run check` green (88 tests). Act I strict sim green (First Cave-in 31.6 min). Checked at 1280×800 and 390×844.
-Not done: Act III and ending pacing are not yet confirmed within ±15%. With the first numbers the surface made the ending about 35% faster; meals, hearth and cottages are now capped, and slate and singing stone are harder. The last 9-seed runs before the caps were halved put Act III near 290 min (target 390) and the ending near 560 (target 690); runs with the current numbers are still going. M6-06 tally board and M6-07 act crops are not built.
-Next: confirm Act III and ending medians, retune if needed, then M6-06 and M6-07.
+Pacing (9 seeds each, live numbers): Act III median 359 min against 390 (−8%); ending median about 689 against 690 (8 of 9 seeds in, 443 to 948). Main before M6 for the same seeds: Act III 341, ending 659.
+Not done: M6-06 tally board and M6-07 act crops.
+Next: M6-06 and M6-07.
 Questions for Tom: none.
 
 ## 2026-10-06 · M5-05 Balance pass
