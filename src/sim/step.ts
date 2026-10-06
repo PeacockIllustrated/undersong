@@ -6,6 +6,7 @@ import { stepForeman } from './dig';
 import { stepMiners } from './miners';
 import { stepForge, stepHaul } from './economy';
 import { stepStory } from './story';
+import { stepKiln, stepLampworks, stepLanterns } from './village';
 
 export { mineTile } from './dig';
 
@@ -19,6 +20,9 @@ export function step(g: Game, dtMs: number): void {
   stepMiners(g, dt);
   stepHaul(g, dt);
   stepForge(g, dt);
+  stepKiln(g, dt);
+  stepLampworks(g, dt);
+  stepLanterns(g, dt);
   stepGlints(g);
   stepStory(g);
 }
@@ -27,7 +31,7 @@ export function step(g: Game, dtMs: number): void {
 function stepGlints(g: Game): void {
   const s = g.state;
   s.glints = s.glints.filter((gl) => gl.until > s.t);
-  if (!s.upgrades.pellsHum || s.t % 1000 !== 0) return;
+  if (!s.upgrades.pellsHum || g.offline || s.t % 1000 !== 0) return;
   let best = null as null | { x: number; y: number; d: number };
   for (const c of g.world.carvings) {
     if (s.verses.run[c.verse]) continue;

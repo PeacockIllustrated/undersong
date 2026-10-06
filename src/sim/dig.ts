@@ -1,24 +1,36 @@
 // Digging: the Foreman's hand-mining with Vein Rush, and the shared tile-removal that pays out drops. canon §4.6, §4.7
-import { MATERIALS, M, isMineable } from '../data/materials';
+import { MATERIALS, M, canDig, isMineable } from '../data/materials';
 import { PICKS } from '../data/items';
 import { VEIN_RUSH } from '../data/economy';
 import { UPGRADE_FX } from '../data/upgrades';
+import { deepMult, handsMult, rushStep } from './power';
+import { lightFactor } from '../data/light';
+import { BIOMES } from '../data/biomes';
 import { NEIGH4 } from '../world/world';
 import { D } from './decimal';
 import { FOREMAN_RATE, hardnessAt } from './formulas';
 import type { Game } from './game';
 import { reach, workable } from './reach';
 import { first, say } from './story';
+import { maybeCollapse } from './village';
 
-export function rushMult(chain: number): number {
-  return Math.min(VEIN_RUSH.max, 1 + VEIN_RUSH.step * chain);
+/** Depth (tiles) from which the Foreman's own digging depends on light: the Glowroot. */
+const DARK_FROM_D = BIOMES[2]!.d0;
+
+export function rushMult(chain: number, step: number = VEIN_RUSH.step): number {
+  return Math.min(VEIN_RUSH.max, 1 + step * chain);
 }
 
 export function foremanRate(g: Game): number {
   const s = g.state;
   const power = PICKS[s.pickTier]?.power ?? 1;
-  const hands = s.upgrades.steadyHands ? UPGRADE_FX.steadyHands : 1;
-  return power * FOREMAN_RATE * hands * rushMult(s.foreman.chain);
+  const t = s.foreman.target;
+  const d = t ? g.world.depth(t.y) : 0;
+  // ADR-017: below Topsoil the Foreman digs by whatever light reaches the face, like the miners
+  const light = t && d >= DARK_FROM_D ? lightFactor(g.world.faceLight(t.x, t.y)) : 1;
+  return (
+    power * FOREMAN_RATE * handsMult(s) * deepMult(s, d) * light * rushMult(s.foreman.chain, rushStep(s))
+  );
 }
 
 export function stepForeman(g: Game, dt: number): void {
@@ -26,7 +38,7 @@ export function stepForeman(g: Game, dt: number): void {
   const f = g.state.foreman;
   while (!f.target && f.queue.length) {
     const t = f.queue.shift()!;
-    if (isMineable(world.get(t.x, t.y)) && workable(g, t.x, t.y)) {
+    if (canDig(world.get(t.x, t.y), g.state.pickTier) && workable(g, t.x, t.y)) {
       f.target = t;
       f.work = 0;
     }
@@ -71,7 +83,9 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
   state.stats.maxDepthD = Math.max(state.stats.maxDepthD, world.depth(y));
   state.stats.bestDepthD = Math.max(state.stats.bestDepthD, state.stats.maxDepthD);
   if (def?.drop) {
-    const { res, n } = def.drop;
+    const { res } = def.drop;
+    const n =
+      res === 'spores' && state.upgrades.glowcapGardens ? def.drop.n * UPGRADE_FX.glowcapGardens : def.drop.n;
     if (by === 'foreman') {
       state.res[res] = state.res[res].add(D(n));
       g.events.push({ kind: 'drop', x, y, res, n });
@@ -87,7 +101,7 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
       f.chain = near ? f.chain + 1 : 0;
       f.lastOre = { x, y };
       if (f.chain > 0) {
-        g.events.push({ kind: 'rush', mult: rushMult(f.chain), x, y });
+        g.events.push({ kind: 'rush', mult: rushMult(f.chain, rushStep(state)), x, y });
         if (f.chain >= 2) say(g, 'rush');
       }
     } else {
@@ -100,6 +114,7 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
     }
   }
   discoverVerses(g, x, y);
+  maybeCollapse(g, x, y);
 }
 
 /** A verse is found the moment the rock beside its carving is opened. */

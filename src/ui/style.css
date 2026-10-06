@@ -658,3 +658,70 @@ body.atlas #ui > * {
     font-size: 14px;
   }
 }
+
+/* ---- M2 ---- */
+.alert.dark {
+  border-color: var(--slate-3);
+  color: var(--ink-dim);
+  cursor: default;
+}
+.away {
+  max-width: 420px;
+  margin: auto;
+}
+.away h2 {
+  font-family: var(--display);
+  color: var(--gold);
+}
+.gains {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px 12px;
+}
+.gains li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--display);
+  font-size: 13px;
+}
+.gains li span {
+  font-family: var(--body);
+  color: var(--ink-dim);
+}
+.gains img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+/* Phone: the tools become a full-width tray above the nav (M2 bottom tray). */
+@media (max-width: 600px) {
+  .hud-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .tools {
+    justify-content: space-between;
+  }
+  .tool {
+    flex: 1;
+    justify-content: center;
+    padding: 4px 2px;
+  }
+  .tool .tl {
+    display: none;
+  }
+  .nav {
+    justify-content: space-between;
+  }
+  .nav .btn {
+    flex: 1;
+  }
+  .speech {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
+  }
+}

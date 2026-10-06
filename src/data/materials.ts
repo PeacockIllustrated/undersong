@@ -83,7 +83,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: SLATE_R,
     host: M.SLATE,
     overlay: 'ore-iron',
-    drop: { res: 'ironOre', n: 1 },
+    drop: { res: 'ironOre', n: 2 },
     isOre: true,
   },
   [M.GLOWCAP]: {
@@ -176,3 +176,25 @@ export const MATERIALS: Record<number, MaterialDef> = {
 
 export const isSolid = (m: number): boolean => m !== M.AIR;
 export const isMineable = (m: number): boolean => (MATERIALS[m]?.hardness ?? 0) > 0;
+
+/**
+ * canon §8.1 pick gates: the lowest pick tier (index into PICKS) that can break a material at all.
+ * Anything not listed can be dug with the wooden pick. ADR-017.
+ */
+export const MIN_PICK: Partial<Record<number, number>> = {
+  [M.SLATE]: 1,
+  [M.IRON]: 2,
+  [M.SILVER]: 3,
+  [M.BRICK]: 3,
+  [M.AQUA]: 4,
+  [M.CRYSTAL]: 5,
+  [M.BASALT]: 6,
+  [M.EMBER]: 6,
+  [M.GOLD]: 6,
+  [M.HEART]: 7,
+  [M.HEARTWALL]: 7,
+};
+
+/** Mineable, and the village's pick is good enough for it. */
+export const canDig = (m: number, pickTier: number): boolean =>
+  isMineable(m) && pickTier >= (MIN_PICK[m] ?? 0);

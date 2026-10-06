@@ -9,6 +9,7 @@ export function reach(g: Game): Uint8Array {
   const w = g.world;
   const r = g.reach.length === w.w * w.h ? g.reach : (g.reach = new Uint8Array(w.w * w.h));
   r.fill(0);
+  g.reachMaxY = 0;
   const q = new Int32Array(w.w * w.h);
   let h = 0;
   let t = 0;
@@ -26,6 +27,7 @@ export function reach(g: Game): Uint8Array {
       if (r[j] || w.mat[j] !== M.AIR) return;
       r[j] = 1;
       q[t++] = j;
+      if (ny > g.reachMaxY) g.reachMaxY = ny;
     };
     tryN(x + 1, y);
     tryN(x - 1, y);

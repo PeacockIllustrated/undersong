@@ -65,11 +65,12 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 | 4.3 | Echo gain on Cave-in | `floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × versesFoundThisRun) )` |
 | 4.4 | Miner output | `ore_per_s = pickPower × lightFactor / H(d)` |
 | 4.5 | Light factor | `L ≥ 0.6 → 1.0`, `0.3 ≤ L < 0.6 → 0.7`, `L < 0.3 → 0.4` |
-| 4.6 | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult)` (was 2.5; tuned by the balance sim, ADR-015) |
+| 4.6 | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult × lightFactor)` (was 2.5; tuned by the balance sim, ADR-015). `lightFactor` (§4.5) applies only from 150 ft down (ADR-017); above that it is 1 |
 | 4.7 | Vein Rush | `mult = min(5, 1 + 0.25 × chain)`; the chain grows with each ore tile mined next to (8-way) the last one, and resets on non-ore or after the Foreman stands idle 1.2 s |
-| 4.8 | Offline gain | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; max cap 24 h, eff 1.0 |
+| 4.8 | Offline gain | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; Long Shift 16 h, eff 0.75; max cap 24 h, eff 1.0. Absences under 60 s are not counted. Pests and collapses wait while you are away |
 | 4.9 | Haul throughput | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles` |
 | 4.10 | Cave-in unlock | `maxDepth_ft ≥ 300` **and** Verse II found |
+| 4.11 | Echo power | every worker's rate × `(1 + 0.03 × echoesEverEarned)` (ADR-017) |
 
 ## §5 Pacing targets
 
@@ -83,7 +84,7 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 | 150 ft (Glowroot entrance visible) | 20 min (was 30; see ADR-015) |
 | First Cave-in available | 45 min |
 | Echoes from a typical first Cave-in | 6–10 |
-| Glowroot cleared (Act II end) | 4 h |
+| Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 4 h |
 | Act III end | 9 h |
 | Ending reached | 14 h |
 
@@ -156,8 +157,8 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Stone | 4 | Rubble | 1–2 |
 | Copper ore | 4 | 2 Copper ore | 1 |
 | Tin ore | 4 | 2 Tin ore | 1 |
-| Slate | 6 | — | 2+ |
-| Iron ore | 8 | 1 Iron ore | 2 |
+| Slate | 6 | Rubble | 2+ |
+| Iron ore | 8 | 2 Iron ore (was 1; ADR-017) | 2 |
 | Glowcap cluster | 2 | 2 Glowcap spores | 2 |
 | Silver ore | 14 | 1 Silver ore | 3 |
 | Aquamarine | 18 | 1 Aquamarine | 3 |
@@ -165,6 +166,27 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Ember ore | 32 | 1 Ember ore | 5 |
 | Gold ore | 28 | 1 Gold ore | 5 |
 | Heartstone | 60 | 1 Heartstone | 6 |
+| Old brick | 10 | 1 Brick | shrines, drowned town |
+
+### 8.1 Pick gates (ADR-017)
+
+The lowest pick that can break a material at all. Anything not listed breaks with the wooden pick. Miners use the village's best pick, so the same gate applies to them.
+
+| Material | Needs |
+|---|---|
+| Slate | Copper pick |
+| Iron ore | Bronze pick |
+| Silver ore, old brick | Iron pick |
+| Aquamarine | Silver pick |
+| Resonant crystal | Aquamarine pick |
+| Basalt, ember ore, gold ore | Crystal pick |
+| Heartstone, heartrock | Ember pick |
+
+Verses III–V are carved inside old brick shrines (a 3×3 ring), so the Glowroot verses need an iron pick.
+
+### 8.2 Ore veins (generator thresholds, ADR-017)
+
+Topsoil: copper `n1 > 0.7`, tin `n2 > 0.76`. Glowroot: iron `n1 > 0.7`, copper `n2 > 0.72`, tin `n3 > 0.78`. Higher means rarer.
 
 ## §9 Buildings and items: Act I (v0)
 
@@ -189,12 +211,41 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Miner choice | Exposed ore nearest the shaft first, then rock with ore within 2 tiles, then the shaft floor |
 | Miners' rubble | Left in the mine, not hauled |
 
-## §10 Echo upgrades: M1 set (v0)
+## §10 Echo upgrades (v1)
 
-| Upgrade | Branch | Cost (Echoes) | Effect |
+Three branches of six. Each needs the one above it in its branch.
+
+| Branch | Upgrade | Cost | Effect |
 |---|---|---|---|
-| Steady Hands | Hands | 1 | Hand-mining +25% |
-| Cheap Bunks | Hands | 2 | Miner cost −10% |
-| Lamplit | Lamps | 2 | Torchlight 15% stronger (reads as reaching further) |
-| Remembered Rope | Memory | 3 | Start each run with the Winch lift |
-| Pell’s Hum | Memory | 5 | The nearest unfound verse glints when within 20 tiles |
+| Hands | Steady Hands | 1 | Hand-mining +25% |
+| Hands | Cheap Bunks | 2 | Miner cost −10% |
+| Hands | Strong Backs | 6 | Miners dig 30% faster |
+| Hands | Old Calluses | 12 | Vein Rush step 0.25 → 0.35 |
+| Hands | Heirloom Pick | 25 | Start each run with the pick one below your best |
+| Hands | Deep Hands | 60 | Everyone digs 50% faster below 1000 ft |
+| Lamps | Lamplit | 2 | Torchlight 15% stronger |
+| Lamps | Steady Flame | 5 | Torches no longer gutter below 150 ft |
+| Lamps | Wren’s Wicks | 8 | Lanterns burn 40% less Lumen |
+| Lamps | Glowcap Gardens | 14 | Glowcaps give twice the spores |
+| Lamps | Moth Ward | 22 | Beetles, moths and wisps come half as often |
+| Lamps | Bright Pages | 45 | The Lamp-works makes 50% more Lumen |
+| Memory | Remembered Rope | 3 | Start each run with the Winch lift |
+| Memory | Pell’s Hum | 5 | The nearest unfound verse glints within 20 tiles |
+| Memory | Bram’s Ledger | 9 | Start each run with 30 copper bars and 10 tin bars |
+| Memory | Old Shafts | 16 | The shaft is already dug to half your best depth |
+| Memory | Long Shift | 28 | Away time counts for 16 h at 75% (§4.8) |
+| Memory | Survey Instinct | 50 | Cave-ins give 25% more Echoes |
+
+## §11 Buildings and items: Act II (v0)
+
+| Thing | Cost | Effect |
+|---|---|---|
+| Kiln | 20 Copper bars × 1.15ⁿ; offered from 80 ft | Each level bakes 4 rubble into 1 brick every 3 s |
+| Lamp-works | 8 Iron bars × 1.15ⁿ; offered from 150 ft | Each level turns 1 glowcap spore into 3 Lumen every second |
+| Song-loom (Act III) | 25 Resonant crystal + 20 Silver bars × 1.15ⁿ; offered from 700 ft | Weaves charms |
+| Lantern | 1 Iron bar + 8 Lumen | Light 1.5 warm; burns 0.05 Lumen a second while lit. At 0 Lumen every lantern goes dark |
+| Support | 4 Bricks | Stops small collapses within 4 tiles |
+| Iron pick | 15 Iron bars | pickPower 5 |
+| Rails | 8 Iron bars per 10 tiles of mine depth (§9) | carrierSpeed 8, capacity 25 |
+| Small collapse | From 150 ft: 3% per tile opened when 14+ of the 25 tiles around it are open and no support is near | Up to 5 roof tiles fall as rubble. Never on the shaft, a worker or an object, and never if it would cut anyone off |
+| Lantern moth | 1/150 per lit lantern per second | Darkens that lantern until tapped |

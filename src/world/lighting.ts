@@ -13,9 +13,9 @@ export function sourceAt(w: World, x: number, y: number): [number, number] {
     if (y < w.surf[x]!) warm = LIGHT.sky;
     const o = w.objects[String(i)];
     if (o === 'torch') {
-      const s = (w.depth(y) >= LIGHT.torchDeepFromD ? LIGHT.torchDeep : LIGHT.torch) * w.torchMult;
-      warm = Math.max(warm, s);
-    } else if (o === 'lantern' && w.lanternsLit) warm = Math.max(warm, LIGHT.lantern);
+      const deep = w.depth(y) >= LIGHT.torchDeepFromD && !w.torchSteady;
+      warm = Math.max(warm, (deep ? LIGHT.torchDeep : LIGHT.torch) * w.torchMult);
+    } else if (o === 'lantern' && w.lanternsLit && !w.dimmed.has(i)) warm = Math.max(warm, LIGHT.lantern);
   } else {
     const e = MATERIALS[m]?.emit;
     if (e) {

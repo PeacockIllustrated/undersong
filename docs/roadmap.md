@@ -170,6 +170,18 @@ PR: https://github.com/PeacockIllustrated/undersong/pull/2
 Epics: the Lamp-works and Lumen budget, lantern placement, glowcap light, rails and lifts and supports, lantern moths, the full three-branch Echo tree, offline progress with the "While you were away" summary, a polished phone layout with the bottom tray, Old Wren, and Verses III–V.
 **Exit:** Acts I and II are playable from start to finish on desktop and phone.
 
+- [x] **M2-01 Act II data and save v3.** Iron, spores, Lumen, bricks, buildings, crafts, picks to Heartstone; save v3 with migration and fixture. PR #3
+- [x] **M2-02 Kiln, Lamp-works and Lumen.** Buildings bought in levels; Lumen upkeep; lanterns go dark at 0 Lumen. PR #3
+- [x] **M2-03 Lanterns, supports and moths.** Lantern and Support tools; lantern moths; small collapses held off by supports. PR #3
+- [x] **M2-04 Rails.** Third haul tier, priced per 10 tiles of mine depth. PR #3
+- [x] **M2-05 Pick gates and shrines.** Canon §8.1; Verses III–V in old brick (ADR-017). PR #3
+- [x] **M2-06 Echo tree.** Three branches of six; Echo power; Heirloom Pick, Old Shafts, Bram's Ledger. PR #3
+- [x] **M2-07 Offline progress.** Catch-up on load and tab return, "While you were away" sheet (ADR-019). PR #3
+- [x] **M2-08 Old Wren and Verses III–V.** Wren's lines, Act II triggers, Wren by her Lamp-works. PR #3
+- [x] **M2-09 Phone bottom tray.** Tools as a full-width tray above the nav on phones. PR #3
+- [x] **M2-10 Balance sim to Act II.** `--until=act2` plays through Cave-ins; Glowroot cleared within ±15% of 4 h. PR #3
+- [x] **M2-11 Smooth lighting** (Tom's request). ADR-018. PR #3
+
 ## M3 · Drowned: Act III
 Epics: water simulation and pumps, the drowned town set piece, the Singing Geodes, the Song-loom and charms, cave eels and shard golems, and Verses VI–X.
 **Exit:** playtesters can explain what Holloway is hiding.
@@ -185,6 +197,9 @@ Epics: layered music and sound effects, a full balance pass, accessibility (redu
 ---
 
 ## Parking lot
+
+- The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
+- The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.
 

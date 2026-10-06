@@ -75,6 +75,26 @@ Consequences: `npm run sim -- --until=first-cavein` lands Verse I, the Cave-in a
 Decision: the village can only work rock that touches air connected to the sky (a flood fill, cached until a tile changes). Sealed caves stay sealed until you dig into them, and chests in them stay out of reach.
 Consequences: the Foreman can't dig from inside the rock, and miners can't teleport into a cave.
 
+**ADR-017 · Act II gating and the Echo curve** · 2026-10-06 · Accepted (Tom may override)
+Context: with Act II built, the balance bot cleared the Glowroot in about two hours by hand-digging the shaft with a copper pick, ignoring the Lamp-works, lanterns and iron entirely. Then, with gates added, it could not afford them, because a run's copper and iron are finite.
+Decision:
+- Pick gates (canon §8.1): slate needs a copper pick, iron ore bronze, silver and old brick iron, and so on down.
+- Verses III–V sit inside 3×3 old brick shrines, so the Glowroot verses need an iron pick.
+- From 150 ft down the Foreman digs by the light at the face, like the miners (amends ADR-010; his lamp stays render-only). Torches still gutter to 0.6 there (ADR-013), so lanterns are the way to dig at full speed.
+- More copper and some tin in the Glowroot (canon §8.2); iron ore drops 2.
+- Act II prices set low enough to reach in a run: Lamp-works 8 iron, iron pick 15 iron, lantern 1 iron + 8 Lumen.
+- Echo power: every Echo ever earned speeds every worker by 3% (canon §4.11). This is what makes each cycle reach further.
+- "Glowroot cleared" means 400 ft reached and Verses III–V known.
+Consequences: Act I is unchanged in the sim (all within ±15%). Act II median is 3.9 h against the 4 h target, over 9 seeds and 2–7 Cave-ins each (`npm run sim -- --until=act2 --minutes=480`). Runs are now shaped by what a run's mountain holds, which makes the Cave-in a real decision.
+
+**ADR-018 · Smooth lighting** · 2026-10-06 · Accepted (Tom asked for it)
+Decision: the renderer eases each tile's displayed light toward the sim's value (about 0.1 s), then samples it bilinearly between tile centres at 4×4 blocks per tile. The Foreman's lamp is also computed per block. The sim's light grid and rules (canon §7) are unchanged.
+Consequences: light falls off in soft quarter-tile steps instead of whole-tile squares, and lanterns and torches fade in and out. Still blocky enough to read as pixel art. Draw time measured 1.4 ms a frame at 1280×800.
+
+**ADR-019 · Offline progress** · 2026-10-06 · Accepted
+Decision: on load, and when a background tab comes back, the sim runs the credited time (canon §4.8) in at most 1,200 coarse steps of at least 5 s. Pests, moths and collapses are held off while away. A "While you were away" sheet lists what came up the shaft.
+Consequences: eight hours away costs about two seconds to catch up on a laptop. Long steps waste a little of each tile's work, which reads as the efficiency penalty anyway.
+
 ---
 
 ## Open questions for Tom
@@ -82,4 +102,5 @@ Consequences: the Foreman can't dig from inside the rock, and miners can't telep
 - Business model: free on the web, premium, or a demo plus a paid version.
 - How deep combat goes (see ADR-008).
 - Act I pacing targets (ADR-015): are 1, 8 and 20 min right for the first bar, first miner and 150 ft?
+- Act II gating (ADR-017): pick gates and brick shrines make the iron pick the key to the Glowroot verses. Is that the shape you want?
 - The final name.

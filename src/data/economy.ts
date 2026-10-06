@@ -31,10 +31,99 @@ export interface HaulDef {
   speed: number;
   capacity: number;
   cost: Cost[];
+  /** Cost is per 10 tiles of shaft depth. */
+  perTenTiles?: boolean;
 }
+
+/** Village buildings bought in levels. canon §11. Each level costs base × 1.15ⁿ. */
+export type BuildingId = 'lampworks' | 'kiln' | 'songloom';
+export interface BuildingDef {
+  id: BuildingId;
+  name: string;
+  sprite: string;
+  cost: Cost[];
+  text: string;
+  /** Depth (tiles) the village must have reached before it is offered. */
+  unlockD: number;
+}
+export const BUILDINGS: readonly BuildingDef[] = [
+  {
+    id: 'kiln',
+    name: 'Kiln',
+    sprite: 'kiln',
+    cost: [{ res: 'copperBar', n: 20 }],
+    text: 'Bakes rubble into bricks for supports.',
+    unlockD: 20,
+  },
+  {
+    id: 'lampworks',
+    name: 'Lamp-works',
+    sprite: 'lampworks',
+    cost: [{ res: 'ironBar', n: 8 }],
+    text: 'Old Wren turns glowcap spores into Lumen.',
+    unlockD: 38,
+  },
+  {
+    id: 'songloom',
+    name: 'Song-loom',
+    sprite: 'songloom',
+    cost: [
+      { res: 'crystal', n: 25 },
+      { res: 'silverBar', n: 20 },
+    ],
+    text: 'Weaves resonant crystal into charms.',
+    unlockD: 175,
+  },
+];
+
+/** canon §11 Kiln: per level, 4 rubble → 1 brick every 3 s. */
+export const KILN = { rubble: 4, seconds: 3 };
+
+/** canon §11 Lamp-works: per level, 1 spore → 3 Lumen every second. Lanterns burn Lumen while lit. */
+export const LAMPWORKS = { spores: 1, lumen: 3, seconds: 1, upkeepPerLantern: 0.05 };
+
+/** canon §11 crafts. */
+export const CRAFTS = {
+  lantern: {
+    cost: [
+      { res: 'ironBar', n: 1 },
+      { res: 'lumen', n: 8 },
+    ] as Cost[],
+    makes: 1,
+  },
+  support: { cost: [{ res: 'brick', n: 4 }] as Cost[], makes: 1 },
+  pump: {
+    cost: [
+      { res: 'silverBar', n: 6 },
+      { res: 'ironBar', n: 4 },
+    ] as Cost[],
+    makes: 1,
+  },
+  vent: {
+    cost: [
+      { res: 'goldBar', n: 4 },
+      { res: 'brick', n: 10 },
+    ] as Cost[],
+    makes: 1,
+  },
+} as const;
+export type CraftId = keyof typeof CRAFTS;
+
+/** canon §11 small collapses below Topsoil: chance per mined tile when the open space around it is wide and unsupported. */
+export const COLLAPSE = { fromD: 38, chance: 0.03, openAround: 14, radius: 2, fill: 5 };
+
+/** canon §11 lantern moths: chance per lit lantern per second; a moth darkens its lantern until tapped. */
+export const MOTHS = { chancePerSec: 1 / 150 };
+
+/** Echoes earned (lifetime) speed every worker by this much each. canon §4.11 */
+export const ECHO_POWER = 0.03;
 export const HAULS: readonly HaulDef[] = [
   { name: 'Rope haul', speed: 1, capacity: 5, cost: [] },
   { name: 'Winch lift', speed: 3, capacity: 10, cost: [{ res: 'copperBar', n: 40 }] },
+  // canon §9: rails cost 8 iron bars per 10 tiles of shaft (charged on the shaft depth when built)
+  { name: 'Rails', speed: 8, capacity: 25, cost: [{ res: 'ironBar', n: 8 }], perTenTiles: true },
+  { name: 'Water lift', speed: 15, capacity: 60, cost: [{ res: 'silverBar', n: 40 }] },
+  { name: 'Steam lift', speed: 30, capacity: 150, cost: [{ res: 'goldBar', n: 40 }] },
 ];
 
 /** canon §9 Torch: 1 copper bar makes 3. */

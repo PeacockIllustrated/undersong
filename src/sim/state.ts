@@ -5,7 +5,7 @@ import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface Tile {
   x: number;
@@ -96,6 +96,7 @@ export interface GameState {
   /** Fractional ore waiting to be hauled up this tick. */
   haulAcc: number;
   kilnProgress: number;
+  lampProgress: number;
   miners: Miner[];
   pests: Pest[];
   glints: Glint[];
@@ -110,6 +111,8 @@ export interface GameState {
     oldShaftD: number;
   };
   echoes: Decimal;
+  /** Every Echo ever earned, spent or not. Each speeds the village (canon §4.11). */
+  echoesEver: Decimal;
   upgrades: Record<string, number>;
   verses: { known: boolean[]; run: boolean[] };
   survey: SurveyEntry[];
@@ -119,6 +122,9 @@ export interface GameState {
     tilesMined: number;
     caveIns: number;
     chests: number;
+    /** Best pick tier ever bought, for the Heirloom Pick. */
+    bestPick: number;
+    collapses: number;
     /** Run time (ms) when each milestone first happened this run, for the balance sim and the Survey Book. */
     firsts: Record<string, number>;
   };
@@ -161,6 +167,7 @@ export function newGame(seed: number): GameState {
     forge: { progress: 0, recipe: 'auto', next: 0 },
     haulAcc: 0,
     kilnProgress: 0,
+    lampProgress: 0,
     miners: [],
     pests: [],
     glints: [],
@@ -177,10 +184,20 @@ export function newGame(seed: number): GameState {
     },
     world: { diffs: {}, objects: {}, water: null, endlessRows: 0, oldShaftD: 0 },
     echoes: ZERO(),
+    echoesEver: ZERO(),
     upgrades: {},
     verses: { known: new Array(12).fill(false), run: new Array(12).fill(false) },
     survey: OLD_PAGES.map((p) => ({ ...p })),
-    stats: { maxDepthD: 0, bestDepthD: 0, tilesMined: 0, caveIns: 0, chests: 0, firsts: {} },
+    stats: {
+      maxDepthD: 0,
+      bestDepthD: 0,
+      tilesMined: 0,
+      caveIns: 0,
+      chests: 0,
+      bestPick: 0,
+      collapses: 0,
+      firsts: {},
+    },
     story: { seen: [], ever: [], events: [], flags: {} },
     charms: { owned: [], equipped: [] },
     ending: null,

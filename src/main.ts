@@ -11,6 +11,7 @@ import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
 import { Input } from './render/input';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
+import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
 import { Atlas } from './ui/Atlas';
 import type { GameState } from './sim/state';
@@ -33,6 +34,8 @@ function newSeed(): number {
 function boot(): void {
   const saved = loadLocal();
   const game: { g: Game } = { g: saved ? loadGame(saved) : createGame(newSeed()) };
+  // canon §4.8: the village kept digging while the page was closed
+  let away = saved && saved.savedAt > 0 ? catchUp(game.g, Date.now() - saved.savedAt) : null;
   const canvas = document.getElementById('view') as HTMLCanvasElement;
   const renderer = new Renderer(canvas);
   const cam = new Camera();
@@ -70,8 +73,20 @@ function boot(): void {
     save();
   };
   window.setInterval(save, AUTOSAVE_MS);
+  let hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') save();
+    if (document.visibilityState === 'hidden') {
+      hiddenAt = Date.now();
+      save();
+    } else if (hiddenAt > 0) {
+      // a background tab gets no frames, so count the time away the same way as a closed page
+      const r = catchUp(game.g, Date.now() - hiddenAt);
+      hiddenAt = 0;
+      if (r) {
+        away = r;
+        renderer.invalidate();
+      }
+    }
   });
   window.addEventListener('beforeunload', save);
 
@@ -96,7 +111,13 @@ function boot(): void {
     tool: 'dig',
     setTool(t) {
       this.tool = t;
-      canvas.style.cursor = t === 'torch' ? 'cell' : 'crosshair';
+      canvas.style.cursor = t === 'dig' ? 'crosshair' : 'cell';
+    },
+    get away() {
+      return away;
+    },
+    clearAway() {
+      away = null;
     },
   };
   render(h(App, { ui }), uiRoot);
@@ -160,6 +181,10 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
         '#5FF0D8',
         now,
       );
+    } else if (e.kind === 'collapse') {
+      r.fx.shake(2, 600, now);
+      for (let i = 0; i < 3; i++)
+        r.fx.debris(e.x * TILE_PX + 8, (e.y - 2 + i) * TILE_PX, ['#5F6487', '#373A52', '#141A33'], 8);
     } else if (e.kind === 'caveIn') {
       r.invalidate();
       r.fx.shake(3, 1500, now);
