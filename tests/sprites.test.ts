@@ -4,7 +4,8 @@ import paletteJson from '../assets/sprites/palette.json';
 
 const pal = paletteJson as PaletteFile;
 const head = (size = '8x8', palette = 'master'): string => `palette: ${palette}\nsize: ${size}\n---\n`;
-const grid = (w: number, h: number, ch = 'a'): string => Array.from({ length: h }, () => ch.repeat(w)).join('\n');
+const grid = (w: number, h: number, ch = 'a'): string =>
+  Array.from({ length: h }, () => ch.repeat(w)).join('\n');
 
 describe('sprite lint', () => {
   it('accepts a good sprite', () => {
@@ -15,10 +16,14 @@ describe('sprite lint', () => {
   });
   it('rejects a colour outside the master palette', () => {
     const p: PaletteFile = { ...pal, palettes: { ...pal.palettes, hot: { a: '#FF00FF' } } };
-    expect(lintSprite(parseSprite('bad-colour', head('8x8', 'hot') + grid(8, 8)), p).join()).toMatch(/not in the master/);
+    expect(lintSprite(parseSprite('bad-colour', head('8x8', 'hot') + grid(8, 8)), p).join()).toMatch(
+      /not in the master/,
+    );
   });
   it('rejects a size canon does not allow', () => {
-    expect(lintSprite(parseSprite('bad-size', head('10x10') + grid(10, 10)), pal).join()).toMatch(/not allowed/);
+    expect(lintSprite(parseSprite('bad-size', head('10x10') + grid(10, 10)), pal).join()).toMatch(
+      /not allowed/,
+    );
   });
   it('rejects a ragged row', () => {
     const rows = grid(8, 7) + '\naaaa';
