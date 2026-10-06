@@ -5,6 +5,7 @@ import {
   KILN,
   LAMPWORKS,
   TORCH_CRAFT,
+  WHETSTONE,
   type BuildingId,
   type CraftId,
   type Recipe,
@@ -12,10 +13,13 @@ import {
 import { PICKS } from '../data/items';
 import { RES_NAMES, type ResKey } from '../data/resources';
 import type { Decimal } from '../sim/decimal';
-import { canPay, haulRate, minerCost, nextHaul, nextPick, torchCost } from '../sim/economy';
+import { canPay, haulRate, minerCost, nextHaul, nextPick, torchCost, whetstoneCost } from '../sim/economy';
 import { minerRate } from '../sim/miners';
 import { buildingCost, buildingDef, buildingOffered, craftCost, lanterns, lumenUpkeep } from '../sim/village';
 import { lumenMult } from '../sim/power';
+import { HELPERS, HELPER_FX } from '../data/helpers';
+import { helperCost, helperOffered } from '../sim/helpers';
+import { bottleneck } from './feedback';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
@@ -77,7 +81,7 @@ function Building({
         {lv > 0 && children}
         <div class="row">
           <button
-            class={`btn ${lv === 0 ? 'primary' : ''}`}
+            class={`btn ${lv === 0 ? 'primary' : ''} ${canPay(s, cost) ? 'can' : ''}`}
             disabled={!canPay(s, cost)}
             onClick={() => ui.dispatch({ type: 'buyBuilding', id })}
           >
@@ -103,6 +107,54 @@ function Craft({ ui, id, label, s }: { ui: UiBridge; id: CraftId; label: string;
   );
 }
 
+/** Hands about the village (ADR-020): each takes a chore off you, and stays through a Cave-in. */
+function Helpers({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const offered = HELPERS.filter((h) => helperOffered(s, h.id));
+  if (!offered.length) return null;
+  return (
+    <section class="card">
+      <img class="icon" src={spriteURL('pell')} alt="" />
+      <div class="grow">
+        <h3>Hands about the village</h3>
+        <p class="small">Each one takes a chore off you for good. They stay through a Cave-in.</p>
+        {offered.map((h) => {
+          const lv = s.helpers[h.id] ?? 0;
+          const c = helperCost(s, h.id);
+          return (
+            <div class="helper" key={h.id}>
+              <img class="icon" src={spriteURL(h.who)} alt="" />
+              <div class="grow">
+                <b>
+                  {h.name}
+                  {lv > 0 ? (h.levels.length > 1 ? ` · level ${lv}` : ' · hired') : ''}
+                </b>
+                <span class="small">
+                  {h.id === 'pell'
+                    ? `${h.text} One every ${HELPER_FX.pellEvery[Math.max(0, lv - 1)]} s${lv > 0 && c ? `; next level, every ${HELPER_FX.pellEvery[lv]} s` : ''}.`
+                    : h.text}
+                </span>
+                {c && (
+                  <div class="row">
+                    <button
+                      class={`btn ${canPay(s, c) ? 'can' : ''}`}
+                      disabled={!canPay(s, c)}
+                      onClick={() => ui.dispatch({ type: 'hireHelper', id: h.id })}
+                    >
+                      {lv === 0 ? 'Hire' : 'Train'}
+                    </button>
+                    <Cost costs={c} have={s.res} />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const s = ui.game.state;
   const mc = minerCost(s);
@@ -114,6 +166,11 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
   const rate = s.miners.reduce((a, m) => a + minerRate(ui.game, m), 0);
   const stalled = s.miners.filter((m) => m.stalledBy !== null).length;
   const haul = HAULS[s.haulTier]!;
+  const neck = bottleneck(ui.game);
+  const whetC = whetstoneCost(s);
+  const nextP = PICKS[s.pickTier + 1];
+  const nextH = HAULS[s.haulTier + 1];
+  const x = (a: number, b: number): string => `×${(a / b).toFixed(2).replace(/\.?0+$/, '')}`;
 
   return (
     <div class="sheet-wrap side" onClick={(e) => e.target === e.currentTarget && close()}>
@@ -124,6 +181,15 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             ✕
           </button>
         </div>
+
+        {neck && (
+          <section class="card neck-card">
+            <div class="grow">
+              <h3>Held back by: {neck.what}</h3>
+              <p>{neck.hint}</p>
+            </div>
+          </section>
+        )}
 
         <section class="card">
           <img class="prop" src={spriteURL('forge', 1)} alt="" />
@@ -163,7 +229,7 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             </p>
             <div class="row">
               <button
-                class="btn primary"
+                class={`btn primary ${canPay(s, minerC) ? 'can' : ''}`}
                 disabled={!canPay(s, minerC)}
                 onClick={() => ui.dispatch({ type: 'hireMiner' })}
               >
@@ -174,6 +240,8 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
           </div>
         </section>
 
+        <Helpers ui={ui} />
+
         <section class="card">
           <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
           <div class="grow">
@@ -181,14 +249,26 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             <p>
               Pick power {PICKS[s.pickTier]!.power}. Everyone in the village digs with the best pick you own.
             </p>
+            <div class="row">
+              <button
+                class={`btn ${canPay(s, whetC) ? 'can' : ''}`}
+                disabled={!canPay(s, whetC)}
+                onClick={() => ui.dispatch({ type: 'whetstone' })}
+              >
+                Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
+              </button>
+              <Cost costs={whetC} have={s.res} />
+              {s.whetstone > 0 && <span class="small">level {s.whetstone}</span>}
+            </div>
             {pickC ? (
               <div class="row">
                 <button
-                  class="btn"
+                  class={`btn ${canPay(s, pickC) ? 'can' : ''}`}
                   disabled={!canPay(s, pickC)}
                   onClick={() => ui.dispatch({ type: 'buyPick' })}
                 >
-                  Forge the {PICKS[s.pickTier + 1]!.name.toLowerCase()}
+                  Forge the {nextP!.name.toLowerCase()}{' '}
+                  <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
                 </button>
                 <Cost costs={pickC} have={s.res} />
               </div>
@@ -210,11 +290,12 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             {haulC && (
               <div class="row">
                 <button
-                  class="btn"
+                  class={`btn ${canPay(s, haulC) ? 'can' : ''}`}
                   disabled={!canPay(s, haulC)}
                   onClick={() => ui.dispatch({ type: 'buyHaul' })}
                 >
-                  Build the {HAULS[s.haulTier + 1]!.name.toLowerCase()}
+                  Build the {nextH!.name.toLowerCase()}{' '}
+                  <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
                 </button>
                 <Cost costs={haulC} have={s.res} />
               </div>

@@ -12,6 +12,12 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · Juice pass (ADR-020)
+Done: Tom said the game is good but does not cultivate dopamine, so the DangerouslyFunny findings went into Acts I and II. Helpers take over lighting, pests and supports for good. Homecoming makes the regain after a Cave-in fast. Verses pay bars and a permanent 5%. A whetstone means there is nearly always something to buy. Every purchase shows a toast with its jump, beating your best depth shakes the screen, and a "Held back by" chip names the bottleneck. Save v4.
+State: `npm run check` green. Act I sim: first Cave-in 32.9 min (new target 30), 8 Echoes, longest wait with nothing to buy a median 185 s in the first 15 min. Act II median 2 h 50 min (was 3 h 54).
+Next: carry this into M3 (a pump crew, Pell for eels and golems), then finish Act III balance.
+Questions for Tom: is the faster pace right, or should Act II stay nearer 4 h?
+
 ## 2026-10-06 · M2 Glowroot
 Done: Act II. The Kiln and bricks, the Lamp-works and Lumen, lanterns with upkeep and moths, supports and small collapses, rails, pick gates up to the Heartstone, Verses III–V in brick shrines, Old Wren, the full Echo tree (18 upgrades), Echo power, offline progress with a "While you were away" sheet, the phone bottom tray, and smooth lighting (Tom's request). Save v3. PR #3.
 

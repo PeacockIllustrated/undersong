@@ -32,6 +32,15 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 3;
     return o as Raw;
   },
+  // v3 → v4 (juice pass, ADR-020): village helpers.
+  3: (s) => {
+    const o = s as Record<string, any>;
+    o.helpers = {};
+    o.whetstone = 0;
+    o.helperAcc = 0;
+    o.v = 4;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

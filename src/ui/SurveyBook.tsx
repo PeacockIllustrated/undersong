@@ -6,6 +6,7 @@ import { VERSES } from '../story/verses';
 import { canCaveIn, echoGain, maxFt, versesThisRun } from '../sim/cavein';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
+import { HOMECOMING } from '../data/helpers';
 import { fmt } from './format';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
@@ -16,6 +17,18 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
   const ready = canCaveIn(s);
   const ft = maxFt(s);
   const gain = echoGain(s);
+  const last = [...s.survey].reverse().find((p) => p.hand === 'yours');
+  // what those Echoes would buy, cheapest first
+  const buys: string[] = [];
+  let left = s.echoes.add(gain).toNumber();
+  const owned = new Set(Object.keys(s.upgrades).filter((k) => s.upgrades[k]));
+  for (const u of [...UPGRADES].sort((a, b) => a.cost - b.cost)) {
+    if (owned.has(u.id) || (u.requires && !owned.has(u.requires)) || u.cost > left) continue;
+    left -= u.cost;
+    owned.add(u.id);
+    buys.push(u.name);
+    if (buys.length >= 3) break;
+  }
 
   return (
     <div class="sheet-wrap side" onClick={(e) => e.target === e.currentTarget && close()}>
@@ -34,9 +47,15 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
           </p>
           {ready ? (
             <>
-              <p>
-                The timbers groan. Let the mountain settle and the village will forget all of this, but you
-                keep what you heard.
+              <p class="worth">
+                <b>+{fmt(gain)} Echoes</b>
+                {last ? ` · last time ${last.echoes}` : ''}
+                {buys.length ? ` · enough for ${buys.join(', ')}` : ''}
+              </p>
+              <p class="small">
+                The village forgets its buildings and bars; you keep Echoes, verses and your helpers, and the
+                way back down goes ×{HOMECOMING.mult} faster until {Math.round(HOMECOMING.frac * 100)}% of
+                your best depth.
               </p>
               {!confirm ? (
                 <button class="btn danger" onClick={() => setConfirm(true)}>

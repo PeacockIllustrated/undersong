@@ -101,7 +101,9 @@ describe('verses and the Cave-in', () => {
   });
   it('Remembered Rope starts the next run with the winch', () => {
     const g = createGame(9);
-    g.state.echoes = D(3);
+    g.state.echoes = D(5);
+    // Pell's Hum comes first in the Memory branch (ADR-020)
+    apply(g, { type: 'buyUpgrade', id: 'pellsHum' });
     apply(g, { type: 'buyUpgrade', id: 'rememberedRope' });
     g.state.stats.maxDepthD = 80;
     g.state.verses.run[1] = true;

@@ -16,6 +16,8 @@ import { MenuSheet } from './Menu';
 import { StoryLayer } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
+import { homecoming, homeUntilD } from '../sim/power';
+import { bottleneck, echoAffordable, villageAffordable } from './feedback';
 
 export interface UiBridge {
   readonly game: Game;
@@ -31,6 +33,33 @@ export interface UiBridge {
   /** What the village did while the player was away, until they close the summary. */
   readonly away: AwaySummary | null;
   clearAway(): void;
+}
+
+/** Big centre-screen announcements (ADR-020), one at a time, each for a couple of seconds. */
+function Toasts() {
+  const [q, setQ] = useState<{ big: string; sub: string; id: number }[]>([]);
+  useEffect(() => {
+    let n = 0;
+    const on = (e: Event): void => {
+      const d = (e as CustomEvent<{ big: string; sub: string }>).detail;
+      setQ((x) => [...x.slice(-2), { ...d, id: ++n }]);
+    };
+    window.addEventListener('undersong:toast', on);
+    return () => window.removeEventListener('undersong:toast', on);
+  }, []);
+  const t = q[0];
+  useEffect(() => {
+    if (!t) return;
+    const id = window.setTimeout(() => setQ((x) => x.slice(1)), 2200);
+    return () => window.clearTimeout(id);
+  }, [t?.id]);
+  if (!t) return null;
+  return (
+    <div class="bigtoast" key={t.id} aria-live="polite">
+      <div class="big">{t.big}</div>
+      {t.sub && <div class="sub">{t.sub}</div>}
+    </div>
+  );
 }
 
 function lumenOut(ui: UiBridge): boolean {
@@ -77,6 +106,10 @@ export function App({ ui }: { ui: UiBridge }) {
   const s = g.state;
   const d = g.world.depth(s.foreman.y);
   const biome = biomeAt(d);
+  const home = homecoming(s);
+  const neck = bottleneck(g);
+  const newInVillage = villageAffordable(g);
+  const newInSurvey = echoAffordable(g) || s.stats.firsts.caveInReady !== undefined;
   const held = HUD_ORDER.filter((k) => s.res[k].gt(0) && (k !== 'rubble' || s.buildings.kiln > 0));
   const moths = s.pests.filter((p) => p.kind === 'moth');
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
@@ -118,14 +151,39 @@ export function App({ ui }: { ui: UiBridge }) {
   return (
     <>
       <div class="hud-top">
-        <div class="panel depth" aria-live="polite">
-          <div class="ft">{ftFromDepthTiles(d)} ft</div>
-          <div class="biome">
-            {d < 1 ? 'Holloway' : biome.name} · deepest {ftFromDepthTiles(s.stats.maxDepthD)} ft
+        <div class="hud-left">
+          <div class="panel depth" aria-live="polite">
+            <div class="ft">{ftFromDepthTiles(d)} ft</div>
+            <div class="biome">
+              {d < 1 ? 'Holloway' : biome.name} · deepest {ftFromDepthTiles(s.stats.maxDepthD)} ft
+            </div>
+            {s.foreman.chain > 0 && (
+              <div class="rush">Vein Rush ×{(1 + 0.25 * s.foreman.chain).toFixed(2).replace(/0$/, '')}</div>
+            )}
+            {home > 1 && (
+              <div class="home" title="After a Cave-in the village remembers the way down">
+                Homecoming ×{home} · until {ftFromDepthTiles(homeUntilD(s))} ft
+              </div>
+            )}
+            {neck && (
+              <div class="neck" title={neck.hint}>
+                Held back by: {neck.what}
+              </div>
+            )}
           </div>
-          {s.foreman.chain > 0 && (
-            <div class="rush">Vein Rush ×{(1 + 0.25 * s.foreman.chain).toFixed(2).replace(/0$/, '')}</div>
+          {(beetles.length > 0 || moths.length > 0) && (
+            <button
+              class="panel alert"
+              style={{ pointerEvents: 'auto' }}
+              onClick={() => ui.lookAt(s.pests[0]!.x, s.pests[0]!.y)}
+            >
+              {beetles.length > 0
+                ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
+                : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
+              Show me
+            </button>
           )}
+          {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
         </div>
         <div class="res">
           {s.echoes.gt(0) && (
@@ -142,33 +200,9 @@ export function App({ ui }: { ui: UiBridge }) {
           ))}
         </div>
       </div>
-      {(beetles.length > 0 || moths.length > 0) && (
-        <button
-          class="panel alert"
-          style={{
-            position: 'absolute',
-            top: 'calc(env(safe-area-inset-top, 0px) + 92px)',
-            left: '10px',
-            pointerEvents: 'auto',
-          }}
-          onClick={() => ui.lookAt(s.pests[0]!.x, s.pests[0]!.y)}
-        >
-          {beetles.length > 0
-            ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
-            : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
-          Show me
-        </button>
-      )}
-      {lumenOut(ui) && (
-        <div
-          class="panel alert dark"
-          style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 132px)', left: '10px' }}
-        >
-          Out of Lumen · the lanterns are dark
-        </div>
-      )}
       {ui.away && <AwaySheet ui={ui} />}
       <StoryLayer ui={ui} />
+      <Toasts />
       <div class="hud-bottom">
         <div class="tools panel" role="group" aria-label="Tool">
           <button
@@ -214,13 +248,13 @@ export function App({ ui }: { ui: UiBridge }) {
             ⌖
           </button>
           <button
-            class={`btn ${sheet === 'village' ? 'primary' : ''}`}
+            class={`btn ${sheet === 'village' ? 'primary' : ''} ${newInVillage && sheet !== 'village' ? 'new' : ''}`}
             onClick={() => setSheet(sheet === 'village' ? null : 'village')}
           >
             Village
           </button>
           <button
-            class={`btn ${sheet === 'survey' ? 'primary' : ''} ${s.stats.firsts.caveInReady !== undefined ? 'glow' : ''}`}
+            class={`btn ${sheet === 'survey' ? 'primary' : ''} ${newInSurvey ? 'glow' : ''}`}
             onClick={() => setSheet(sheet === 'survey' ? null : 'survey')}
           >
             Survey

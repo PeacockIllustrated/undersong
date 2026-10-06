@@ -6,6 +6,7 @@ import { stepForeman } from './dig';
 import { stepMiners } from './miners';
 import { stepForge, stepHaul } from './economy';
 import { stepStory } from './story';
+import { stepHelpers } from './helpers';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 
 export { mineTile } from './dig';
@@ -23,6 +24,7 @@ export function step(g: Game, dtMs: number): void {
   stepKiln(g, dt);
   stepLampworks(g, dt);
   stepLanterns(g, dt);
+  stepHelpers(g, dt);
   stepGlints(g);
   stepStory(g);
 }

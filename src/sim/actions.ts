@@ -6,8 +6,10 @@ import { PICKS } from '../data/items';
 import { UPGRADES } from '../data/upgrades';
 import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
+import type { HelperId } from '../data/helpers';
+import { hireHelper, hitPest } from './helpers';
 import { D } from './decimal';
-import { minerCost, nextHaul, nextPick, pay, torchCost } from './economy';
+import { minerCost, nextHaul, nextPick, pay, torchCost, whetstoneCost } from './economy';
 import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
 import { makeRng } from './rng';
@@ -29,11 +31,13 @@ export type Action =
   | { type: 'hireMiner' }
   | { type: 'buyPick' }
   | { type: 'buyHaul' }
+  | { type: 'whetstone' }
   | { type: 'craftTorches' }
   | { type: 'craft'; id: CraftId }
   | { type: 'buyBuilding'; id: BuildingId }
   | { type: 'setRecipe'; recipe: Recipe }
   | { type: 'buyUpgrade'; id: string }
+  | { type: 'hireHelper'; id: HelperId }
   | { type: 'caveIn' }
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' };
@@ -68,13 +72,7 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
   const s = g.state;
   const pest = s.pests.find((p) => p.x === x && p.y === y);
   if (pest) {
-    s.pests = s.pests.filter((p) => p !== pest);
-    for (const m of s.miners) if (m.stalledBy === pest.id) m.stalledBy = null;
-    if (pest.kind === 'moth') {
-      g.world.dimmed.delete(g.world.idx(x, y));
-      g.world.touch(x, y);
-    }
-    g.events.push({ kind: 'pest', x, y, cleared: true });
+    hitPest(g, pest);
     return;
   }
   const key = String(g.world.idx(x, y));
@@ -172,6 +170,11 @@ export function apply(g: Game, a: Action): void {
       g.events.push({ kind: 'bought', what: 'pick' });
       return;
     }
+    case 'whetstone':
+      if (!pay(s, whetstoneCost(s))) return;
+      s.whetstone++;
+      g.events.push({ kind: 'bought', what: 'whetstone' });
+      return;
     case 'buyHaul': {
       const c = nextHaul(s);
       if (!c || !pay(s, c)) return;
@@ -205,6 +208,9 @@ export function apply(g: Game, a: Action): void {
       if (u.id === 'lamplit' || u.id === 'steadyFlame') syncWorld(s, g.world);
       return;
     }
+    case 'hireHelper':
+      hireHelper(g, a.id);
+      return;
     case 'caveIn':
       caveIn(g);
       return;

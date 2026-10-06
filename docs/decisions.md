@@ -95,6 +95,18 @@ Consequences: light falls off in soft quarter-tile steps instead of whole-tile s
 Decision: on load, and when a background tab comes back, the sim runs the credited time (canon §4.8) in at most 1,200 coarse steps of at least 5 s. Pests, moths and collapses are held off while away. A "While you were away" sheet lists what came up the shaft.
 Consequences: eight hours away costs about two seconds to catch up on a laptop. Long steps waste a little of each tile's work, which reads as the efficiency penalty anyway.
 
+**ADR-020 · The juice pass** · 2026-10-06 · Accepted (from Tom’s note that the game is good but does not cultivate dopamine)
+Context: the DangerouslyFunny taste report (`/mnt/project-files/research/dangerouslyfunny-taste-report.md`) found the player wants something to buy at all times, big readable jumps, automation soon after a chore appears, no upkeep chores, no unexplained upgrades and a fast regain after a prestige.
+Decision:
+- **Helpers** (canon §14) automate the three chores Act I and II invented: lighting faces, tapping pests and placing supports. Each is bought once and survives the Cave-in.
+- **Homecoming** (canon §4.12): after a Cave-in the village runs ×3 until 60% of your best depth, so the regain takes minutes, not most of a run.
+- **Verses feel like loot** (canon §4.13): each pays a cache of bars and a permanent 5% to all work, shown on the verse card.
+- **Whetstone** (canon §4.14): a cheap, repeatable copper sink so there is nearly always something to buy.
+- **Feedback** (canon §14.1): purchase toasts with the multiplier, record-depth shake, a "Held back by" chip, and glowing buttons when something is affordable. The Survey Book shows what a Cave-in pays against last time and what it buys.
+- Pell’s Hum moves to the front of the Memory branch at 2 Echoes, so the first Cave-in buys something useful straight away.
+- Pacing targets move to match the faster game: 150 ft 17 min, first Cave-in 30 min, Glowroot cleared 2 h 50 min.
+Consequences: Act I 9-seed sim: first Cave-in 32.9 min, 8 Echoes, the longest wait with nothing to buy in the first 15 minutes is a median 185 s. Act II median 2 h 50 min (was 3 h 54). Save v4. Acts III onward will add a helper for each new chore (pumps, eels and golems) when they are built.
+
 ---
 
 ## Open questions for Tom

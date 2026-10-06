@@ -1,5 +1,5 @@
 // Costs, purchases, the forge and haulage. canon §4.1, §4.9, §9.
-import { COST_GROWTH, FORGE, HAULS, MINER_BASE, SMELT, TORCH_CRAFT } from '../data/economy';
+import { COST_GROWTH, FORGE, HAULS, MINER_BASE, SMELT, TORCH_CRAFT, WHETSTONE } from '../data/economy';
 import type { Cost } from '../data/items';
 import { PICKS } from '../data/items';
 import { HAULED, type ResKey } from '../data/resources';
@@ -8,6 +8,7 @@ import { SHAFT_X } from '../data/constants';
 import { D, Decimal } from './decimal';
 import type { Game } from './game';
 import type { GameState } from './state';
+import { homecoming } from './power';
 
 export function scaled(c: Cost, owned: number, mult = 1): Decimal {
   return D(c.n).mul(D(COST_GROWTH).pow(owned)).mul(mult).ceil();
@@ -30,6 +31,10 @@ export function pay(s: GameState, costs: readonly { res: ResKey; amount: Decimal
 
 export const flat = (cs: readonly Cost[]): { res: ResKey; amount: Decimal }[] =>
   cs.map((c) => ({ res: c.res, amount: D(c.n) }));
+
+export function whetstoneCost(s: GameState): { res: ResKey; amount: Decimal }[] {
+  return [{ res: 'copperBar', amount: D(WHETSTONE.base).mul(D(WHETSTONE.growth).pow(s.whetstone)).ceil() }];
+}
 
 export function nextPick(s: GameState): { res: ResKey; amount: Decimal }[] | null {
   const p = PICKS[s.pickTier + 1];
@@ -60,7 +65,7 @@ export function stepForge(g: Game, dt: number): void {
     s.forge.progress = 0;
     return;
   }
-  s.forge.progress += dt;
+  s.forge.progress += dt * homecoming(s);
   // a loop, so long catch-up steps (offline) smelt as much as real time would
   while (s.forge.progress >= FORGE.seconds) {
     const job = pickJob(s);
@@ -111,7 +116,7 @@ export function shaftDepth(g: Game): number {
 /** canon §4.9: ore_per_s_max = speed × capacity / shaftDepth. */
 export function haulRate(g: Game): number {
   const h = HAULS[g.state.haulTier] ?? HAULS[0]!;
-  return (h.speed * h.capacity) / shaftDepth(g);
+  return (h.speed * h.capacity * homecoming(g.state)) / shaftDepth(g);
 }
 
 export function stepHaul(g: Game, dt: number): void {
