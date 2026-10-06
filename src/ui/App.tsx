@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { BIOMES, biomeAt } from '../data/biomes';
 import { BIOME_LINES } from '../story/biomes';
-import { ftFromDepthTiles } from '../data/constants';
+import { SKY_ROWS, ftFromDepthTiles } from '../data/constants';
 import { RES_KEYS, type ResKey } from '../data/resources';
 import type { Action, Tool } from '../sim/actions';
 import type { Game } from '../sim/game';
@@ -22,6 +22,8 @@ import { homecoming, homeUntilD } from '../sim/power';
 import { ResChips } from './ResChips';
 import { EdgeMarkers } from './EdgeMarkers';
 import { DepthRuler } from './DepthRuler';
+import { FEAST, FIELDS } from '../data/surface';
+import { feasting, ripe } from '../sim/surface';
 import { bottleneck, echoAffordable, villageAffordable } from './feedback';
 
 export interface UiBridge {
@@ -130,6 +132,12 @@ export function App({ ui }: { ui: UiBridge }) {
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
   const eels = s.pests.filter((p) => p.kind === 'eel');
   const golems = s.pests.filter((p) => p.kind === 'golem');
+  const ripeN = ripe(s);
+  /** M6-01: pan up to the grass line over the fields; ⌖ comes back down. */
+  const lookUp = (): void => {
+    const x = FIELDS.plotX0 + Math.max(0, Math.min(s.surface.plots.length, 8) - 1) / 2;
+    ui.lookAt(Math.round(x), (ui.game.world.surf[Math.round(x)] ?? SKY_ROWS) - 2);
+  };
   const wisps = s.pests.filter((p) => p.kind === 'wisp');
   const golemStopped = s.miners.filter((m) => golems.some((p) => p.id === m.stalledBy)).length;
   const tools: { id: Tool; sprite: string; label: string; stock?: ResKey; show: boolean; title: string }[] = [
@@ -231,6 +239,11 @@ export function App({ ui }: { ui: UiBridge }) {
                 Homecoming ×{home} · until {ftFromDepthTiles(homeUntilD(s))} ft
               </div>
             )}
+            {feasting(s) && (
+              <div class="home" title="The feast bell rang: every worker is doubled">
+                Feast ×{FEAST.mult} · {Math.ceil((s.surface.feastUntil - s.t) / 1000)} s
+              </div>
+            )}
             {neck && (
               <div class="neck" title={neck.hint}>
                 Held back by: {neck.what}
@@ -256,6 +269,11 @@ export function App({ ui }: { ui: UiBridge }) {
                       ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
                       : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
               Show me
+            </button>
+          )}
+          {ripeN > 0 && !s.helpers.tansy && (
+            <button class="panel alert crop" style={{ pointerEvents: 'auto' }} onClick={lookUp}>
+              <img src={spriteURL('barley')} alt="" /> {ripeN} ripe · reap
             </button>
           )}
           {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
@@ -318,6 +336,11 @@ export function App({ ui }: { ui: UiBridge }) {
           <button class="btn" onClick={() => ui.recenter()} aria-label="Follow the Foreman">
             ⌖
           </button>
+          {s.surface.tansy && (
+            <button class="btn" onClick={lookUp} aria-label="Look up at the fields" title="Look up">
+              ▲
+            </button>
+          )}
           <button
             class={`btn ${sheet === 'village' ? 'primary' : ''} ${newInVillage && sheet !== 'village' ? 'new' : ''}`}
             onClick={() => setSheet(sheet === 'village' ? null : 'village')}

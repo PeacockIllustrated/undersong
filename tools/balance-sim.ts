@@ -29,6 +29,17 @@ import { heatAt } from '../src/sim/heat';
 import { HEAT } from '../src/data/heat';
 import { endingReady } from '../src/sim/ending';
 import { HEART_CENTER_D } from '../src/world/generator';
+import {
+  feastNeed,
+  feasting,
+  isElder,
+  mealCost,
+  plotCost,
+  saplingCost,
+  treeStage,
+  woodCost,
+} from '../src/sim/surface';
+import { MEALS, WOODLOT, WOOD_BUYS } from '../src/data/surface';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -39,6 +50,9 @@ const args = Object.fromEntries(
 const SEEDS = Number(args.seeds ?? 9);
 /** How often the bot looks at the screen, in ms. An engaged player, not a perfect one. */
 const ATTENTION_MS = Number(args.attention ?? 1500);
+/** M6: an engaged player looks up at the fields about this often (ms); --surface=off leaves the surface alone. */
+const SURFACE_MS = Number(args['surface-every'] ?? 30_000);
+const SURFACE = args.surface !== 'off';
 const MINUTES = Number(args.minutes ?? 120);
 /** Ending mode plays on through the Ember Deep to the Hollow Heart, and sings the last verse. */
 const ENDING = args.until === 'ending';
@@ -243,12 +257,44 @@ function spendEchoes(g: Game): void {
 /** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
 function hireHelpers(g: Game): void {
   const s = g.state;
-  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents'] as const) {
+  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents', 'tansy', 'rook'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
     if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 2) continue;
     if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
   }
+}
+
+/**
+ * M6 Holloway above: every so often the player looks up, reaps and fells by hand until the helpers take over,
+ * rings the bell, and spends barley and timber. Copper goes on plots and saplings only when it is spare.
+ */
+const tendedAt = new WeakMap<Game, number>();
+function tendSurface(g: Game): void {
+  const s = g.state;
+  const sf = s.surface;
+  if (!SURFACE || !sf.tansy || s.totalT < (tendedAt.get(g) ?? 0)) return;
+  tendedAt.set(g, s.totalT + SURFACE_MS);
+  if (!s.helpers.tansy) sf.plots.forEach((p, i) => p.t >= 1 && apply(g, { type: 'harvest', plot: i }));
+  if (!feasting(s) && sf.feast >= feastNeed(s)) apply(g, { type: 'ringFeast' });
+  if (s.helpers.tansy) apply(g, { type: 'autoFeast', on: true });
+  const spare = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
+    !!c && canPay(s, c) && c[0]!.amount.lte(s.res.copperBar.mul(0.1)) && s.miners.length >= 2;
+  if (spare(plotCost(s))) apply(g, { type: 'buyPlot' });
+  for (const m of [...MEALS].sort((a, b) => sf.meals[a.id] - sf.meals[b.id]))
+    if (canPay(s, mealCost(s, m.id) ?? [{ res: 'barley', amount: s.res.barley.add(1) }]))
+      apply(g, { type: 'eatMeal', id: m.id });
+  if (!sf.rook) return;
+  sf.trees.forEach((t, i) => {
+    if (!s.helpers.rook && !isElder(t) && t.stood === 0 && treeStage(t) >= WOODLOT.stageS.length)
+      apply(g, { type: 'chop', tree: i });
+  });
+  if (spare(saplingCost(s))) apply(g, { type: 'plantSapling' });
+  // keep a few timber for pit props; spend the rest on the cheaper of hearth and cottage
+  const price = (id: (typeof WOOD_BUYS)[number]['id']): number =>
+    woodCost(s, id)?.[0]!.amount.toNumber() ?? Infinity;
+  for (const b of [...WOOD_BUYS].sort((a, c) => price(a.id) - price(c.id)))
+    if (s.res.timber.gte(price(b.id) + 6)) apply(g, { type: 'buyWood', id: b.id });
 }
 
 /** The whetstone: an engaged player takes the cheap levels at once, later ones from spare copper. */
@@ -557,6 +603,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       if (act2Mode) shopA2(g);
       else shop(g);
       placeTorches(g);
+      tendSurface(g);
       if (ACT3 && !s.helpers.pumps) managePumps(g);
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
@@ -637,7 +684,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     );
   if (ACT2)
     console.log(
-      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses}`,
+      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses} · surface bread ${s.surface.meals.bread} porridge ${s.surface.meals.porridge} hearth ${s.surface.wood.hearth} cottages ${s.surface.wood.cottage} feasts ${s.surface.feasts} plots ${s.surface.plots.length} trees ${s.surface.trees.map((t) => t.stood).join('/')}`,
     );
   return {
     ...(first1 ?? s.stats.firsts),

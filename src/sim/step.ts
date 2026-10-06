@@ -10,6 +10,7 @@ import { stepWater } from './water';
 import { coolCache } from './heat';
 import { stepEndless } from './ending';
 import { stepHelpers } from './helpers';
+import { stepSurface } from './surface';
 import { stepAchievements } from './achievements';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 
@@ -32,6 +33,7 @@ export function step(g: Game, dtMs: number): void {
   stepLampworks(g, dt);
   stepLanterns(g, dt);
   stepHelpers(g, dt);
+  stepSurface(g, dt);
   stepGlints(g);
   stepStory(g);
   if (s.t % 1000 === 0 || dt >= 1) {

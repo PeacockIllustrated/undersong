@@ -2,13 +2,13 @@
 import type { Cost } from './items';
 import type { ResKey } from './resources';
 
-export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps' | 'vents';
+export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps' | 'vents' | 'tansy' | 'rook';
 
 export interface HelperDef {
   id: HelperId;
   name: string;
   /** Who does it, for the portrait. */
-  who: 'pell' | 'bram' | 'wren';
+  who: 'pell' | 'bram' | 'wren' | 'tansy' | 'rook';
   /** What it takes off your hands, shown before you buy it. */
   text: string;
   /** Cost of each level; the last entry is the top level. */
@@ -60,6 +60,20 @@ export const HELPERS: readonly HelperDef[] = [
         { res: 'brick', n: 20 },
       ],
     ],
+  },
+  {
+    id: 'tansy',
+    name: 'Tansy’s hands',
+    who: 'tansy',
+    text: 'Tansy reaps every ripe plot on her rounds and sows it again. Reaping by hand still pays double.',
+    levels: [[{ res: 'copperBar', n: 10 }]],
+  },
+  {
+    id: 'rook',
+    name: 'Rook’s axe',
+    who: 'rook',
+    text: 'Rook fells trees once they are old and plants a sapling in each stump. He leaves any tree that has stood through a Cave-in to grow.',
+    levels: [[{ res: 'copperBar', n: 12 }]],
   },
 ];
 

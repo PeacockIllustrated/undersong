@@ -207,3 +207,17 @@ Decision:
 **Decision.** Act III ends when 1000 ft has ever been reached and Verses VI to X are known, matching `inAct4`. The bot keeps mining ore while it can't yet pay for the aquamarine pick, read from `nextPick`.
 **Result.** Act III median 341 min (target 390), all 9 seeds finish; ending median 659 min from 7 seeds (target 690). No game numbers changed.
 
+
+## ADR-029 · Holloway above: the surface only adds
+
+**Context.** Tom felt the overworld was missing something and asked for a farmer whose crops boost the miners and a tree farm. He approved the Holloway Above proposal (https://claude.ai/artifact/VPksRKJCXFApnzqmuqQVgT) as M6, with three calls left to defaults: the villagers are Tansy and Rook, trees survive the Cave-in, and costs are retuned so the pacing targets hold.
+**Decision.**
+- Two new `Decimal` resources, barley and timber, live in the village (never hauled). Numbers are in `src/data/surface.ts` and canon §17.
+- The surface can only speed the mine: meals and cottages multiply miners, porridge multiplies hand-mining, the hearth multiplies forge speed, a feast multiplies the whole village. Nothing decays, spoils or penalises neglect.
+- Fields, meals, hearth, cottages and the bell reset on a Cave-in like the rest of the village. Trees are kept and count the Cave-ins they stand through, so the woodlot is the one thing on the surface that grows across cycles. Elders' roots are worked out from the trees on load (`rootTiles`), so nothing about them is saved.
+- Tansy's hands and Rook's axe follow ADR-020. Rook's axe leaves trees that have stood through a Cave-in, so elders form without the player having to guard them.
+- Pit props: a support costs timber instead of bricks whenever timber is the more plentiful, so the Kiln recipe never becomes a choice the player has to manage.
+- Save v6 adds `surface`. `migrate()` now also fills any resource key a save is missing, which covers barley and timber and any resource added later.
+- The act crops (M6-07) and the tally board (rest of M6-06) are left for a follow-up PR.
+- Balance: uncapped meals made the ending about 35% faster (a meals-off run took one seed from 454 to 790 min), because long final runs bought many levels. Meals, the hearth and cottages are now capped per run (3, 2 and 5 levels). Act III sat at −12.6% before M6, so any surface speed pushed it out of band; slate goes from hardness 6 to 7 and singing stone from 14 to 17 to make room.
+**Result.** Act I unchanged and strict-green (First Cave-in 31.6 min). Act III and the ending are still being tuned; see progress.md.

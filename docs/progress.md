@@ -12,6 +12,14 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M6 Holloway Above
+
+Done: Tansy's fields, the cookhouse and feast bell, Rook's woodlot, trees that stand through the Cave-in, elders and their roots, the cairn, the Look up button, ripe and feast chips, Fields and Woodlot tabs, save v6 with a migration and fixture, canon §17, ADR-029. The sim bot now tends the surface.
+State: `npm run check` green (88 tests). Act I strict sim green (First Cave-in 31.6 min). Checked at 1280×800 and 390×844.
+Not done: Act III and ending pacing are not yet confirmed within ±15%. With the first numbers the surface made the ending about 35% faster; meals, hearth and cottages are now capped, and slate and singing stone are harder. The last 9-seed runs before the caps were halved put Act III near 290 min (target 390) and the ending near 560 (target 690); runs with the current numbers are still going. M6-06 tally board and M6-07 act crops are not built.
+Next: confirm Act III and ending medians, retune if needed, then M6-06 and M6-07.
+Questions for Tom: none.
+
 ## 2026-10-06 · M5-05 Balance pass
 
 Done: re-ran every act on main after the offline fixes. Act I (all five targets) and Act II (Glowroot 158 min, target 170) were on target as they stood. Act III looked like a miss (2 of 9 villages never finished), but both causes were in the sim bot, not the game: it only counted Act III as done if 1000 ft and Verses VI to X fell in the same run, and it stopped mining for the aquamarine pick once it held 20 aquamarine, though the pick costs 30 plus 20 silver. With both fixed (ADR-028): Act III median 341 min against 390, all 9 villages finish. Ending: 7 of 9 seeds run before Tom asked to stop, median 659 min against 690 (532 to 867). No game numbers changed.

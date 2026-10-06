@@ -30,8 +30,15 @@ import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
 import { fmt } from './format';
+import { Fields, Woodlot, fieldsReady, woodReady } from './Surface';
 
-function Cost({ costs, have }: { costs: { res: ResKey; amount: Decimal }[]; have: Record<ResKey, Decimal> }) {
+export function Cost({
+  costs,
+  have,
+}: {
+  costs: { res: ResKey; amount: Decimal }[];
+  have: Record<ResKey, Decimal>;
+}) {
   return (
     <span class="cost">
       {costs.map((c) => (
@@ -101,7 +108,7 @@ function Building({
 }
 
 function Craft({ ui, id, label, s }: { ui: UiBridge; id: CraftId; label: string; s: State }) {
-  const c = craftCost(id);
+  const c = craftCost(s, id);
   return (
     <div class="row">
       <button class="btn" disabled={!canPay(s, c)} onClick={() => ui.dispatch({ type: 'craft', id })}>
@@ -208,7 +215,7 @@ function Helpers({ ui }: { ui: UiBridge }) {
   );
 }
 
-export type VillageTab = 'build' | 'hands' | 'loom';
+export type VillageTab = 'build' | 'fields' | 'wood' | 'hands' | 'loom';
 /** The last tab used, kept for the session. */
 let lastTab: VillageTab = 'build';
 /** Open the Village on a given tab next time (a tip's "Show me"). */
@@ -240,6 +247,8 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
       n: [minerC, pickC, haulC, whetC].filter((c) => c && canPay(s, c)).length,
     },
   ];
+  if (s.surface.tansy) tabs.push({ id: 'fields', label: 'Fields', n: fieldsReady(s) });
+  if (s.surface.rook) tabs.push({ id: 'wood', label: 'Woodlot', n: woodReady(s) });
   if (hands.length)
     tabs.push({
       id: 'hands',
@@ -481,6 +490,8 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             </section>
           </>
         )}
+        {tab === 'fields' && <Fields ui={ui} />}
+        {tab === 'wood' && <Woodlot ui={ui} />}
         {tab === 'hands' && <Helpers ui={ui} />}
         {tab === 'loom' && (
           <Building ui={ui} id="songloom">

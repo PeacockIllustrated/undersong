@@ -22,6 +22,8 @@ import { makeRng } from './rng';
 import type { GameState } from './state';
 import { first, say } from './story';
 import { propRoof } from './helpers';
+import { supportFromTimber } from './surface';
+import { PIT_PROP } from '../data/surface';
 
 export function buildingDef(id: BuildingId): (typeof BUILDINGS)[number] {
   return BUILDINGS.find((b) => b.id === id)!;
@@ -47,15 +49,19 @@ export function buyBuilding(g: Game, id: BuildingId): boolean {
   return true;
 }
 
-export const craftCost = (id: CraftId): ReturnType<typeof flat> => flat(CRAFTS[id].cost);
+/** What a craft costs now. A support takes timber instead of bricks when there is timber to spare (canon §17.3). */
+export function craftCost(s: GameState, id: CraftId): ReturnType<typeof flat> {
+  if (id === 'support' && supportFromTimber(s, CRAFTS.support.cost[0]!.n)) return flat([PIT_PROP]);
+  return flat(CRAFTS[id].cost);
+}
 
 export function canCraft(s: GameState, id: CraftId): boolean {
-  return canPay(s, craftCost(id));
+  return canPay(s, craftCost(s, id));
 }
 
 export function craft(g: Game, id: CraftId): boolean {
   const s = g.state;
-  if (!pay(s, craftCost(id))) return false;
+  if (!pay(s, craftCost(s, id))) return false;
   s.res[id] = s.res[id].add(CRAFTS[id].makes);
   g.events.push({ kind: 'bought', what: id });
   return true;

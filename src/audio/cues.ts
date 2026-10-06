@@ -36,6 +36,11 @@ export function cuesFor(e: SimEvent, seen: boolean, chain: number): Play[] {
       return [{ id: 'drop', pitch: semis(Math.min(RUSH_SEMITONES_MAX, chain * RUSH_SEMITONES)) }];
     case 'smelt':
       return [{ id: 'smelt' }];
+    // the surface reuses the drop and the chest (canon §16): a golden ear sounds like a find
+    case 'harvest':
+      return [{ id: e.golden ? 'chest' : 'drop' }];
+    case 'chop':
+      return [{ id: 'breakSoft' }];
     case 'bought':
       return [{ id: 'bought' }];
     case 'refused':

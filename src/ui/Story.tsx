@@ -12,7 +12,14 @@ import { nextTip } from '../story/tips';
 import { CHOICE, SCENES, SUNG_BACK } from '../story/ending';
 import { endingReady } from '../sim/ending';
 
-const PORTRAIT: Record<string, string> = { pell: 'pell', bram: 'bram', wren: 'wren', foreman: 'foreman' };
+const PORTRAIT: Record<string, string> = {
+  pell: 'pell',
+  bram: 'bram',
+  wren: 'wren',
+  foreman: 'foreman',
+  tansy: 'tansy',
+  rook: 'rook',
+};
 
 export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }) {
   const ev = ui.game.state.story.events[0];

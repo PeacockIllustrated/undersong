@@ -1,5 +1,5 @@
 // Village lines and when they are said. Story text lives here, never in UI code (golden rule 6).
-export type Speaker = 'pell' | 'bram' | 'wren' | 'foreman';
+export type Speaker = 'pell' | 'bram' | 'wren' | 'foreman' | 'tansy' | 'rook';
 
 export interface Line {
   id: string;
@@ -12,6 +12,8 @@ export const SPEAKER_NAME: Record<Speaker, string> = {
   bram: 'Bram',
   wren: 'Old Wren',
   foreman: 'the Foreman',
+  tansy: 'Tansy',
+  rook: 'Rook',
 };
 
 export const LINES: Record<string, Line> = {
@@ -242,6 +244,42 @@ export const LINES: Record<string, Line> = {
     id: 'geodesDone',
     who: 'wren',
     text: 'Heat coming up through the floor. Whatever we sealed down there, we’re nearly back to it.',
+  },
+  // Holloway above (ADR-029)
+  tansyArrives: {
+    id: 'tansyArrives',
+    who: 'tansy',
+    text: 'Tansy, from down the valley. Miners dig better fed. I’ve sown you a plot east of the shaft: tap it when it’s gold.',
+  },
+  rookArrives: {
+    id: 'rookArrives',
+    who: 'rook',
+    text: 'Rook. I’ve put two saplings in at the ends of the village. Fell them grown for timber, or wait, and they pay three times over.',
+  },
+  goldenEar: {
+    id: 'goldenEar',
+    who: 'tansy',
+    text: 'A golden ear! Ten times the grain. My gran said they only grow where something old is sleeping.',
+  },
+  feast: {
+    id: 'feast',
+    who: 'tansy',
+    text: 'Ring it again! Everyone eats, everyone digs. Twice as fast till the bread runs out.',
+  },
+  elder: {
+    id: 'elder',
+    who: 'rook',
+    text: 'That one’s stood through three Cave-ins. I won’t fell it. Its roots are down in the rock now, and the rock is softer for it.',
+  },
+  helper_tansy: {
+    id: 'helper_tansy',
+    who: 'tansy',
+    text: 'Leave the fields to me. You’ll still get double for any you reap yourself.',
+  },
+  helper_rook: {
+    id: 'helper_rook',
+    who: 'rook',
+    text: 'I’ll fell them when they’re old and put a sapling in every stump.',
   },
   // Helpers (ADR-020): each takes a chore away
   helper_lamps: {

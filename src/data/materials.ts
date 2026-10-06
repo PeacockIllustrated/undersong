@@ -76,7 +76,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     drop: { res: 'tinOre', n: 2 },
     isOre: true,
   },
-  [M.SLATE]: { id: M.SLATE, name: 'Slate', hardness: 6, ramp: SLATE_R, drop: { res: 'rubble', n: 1 } },
+  [M.SLATE]: { id: M.SLATE, name: 'Slate', hardness: 7, ramp: SLATE_R, drop: { res: 'rubble', n: 1 } },
   [M.IRON]: {
     id: M.IRON,
     name: 'Iron ore',
@@ -170,7 +170,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.SINGING]: {
     id: M.SINGING,
     name: 'Singing stone',
-    hardness: 14,
+    hardness: 17,
     ramp: ['#373A52', '#2A5E86', '#262940'],
     drop: { res: 'rubble', n: 1 },
   },
