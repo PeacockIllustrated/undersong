@@ -10,6 +10,7 @@ import { HOMECOMING } from '../data/helpers';
 import { fmt } from './format';
 import { ENDING_NOTE } from '../story/ending';
 import { NEW_SONG } from '../data/heat';
+import { AchievementList } from './Achievements';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
 
@@ -168,6 +169,7 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
             The first pages were here when you opened the book. The handwriting is yours.
           </p>
         </section>
+        <AchievementList s={s} />
       </div>
     </div>
   );

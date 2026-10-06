@@ -168,3 +168,11 @@ Decision:
 - Shape marks are on by default. A face too dark for full speed (light under `PESTS.darkBelow`) gets a crescent moon over it while a miner works it. Rock too hot to work gets a dark badge with heat waves. Until now both were shown only by colour.
 - Numbers can be short (1.5M) or scientific (1.50e6), which incremental players often prefer.
 - The sound work adds its volume and mute rows to the same Settings panel.
+
+**ADR-025 · Achievements** · 2026-10-06 · Accepted
+Context: M5 asks for achievements. They should give the player something to aim at across cycles without adding a new save field while the offline work is changing the sim in parallel.
+Decision:
+
+- Eighteen badges, thresholds in `src/data/achievements.ts`, names and wording in `src/story/achievements.ts`. They pay nothing: no balance change, so the pacing targets stand.
+- Each is checked about once a second and, once earned, stored in `story.ever` as `ach:<id>`. That list already survives a Cave-in and is already in the save, so `SAVE_VERSION` stays at 5. An older save earns what it already qualifies for on its first load.
+- The Survey Book lists every achievement, with locked ones showing what earns them, so they double as goals. A toast announces each one; several earned together share one toast.

@@ -12,7 +12,15 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M5-03 Achievements
+
+Done: 18 achievements (ADR-025): verses known, biomes reached, Cave-ins, a full bunkhouse, chests, every helper, charms, Echoes, both endings and Endless Depth. Earned ones are kept in `story.ever` as `ach:<id>`, which already survives a Cave-in and is already saved, so there is no save change. The Survey Book lists them all, locked ones with what earns them. A toast announces each; several at once share one toast, which is what an older save sees the first time it loads.
+State: `npm run check` green. Checked at 1280×800 and 390×844.
+Next: M5-04 itch.io build. M5-05 balance pass waits for the offline fixes.
+Questions for Tom: the achievement names are mine; edit freely in `src/story/achievements.ts`.
+
 ## 2026-10-06 · M5-01 Settings, M5-02 Accessibility
+
 Done: a Settings panel in the menu, saved apart from the game (ADR-024). Motion (Auto, Full or Reduced) now governs screen shake and every animation, where before shake ignored the device setting. Text size goes to 1.3×. Dark faces get a moon and rock too hot to work gets a heat badge, so neither is shown by colour alone. Numbers can be scientific.
 State: `npm run check` green. Checked at 1280×800 and 390×844. No save change.
 Next: M5-03 achievements, M5-04 itch.io build. Sound is being built in the code review thread; M5-05 balance pass waits for its offline fixes.
@@ -22,7 +30,7 @@ Questions for Tom: none.
 
 Done: Act IV and the ending. Heat below 250 ft slows miners and then stops them at faces too hot to work; vents (tool, craft, and Wren's cold lamps helper) and standing water cool. Cinder wisps gather at hot faces and Pell's rounds handle them. Verse XI sits in a ring of ember ore and Verse XII in the Heartstone, which only the Heart pick breaks. Singing all twelve verses offers the choice: seal the shaft (Endless Depth, 64 more rows whenever the village nears the floor) or sing the last verse (New Song+, more Echoes, verses sung back). Hot faces glow on screen; "Held back by: Heat". ADR-023, PR #8.
 State: `npm run check` green. Ending sim, 8 seeds continued from their Act III saves: 507, 530, 655, 691, 729, 739, 829, 838 min, median 710 against 690 (inside ±15%). The spread mostly comes from Act III (199 to 762 min). Tests for hot faces and the vent crew found a real bug (the crew and Endless Depth read the reach depth before it was worked out); fixed.
-Not done: the roadmap epic's "old shafts from earlier cycles" in the Hollow Heart has no ticket and is not built; added to the Parking lot.
+Not done: none. (An earlier version of this entry said the "old shafts from earlier cycles" epic was not built. It is: the Old Shafts Echo upgrade leaves earlier cycles' shafts in the mountain.)
 Next: M5 Surface (music and sound, balance pass, accessibility, achievements, settings, launch).
 Questions for Tom: the ending choice and scene wording is mine; edit freely.
 
