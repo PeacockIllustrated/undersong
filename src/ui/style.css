@@ -1,0 +1,239 @@
+:root {
+  --night: #141a33;
+  --slate-0: #262940;
+  --slate-1: #373a52;
+  --slate-2: #4b4f6b;
+  --slate-3: #5f6487;
+  --ink: #e8f4f0;
+  --ink-dim: #a9b3c4;
+  --glow: #5ff0d8;
+  --gold: #ffd65a;
+  --gold-pale: #fff2a8;
+  --ember: #e0532f;
+  --panel: rgba(40, 56, 120, 0.72);
+  --panel-edge: #8da2e8;
+  --display: 'Silkscreen', 'Courier New', monospace;
+  --body: 'Pixelify Sans', 'Trebuchet MS', sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--body);
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#view {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#ui > * {
+  pointer-events: none;
+}
+.hud-top {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  left: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.panel {
+  background: var(--panel);
+  border: 2px solid var(--panel-edge);
+  box-shadow:
+    0 0 0 2px var(--night),
+    4px 4px 0 2px rgba(6, 8, 18, 0.5);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+.depth {
+  padding: 6px 10px 8px;
+  min-width: 132px;
+}
+.depth .ft {
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.depth .biome {
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin-top: 4px;
+}
+.res {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 60vw;
+  justify-content: flex-end;
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 4px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.chip img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+.btn {
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--slate-1);
+  border: 2px solid var(--slate-3);
+  padding: 8px 12px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.btn:hover {
+  background: var(--slate-2);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.btn.primary {
+  background: #1e6b66;
+  border-color: var(--glow);
+}
+.btn.danger {
+  border-color: var(--ember);
+}
+.hud-bottom {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.hint {
+  font-size: 14px;
+  padding: 6px 10px;
+  color: var(--ink);
+  max-width: 340px;
+}
+.sheet-wrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 8, 18, 0.55);
+  pointer-events: auto;
+  padding: 16px;
+}
+.sheet {
+  width: min(460px, 100%);
+  max-height: 86vh;
+  overflow: auto;
+  padding: 18px;
+}
+.sheet h2 {
+  font-family: var(--display);
+  font-size: 20px;
+  margin: 0 0 12px;
+  color: var(--gold);
+}
+.sheet p {
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+.sheet textarea {
+  width: 100%;
+  min-height: 96px;
+  font-family: monospace;
+  font-size: 12px;
+  background: var(--night);
+  color: var(--ink);
+  border: 2px solid var(--slate-3);
+  padding: 8px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+.err {
+  color: #ff9a3c;
+  font-size: 14px;
+}
+.ok {
+  color: var(--glow);
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .depth .ft {
+    font-size: 18px;
+  }
+  .chip {
+    font-size: 13px;
+  }
+  .chip img {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* /#atlas dev route */
+body.atlas {
+  overflow: auto;
+}
+body.atlas #view {
+  display: none;
+}
+body.atlas #ui {
+  position: static;
+  pointer-events: auto;
+}
+body.atlas #ui > * {
+  pointer-events: auto;
+}
+.atlas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+}
+.atlas-item {
+  background: var(--slate-0);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.atlas-item img {
+  image-rendering: pixelated;
+}

@@ -7,7 +7,11 @@ import { migrate } from './migrations';
 const TAG = 'D:';
 
 export function toJSON(state: GameState): string {
-  return JSON.stringify(state, (_k, v: unknown) => (v instanceof Decimal ? TAG + v.toString() : v));
+  // Decimal has its own toJSON, so look at the raw value on the holder, not the already-converted one.
+  return JSON.stringify(state, function (this: Record<string, unknown>, k: string, v: unknown) {
+    const raw = this[k];
+    return raw instanceof Decimal ? TAG + raw.toString() : v;
+  });
 }
 
 export function fromJSON(text: string): GameState {

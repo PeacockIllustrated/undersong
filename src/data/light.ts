@@ -13,6 +13,8 @@ export const LIGHT = {
   lantern: 1.5,
   /** Range bound used by incremental relighting: max strength / min decay. */
   margin: 19,
+  /** Render-only glow around the Foreman (ADR-010). Never affects the sim. */
+  foremanLamp: 0.9,
   /** Render-only flicker amplitude for warm light. Never affects the sim. */
   flicker: 0.06,
   darkness: 0.94,

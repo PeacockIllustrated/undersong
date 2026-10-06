@@ -7,6 +7,7 @@ import { M } from '../src/data/materials';
 import { SHAFT_X, SKY_ROWS, TICK_MS } from '../src/data/constants';
 import { exportString, fromJSON, importString, toJSON } from '../src/save/codec';
 import { readFileSync } from 'node:fs';
+import { Decimal } from '../src/sim/decimal';
 
 /** First solid tile below the pre-dug shaft collar. */
 function shaftFloor(g: ReturnType<typeof createGame>): number {
@@ -69,6 +70,7 @@ describe('saves', () => {
     for (let i = 0; i < 200; i++) step(g, TICK_MS);
     const back = loadGame(importString(exportString(g.state)));
     expect(back.world.get(SHAFT_X, y)).toBe(M.AIR);
+    expect(back.state.res.rubble).toBeInstanceOf(Decimal);
     expect(back.state.res.rubble.toString()).toBe(g.state.res.rubble.toString());
     expect(toJSON(back.state)).toBe(toJSON(g.state));
   });

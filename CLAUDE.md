@@ -55,7 +55,6 @@ npm run dev            # Vite dev server with sprite hot reload
 npm run check          # typecheck + lint + test + lint:sprites  (must be green to finish)
 npm run test           # Vitest
 npm run lint:sprites   # palette, size and naming checks on assets/sprites
-npm run build:atlas    # pack assets/sprites into public/atlas.png + atlas.json
 npm run sim -- --until=first-cavein   # headless balance sim, prints time-to-milestone
 npm run build          # production build
 ```
@@ -71,6 +70,6 @@ src/story/    verses, village lines, triggers
 src/save/     serialise, migrate, offline catch-up
 src/data/     every tunable number and definition
 assets/sprites/  *.sprite text grids + palette.json
-tools/        build-atlas, lint-sprites, balance-sim
+tools/        lint-sprites, balance-sim, make-fixture, art/ (Python that drew the sprites)
 docs/         canon, dev bible, roadmap, decisions, progress, design bible
 ```

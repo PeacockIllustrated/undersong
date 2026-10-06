@@ -124,7 +124,7 @@ Sky colours and UI panel colours (`#5AA8DA` to `#BFE6F5`, and the slot navy `rgb
 
 ### 6.3 Sizes and scale
 
-The base tile is 16×16, characters are 16×24 and items are 16×16. HUD icons are 8×8 or 16×16. Render scale is ×2, ×3 or ×4 (integers only). Animation runs at 8–12 fps.
+The base tile is 16×16, characters are 16×24 and items are 16×16. HUD icons are 8×8 or 16×16. Props (village buildings, trees) are 16–64 wide and 8–48 tall, in steps of 16 and 8 (ADR-011). Render scale is ×2, ×3 or ×4 (integers only). Animation runs at 8–12 fps.
 
 ## §7 Lighting constants
 
@@ -134,8 +134,12 @@ The base tile is 16×16, characters are 16×24 and items are 16×16. HUD icons a
 | Decay through air | 0.085 per tile |
 | Decay through solid | 0.26 per tile |
 | Sky light | 1.0 at and above the grass line |
-| Torch | 1.0 warm, flicker ±6% (cosmetic only, never affects the sim) |
-| Lantern | 1.0 warm, costs Lumen upkeep (§9) |
+| Torch | 1.0 warm to 150 ft, 0.6 below (ADR-013); flicker ±6% (cosmetic only, never affects the sim) |
+| Lantern | 1.5 warm while lit, costs Lumen upkeep (§9) |
+| Water | light decays 0.12 per tile through flooded tiles |
+| Foreman's lamp | 0.9 warm glow around the Foreman, render only (ADR-010) |
+| Ember ore | 0.6 warm |
+| Heartstone | 0.7 warm |
 | Glowcap | 0.85 cool |
 | Crystal | 0.9 cool |
 | Darkness overlay | `rgba(6,8,18, (1 − L) × 0.94)` |

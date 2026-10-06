@@ -76,6 +76,8 @@ input (pointer/keys/UI) ──► actions ──► sim.step(state, action|tick,
 | `preact` | UI overlay |
 | `lz-string` | Save compression |
 | `vite`, `typescript`, `vitest`, `eslint`, `prettier` | Tooling |
+| `@preact/preset-vite`, `typescript-eslint`, `@eslint/js` | Tooling glue for the above |
+| `tsx`, `@types/node` | Running and typing the TypeScript tools (ADR-012) |
 
 Anything else needs an ADR in `decisions.md` before it's installed.
 
@@ -125,7 +127,7 @@ frames: 1                  # optional; frames are stacked vertically in the grid
 - A new ore is a new sub-palette mapped onto the existing ore overlay grid. Don't redraw it.
 - A new biome is a new palette entry in canon §6.2 plus generator rules in `src/world/biomes.ts`.
 - For a new creature or character, first sketch it at 8×8 in a comment block in the PR, then make it at 16×24.
-- After adding art, run `npm run build:atlas` and check it in-game at ×2 and ×4.
+- After adding art, run `npm run lint:sprites` and check it at `/#atlas` and in-game at ×2 and ×4.
 
 ---
 

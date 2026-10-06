@@ -29,7 +29,15 @@ Tom asked to see the directions taken as the build goes, so each milestone entry
 - **Digging feel:** tap a tile to queue it; drag from a tile to queue a whole path. Hand-mining ignores light (the Foreman carries his own lamp); miners will not, which is what makes torches matter.
 - **Saves:** JSON with big numbers tagged, compressed with lz-string, versioned from v1 with a fixture test. Missing fields are filled from a new game, so adding things later doesn't break old saves.
 
-**Next:** the renderer (chunk caches, back walls, blocky Terraria-style per-tile light, sky and village), touch and mouse input, the HUD, then a checked PR for M0.
+**Renderer and input (later the same day)**
+- Chunks are cached to offscreen canvases and redrawn only when a tile in them changes. Light is drawn as one block per tile, Terraria style, with the warm and cool tints from canon §7.
+- The Foreman carries a lamp glow (render only, ADR-010). Without it the first dig felt like digging blind.
+- Browser testing caught a real bug: big numbers were saved as plain strings and came back broken after a reload. Fixed, with a test that checks the type survives.
+- Draw time is about 1.5 ms a frame with the CPU throttled 4×, well inside the 8 ms budget.
+
+State: `npm run check` green (19 tests), build green. M0-01 to M0-06 and M0-08 ticked. M0-07 is missing the walk cycle and two item sprites (Parking lot).
+Next: M1 First Verse, on a stacked branch (ADR-009).
+Questions for Tom: none.
 
 ---
 

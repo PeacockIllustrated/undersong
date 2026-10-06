@@ -41,11 +41,35 @@ Context: Tom hasn't decided how deep combat should go yet.
 Decision: until he does, pests stall miners in the dark and are removed with a tap. There's no health, weapons or damage.
 Consequences: if Tom wants real combat, it becomes a new milestone-sized epic with its own ADR.
 
+**ADR-009 · One branch and PR per milestone** · 2026-10-06 · Accepted
+Context: Tom asked for the whole game to be built unattended. A branch and PR per ticket (CLAUDE.md) would stack a dozen PRs waiting on review.
+Decision: each milestone is one branch (`m0/bedrock`, `m1/first-verse`, ...) and one draft PR to `main`, with tickets as commits. The next milestone branches from the previous one, so PRs stack.
+Consequences: fewer, bigger reviews. The roadmap records the milestone PR against every ticket in it.
+
+**ADR-010 · The Foreman's lamp** · 2026-10-06 · Accepted
+Decision: hand-mining ignores the light factor (canon §4.5 applies to miners only). The renderer draws a soft warm glow around the Foreman (`LIGHT.foremanLamp`, 0.9) that never enters the sim.
+Consequences: the player can always see where they dig. Darkness stays a village problem (miners slow down), which is what makes torches and Lumen matter.
+
+**ADR-011 · Runtime sprite atlas and procedural tiles** · 2026-10-06 · Accepted (amends ADR-006)
+Decision: `.sprite` files are parsed in the browser at startup into one small canvas per frame (Vite imports them as raw text). There is no `build:atlas` step or checked-in atlas PNG. Tile textures are generated from each material's three-colour ramp (4 variants each), with ore overlays from sprites. Props may be up to 64×48 (canon §6.3).
+Consequences: no generated binaries in the repo and nothing to rebuild after editing art. Startup parses about 70 small files, which takes a few milliseconds.
+
+**ADR-012 · tsx for tools** · 2026-10-06 · Accepted
+Decision: repo tools (`lint-sprites`, `balance-sim`, `make-fixture`) are TypeScript run with `tsx`, sharing code with `src/`.
+Consequences: one language; tools can import the real sim and data.
+
+**ADR-013 · Torches gutter below 150 ft** · 2026-10-06 · Accepted
+Decision: a torch gives 1.0 in Topsoil & Stone and 0.6 from Glowroot down (`LIGHT.torchDeep`). Lanterns give 1.5 at a Lumen upkeep.
+Consequences: Act II's Lumen economy has a reason to exist. Canon §7 updated.
+
+**ADR-014 · Dig input** · 2026-10-06 · Accepted
+Decision: a tap queues one tile. With a mouse, dragging from a diggable tile queues a 4-connected path and dragging from air pans. On touch, a quick drag pans and press-and-hold then drag draws a dig path. The wheel and WASD/arrow keys scroll.
+Consequences: digging a long tunnel is one gesture on every device.
+
 ---
 
 ## Open questions for Tom
 
-- Where the code lives: a new GitHub repo is proposed.
 - Business model: free on the web, premium, or a demo plus a paid version.
 - How deep combat goes (see ADR-008).
 - The final name.
