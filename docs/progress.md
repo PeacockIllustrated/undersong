@@ -12,6 +12,14 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M5-05 Balance pass
+
+Done: re-ran every act on main after the offline fixes. Act I (all five targets) and Act II (Glowroot 158 min, target 170) were on target as they stood. Act III looked like a miss (2 of 9 villages never finished), but both causes were in the sim bot, not the game: it only counted Act III as done if 1000 ft and Verses VI to X fell in the same run, and it stopped mining for the aquamarine pick once it held 20 aquamarine, though the pick costs 30 plus 20 silver. With both fixed (ADR-028): Act III median 341 min against 390, all 9 villages finish. Ending: 7 of 9 seeds run before Tom asked to stop, median 659 min against 690 (532 to 867). No game numbers changed.
+State: `npm run check` green (71 tests).
+Not done: the last 2 ending seeds were cut short at Tom's request.
+Next: M5 is complete. M6 (Tansy's fields and Rook's woodlot) goes to the Overworld features thread.
+Questions for Tom: none.
+
 ## 2026-10-06 · R-01 to R-05 Review fixes and sound
 
 Done: from the code review Tom approved. Offline catch-up now pays in full (8 h away: 942 tiles against 927 in real time, was 626), and coming back no longer freezes the page (8 h with 40 miners: about 1 s, was 9.1 s). Absences under a minute play on instead of being lost. The balance sim has `--strict`; CI runs Act I strictly on every PR, and a nightly workflow runs the longer acts. Sound: synthesised effects for digging, ore, the forge, purchases, pests, chests, records, biomes, collapses and the Cave-in; each verse plays the Undersong so far; a drone that deepens with depth; Sound and The hum in Settings; M mutes (ADR-026, ADR-027).
