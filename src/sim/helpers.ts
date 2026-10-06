@@ -118,9 +118,10 @@ function ventCrew(g: Game): void {
     pay(s, cost);
     s.res.vent = s.res.vent.add(CRAFTS.vent.makes);
   }
+  // reach first: it also sets reachMaxY
+  const r = reach(g);
   if (s.res.vent.lt(1) || w.depth(g.reachMaxY) < HEAT.fromD) return;
   // the open tiles of the deepest few rows, next to rock too hot to work
-  const r = reach(g);
   let best: { x: number; y: number; h: number } | null = null;
   for (let y = g.reachMaxY; y > g.reachMaxY - HELPER_FX.pumpRows && y > 0; y--)
     for (let x = 1; x < w.w - 1; x++) {

@@ -5,6 +5,7 @@ import { ENDLESS } from '../data/heat';
 import { BASE_WORLD_H, HEART_FLOOR_D, SKY_ROWS } from '../data/constants';
 import { extendWorld } from '../world/generator';
 import { caveIn } from './cavein';
+import { reach } from './reach';
 import type { Game } from './game';
 import type { GameState } from './state';
 import { first } from './story';
@@ -34,6 +35,7 @@ export function stepEndless(g: Game): void {
   const s = g.state;
   if (s.ending !== 'seal' || s.world.endlessRows === 0) return;
   const floor = HEART_FLOOR_D + s.world.endlessRows;
+  reach(g); // sets reachMaxY
   if (g.world.depth(g.reachMaxY) < floor - ENDLESS.margin) return;
   const oldH = g.world.h;
   s.world.endlessRows += ENDLESS.rows;
