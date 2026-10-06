@@ -16,6 +16,8 @@ import { first, say } from './story';
 import { maybeCollapse } from './village';
 import { GOLEMS } from '../data/water';
 import { makeRng } from './rng';
+import { heatAt, heatFactor } from './heat';
+import { HEAT } from '../data/heat';
 
 /** Depth (tiles) from which the Foreman's own digging depends on light: the Glowroot. */
 const DARK_FROM_D = BIOMES[2]!.d0;
@@ -31,8 +33,17 @@ export function foremanRate(g: Game): number {
   const d = t ? g.world.depth(t.y) : 0;
   // ADR-017: below Topsoil the Foreman digs by whatever light reaches the face, like the miners
   const light = t && d >= DARK_FROM_D ? lightFactor(g.world.faceLight(t.x, t.y)) : 1;
+  // canon §15: heat slows the Foreman too, but never stops him: a vent is always within reach of his hands
+  const hf = t ? heatFactor(heatAt(g, t.x, t.y)) : 1;
+  const heat = hf === 0 ? HEAT.foremanHot : hf;
   return (
-    power * FOREMAN_RATE * handsMult(s) * deepMult(s, d) * light * rushMult(s.foreman.chain, rushStep(s))
+    power *
+    FOREMAN_RATE *
+    handsMult(s) *
+    deepMult(s, d) *
+    light *
+    heat *
+    rushMult(s.foreman.chain, rushStep(s))
   );
 }
 

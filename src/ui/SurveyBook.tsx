@@ -8,6 +8,8 @@ import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { HOMECOMING } from '../data/helpers';
 import { fmt } from './format';
+import { ENDING_NOTE } from '../story/ending';
+import { NEW_SONG } from '../data/heat';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
 
@@ -39,6 +41,12 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
             ✕
           </button>
         </div>
+        {(s.ngPlus > 0 || s.world.endlessRows > 0) && (
+          <p class="small ending-note">
+            {s.ngPlus > 0 && `${ENDING_NOTE.songs(s.ngPlus, NEW_SONG.perSong)} `}
+            {s.world.endlessRows > 0 && ENDING_NOTE.endless}
+          </p>
+        )}
 
         <section>
           <h3>Cycle {s.cycle}</h3>

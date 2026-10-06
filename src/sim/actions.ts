@@ -6,6 +6,7 @@ import { PICKS } from '../data/items';
 import { UPGRADES } from '../data/upgrades';
 import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
+import { chooseEnding, type Ending } from './ending';
 import type { CharmId } from '../data/charms';
 import { equip, weave } from './charms';
 import type { HelperId } from '../data/helpers';
@@ -14,15 +15,16 @@ import { D } from './decimal';
 import { minerCost, nextHaul, nextPick, pay, torchCost, whetstoneCost } from './economy';
 import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
+import { coolCache } from './heat';
 import { makeRng } from './rng';
 import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
 
-export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump';
+export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump' | 'vent';
 
 /** Tools that place an object from stock. */
-export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support', 'pump'];
+export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support', 'pump', 'vent'];
 
 export type Action =
   | { type: 'dig'; x: number; y: number }
@@ -45,6 +47,8 @@ export type Action =
   | { type: 'equip'; id: CharmId }
   | { type: 'hireHelper'; id: HelperId }
   | { type: 'caveIn' }
+  /** At the Hollow Heart, with Verse XII sung: seal the shaft or sing the last verse. */
+  | { type: 'chooseEnding'; which: Ending }
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' }
   /** Remember, for good, that the player has seen something: a tip (`tip:<id>`) or a Village tab (`tab:<id>`). */
@@ -121,17 +125,19 @@ function place(
   obj: ObjKind | undefined,
 ): void {
   const s = g.state;
-  const stock = kind as 'torch' | 'lantern' | 'support' | 'pump';
+  const stock = kind as 'torch' | 'lantern' | 'support' | 'pump' | 'vent';
   if (obj === kind) {
     delete s.world.objects[key];
     s.res[stock] = s.res[stock].add(1);
     g.world.touch(x, y);
+    coolCache(g);
     return;
   }
   if (!obj && g.world.isAir(x, y) && y > g.world.surf[x]! && reachable(g, x, y) && s.res[stock].gte(1)) {
     s.res[stock] = s.res[stock].sub(1);
     s.world.objects[key] = kind;
     g.world.touch(x, y);
+    coolCache(g);
     first(g, kind);
     if (!s.story.ever.includes(`used:${kind}`)) s.story.ever.push(`used:${kind}`);
   }
@@ -246,6 +252,9 @@ export function apply(g: Game, a: Action): void {
       return;
     case 'caveIn':
       caveIn(g);
+      return;
+    case 'chooseEnding':
+      chooseEnding(g, a.which);
       return;
     case 'ackStory':
       s.story.events.shift();

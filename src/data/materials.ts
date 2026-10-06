@@ -131,7 +131,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.EMBER]: {
     id: M.EMBER,
     name: 'Ember ore',
-    hardness: 32,
+    hardness: 96,
     ramp: BASALT_R,
     host: M.BASALT,
     overlay: 'ore-ember',
@@ -143,17 +143,17 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.GOLD]: {
     id: M.GOLD,
     name: 'Gold ore',
-    hardness: 28,
+    hardness: 84,
     ramp: BASALT_R,
     host: M.BASALT,
     overlay: 'ore-gold',
-    drop: { res: 'goldOre', n: 1 },
+    drop: { res: 'goldOre', n: 3 },
     isOre: true,
   },
   [M.HEART]: {
     id: M.HEART,
     name: 'Heartstone',
-    hardness: 60,
+    hardness: 180,
     ramp: HEART_R,
     host: M.HEARTWALL,
     overlay: 'ore-heart',
@@ -164,7 +164,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.BEDROCK]: { id: M.BEDROCK, name: 'Bedrock', hardness: 0, ramp: ['#141A33', '#262940', '#141A33'] },
   [M.BRICK]: { id: M.BRICK, name: 'Old brick', hardness: 10, ramp: SLATE_R, drop: { res: 'brick', n: 1 } },
   [M.CARVING]: { id: M.CARVING, name: 'Verse carving', hardness: 0, ramp: STONE_R },
-  [M.BASALT]: { id: M.BASALT, name: 'Basalt', hardness: 20, ramp: BASALT_R, drop: { res: 'rubble', n: 1 } },
+  [M.BASALT]: { id: M.BASALT, name: 'Basalt', hardness: 60, ramp: BASALT_R, drop: { res: 'rubble', n: 1 } },
   [M.RUBBLE]: { id: M.RUBBLE, name: 'Rubble', hardness: 2, ramp: STONE_R, drop: { res: 'rubble', n: 1 } },
   // canon §8: the Geodes' own rock rings faintly when struck; it wants a silver pick
   [M.SINGING]: {
@@ -177,7 +177,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.HEARTWALL]: {
     id: M.HEARTWALL,
     name: 'Heartrock',
-    hardness: 26,
+    hardness: 78,
     ramp: HEART_R,
     drop: { res: 'rubble', n: 1 },
   },
@@ -201,7 +201,7 @@ export const MIN_PICK: Partial<Record<number, number>> = {
   [M.BASALT]: 6,
   [M.EMBER]: 6,
   [M.GOLD]: 6,
-  [M.HEART]: 7,
+  [M.HEART]: 8,
   [M.HEARTWALL]: 7,
 };
 

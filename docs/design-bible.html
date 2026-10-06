@@ -1,482 +1,1630 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Undersong Design Bible</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
-<style>
-/* Layout: the document descends like the game. A sticky depth gauge on the left; sections are strata, separated by generated pixel rock bands; the page darkens as you scroll deeper. Deliberately single-theme (night). */
-:root{
-  color-scheme:dark;
-  --night:#141A33; --deep:#07080F; --panel:rgba(40,56,120,.30); --panel-solid:#1B2347; --line:#3A4A8C; --slot:#8DA2E8;
-  --fg:#E8F4F0; --muted:#A3AEC9; --gold:#FFD65A; --copper:#F2A35E; --glow:#5FF0D8; --crystal:#7FD6FF; --ember:#FF9A3C; --grass:#6CC04A;
-  --f-display:"Pixelify Sans", "Silkscreen", monospace;
-  --f-label:"Silkscreen", "Courier New", monospace;
-  --f-body:"Atkinson Hyperlegible", system-ui, sans-serif;
-  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
-}
-*{box-sizing:border-box}
-html{background:var(--deep)}
-body{margin:0;color:var(--fg);font-family:var(--f-body);font-size:16.5px;line-height:1.6;
-  background-color:var(--deep);
-  background-image:linear-gradient(180deg,#3B6E9C 0px,#25386A 520px,#141A33 1400px,#10142A 4000px,#0A0C1A 8000px,#07080F 12000px)}
-.page{max-width:1200px;margin:0 auto;padding-inline:clamp(16px,3.5vw,40px);padding-block:32px 96px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
-@media (max-width:980px){.page{grid-template-columns:minmax(0,1fr)} .gauge{display:none}}
-main{min-width:0}
-p{margin:0}
-a{color:var(--crystal)}
-h1,h2,h3,h4{margin:0;text-wrap:balance}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(3rem,9vw,6.4rem);line-height:.95;letter-spacing:.01em;color:var(--fg);text-shadow:4px 4px 0 #0B0E1F}
-h2{font-family:var(--f-display);font-weight:700;font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.05;text-shadow:3px 3px 0 #05060C}
-h3{font-family:var(--f-display);font-weight:500;font-size:1.35rem;line-height:1.15}
-h4{font-family:var(--f-label);font-weight:400;font-size:.78rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
-.label{font-family:var(--f-label);font-size:.74rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
-.depth{font-family:var(--f-label);font-size:.8rem;color:var(--gold)}
-.prose{max-width:66ch;display:flex;flex-direction:column;gap:14px}
-.muted{color:var(--muted)}
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>Undersong Design Bible</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Silkscreen&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap"
+  />
+  <style>
+    /* Layout: the document descends like the game. A sticky depth gauge on the left; sections are strata, separated by generated pixel rock bands; the page darkens as you scroll deeper. Deliberately single-theme (night). */
+    :root {
+      color-scheme: dark;
+      --night: #141a33;
+      --deep: #07080f;
+      --panel: rgba(40, 56, 120, 0.3);
+      --panel-solid: #1b2347;
+      --line: #3a4a8c;
+      --slot: #8da2e8;
+      --fg: #e8f4f0;
+      --muted: #a3aec9;
+      --gold: #ffd65a;
+      --copper: #f2a35e;
+      --glow: #5ff0d8;
+      --crystal: #7fd6ff;
+      --ember: #ff9a3c;
+      --grass: #6cc04a;
+      --f-display: 'Pixelify Sans', 'Silkscreen', monospace;
+      --f-label: 'Silkscreen', 'Courier New', monospace;
+      --f-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+      --f-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      background: var(--deep);
+    }
+    body {
+      margin: 0;
+      color: var(--fg);
+      font-family: var(--f-body);
+      font-size: 16.5px;
+      line-height: 1.6;
+      background-color: var(--deep);
+      background-image: linear-gradient(
+        180deg,
+        #3b6e9c 0px,
+        #25386a 520px,
+        #141a33 1400px,
+        #10142a 4000px,
+        #0a0c1a 8000px,
+        #07080f 12000px
+      );
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-inline: clamp(16px, 3.5vw, 40px);
+      padding-block: 32px 96px;
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      gap: 48px;
+    }
+    @media (max-width: 980px) {
+      .page {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .gauge {
+        display: none;
+      }
+    }
+    main {
+      min-width: 0;
+    }
+    p {
+      margin: 0;
+    }
+    a {
+      color: var(--crystal);
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      text-wrap: balance;
+    }
+    h1 {
+      font-family: var(--f-display);
+      font-weight: 700;
+      font-size: clamp(3rem, 9vw, 6.4rem);
+      line-height: 0.95;
+      letter-spacing: 0.01em;
+      color: var(--fg);
+      text-shadow: 4px 4px 0 #0b0e1f;
+    }
+    h2 {
+      font-family: var(--f-display);
+      font-weight: 700;
+      font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+      line-height: 1.05;
+      text-shadow: 3px 3px 0 #05060c;
+    }
+    h3 {
+      font-family: var(--f-display);
+      font-weight: 500;
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+    h4 {
+      font-family: var(--f-label);
+      font-weight: 400;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .label {
+      font-family: var(--f-label);
+      font-size: 0.74rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .depth {
+      font-family: var(--f-label);
+      font-size: 0.8rem;
+      color: var(--gold);
+    }
+    .prose {
+      max-width: 66ch;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .muted {
+      color: var(--muted);
+    }
 
-/* gauge */
-.gauge{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:2px;border-left:4px solid #6B4329;padding-left:0}
-.gauge a{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:baseline;text-decoration:none;color:var(--muted);padding:6px 10px 6px 12px;position:relative;font-size:.9rem;line-height:1.25}
-.gauge a span{font-family:var(--f-label);font-size:.66rem;color:#7F8AAB}
-.gauge a::before{content:"";position:absolute;left:-8px;top:12px;width:12px;height:4px;background:#6B4329}
-.gauge a.on{color:var(--fg)}
-.gauge a.on span{color:var(--gold)}
-.gauge a.on::before{background:var(--gold);box-shadow:0 0 10px var(--gold)}
-.gauge a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+    /* gauge */
+    .gauge {
+      position: sticky;
+      top: calc(env(safe-area-inset-top, 0px) + 24px);
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-left: 4px solid #6b4329;
+      padding-left: 0;
+    }
+    .gauge a {
+      display: grid;
+      grid-template-columns: 62px 1fr;
+      gap: 8px;
+      align-items: baseline;
+      text-decoration: none;
+      color: var(--muted);
+      padding: 6px 10px 6px 12px;
+      position: relative;
+      font-size: 0.9rem;
+      line-height: 1.25;
+    }
+    .gauge a span {
+      font-family: var(--f-label);
+      font-size: 0.66rem;
+      color: #7f8aab;
+    }
+    .gauge a::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 12px;
+      width: 12px;
+      height: 4px;
+      background: #6b4329;
+    }
+    .gauge a.on {
+      color: var(--fg);
+    }
+    .gauge a.on span {
+      color: var(--gold);
+    }
+    .gauge a.on::before {
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+    }
+    .gauge a:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
 
-/* panels (Terraria-ish inventory panel) */
-.panel{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:18px 20px;box-shadow:inset 0 0 0 1px rgba(141,162,232,.15)}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.grid2>*,.grid3>*,.grid4>*{min-width:0}
-@media (max-width:820px){.grid3,.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.grid2,.grid3,.grid4{grid-template-columns:minmax(0,1fr)}}
-section{scroll-margin-top:20px;display:flex;flex-direction:column;gap:24px}
-.sechead{display:flex;flex-direction:column;gap:8px}
-.stratum{display:block;width:100%;height:auto;image-rendering:pixelated;margin-block:56px 40px;border-radius:2px}
-canvas.px{image-rendering:pixelated;image-rendering:crisp-edges;display:block;width:100%;height:auto}
+    /* panels (Terraria-ish inventory panel) */
+    .panel {
+      background: var(--panel);
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      padding: 18px 20px;
+      box-shadow: inset 0 0 0 1px rgba(141, 162, 232, 0.15);
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .grid3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .grid4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .grid2 > *,
+    .grid3 > *,
+    .grid4 > * {
+      min-width: 0;
+    }
+    @media (max-width: 820px) {
+      .grid3,
+      .grid4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 560px) {
+      .grid2,
+      .grid3,
+      .grid4 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    section {
+      scroll-margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .sechead {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stratum {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      margin-block: 56px 40px;
+      border-radius: 2px;
+    }
+    canvas.px {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
 
-/* hero */
-.hero{display:flex;flex-direction:column;gap:20px}
-.hero .kicker{display:flex;flex-wrap:wrap;gap:8px}
-.tag{font-family:var(--f-label);font-size:.7rem;padding:4px 8px;border:2px solid var(--line);background:rgba(20,26,51,.7);border-radius:4px;color:var(--fg)}
-.keyart{border:3px solid #0B0E1F;border-radius:6px;overflow:hidden;box-shadow:0 0 0 2px var(--line), 0 20px 60px rgba(0,0,0,.5)}
-.tagline{font-size:1.35rem;max-width:40ch;line-height:1.4}
-.verseq{font-family:var(--f-display);font-size:1.15rem;color:var(--crystal);font-style:normal}
+    /* hero */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .hero .kicker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      font-family: var(--f-label);
+      font-size: 0.7rem;
+      padding: 4px 8px;
+      border: 2px solid var(--line);
+      background: rgba(20, 26, 51, 0.7);
+      border-radius: 4px;
+      color: var(--fg);
+    }
+    .keyart {
+      border: 3px solid #0b0e1f;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 2px var(--line),
+        0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+    .tagline {
+      font-size: 1.35rem;
+      max-width: 40ch;
+      line-height: 1.4;
+    }
+    .verseq {
+      font-family: var(--f-display);
+      font-size: 1.15rem;
+      color: var(--crystal);
+      font-style: normal;
+    }
 
-/* pillars */
-.pillar{display:flex;flex-direction:column;gap:8px}
-.pillar canvas{width:48px;height:48px;image-rendering:pixelated}
+    /* pillars */
+    .pillar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pillar canvas {
+      width: 48px;
+      height: 48px;
+      image-rendering: pixelated;
+    }
 
-/* characters */
-.char{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:start}
-.char canvas{width:64px;height:64px;image-rendering:pixelated;background:rgba(7,8,15,.5);border:2px solid var(--line);border-radius:4px}
+    /* characters */
+    .char {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .char canvas {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+      background: rgba(7, 8, 15, 0.5);
+      border: 2px solid var(--line);
+      border-radius: 4px;
+    }
 
-/* strata column */
-.strata{display:flex;flex-direction:column;border:3px solid #0B0E1F;border-radius:6px;overflow:hidden}
-.band{display:grid;grid-template-columns:132px minmax(0,1fr);min-height:120px}
-.band .tex{image-rendering:pixelated;background-size:64px 64px;position:relative;border-right:3px solid #0B0E1F}
-.band .tex b{position:absolute;left:8px;top:8px;font-family:var(--f-label);font-weight:400;font-size:.72rem;background:rgba(7,8,15,.75);padding:2px 6px;border-radius:3px;color:var(--gold)}
-.band .info{padding:14px 18px;display:flex;flex-direction:column;gap:6px;background:rgba(7,8,15,.55)}
-.band + .band{border-top:3px solid #0B0E1F}
-.band .facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;color:var(--muted)}
-.band .facts b{color:var(--fg);font-weight:700}
-@media (max-width:560px){.band{grid-template-columns:72px minmax(0,1fr)}}
+    /* strata column */
+    .strata {
+      display: flex;
+      flex-direction: column;
+      border: 3px solid #0b0e1f;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .band {
+      display: grid;
+      grid-template-columns: 132px minmax(0, 1fr);
+      min-height: 120px;
+    }
+    .band .tex {
+      image-rendering: pixelated;
+      background-size: 64px 64px;
+      position: relative;
+      border-right: 3px solid #0b0e1f;
+    }
+    .band .tex b {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      font-family: var(--f-label);
+      font-weight: 400;
+      font-size: 0.72rem;
+      background: rgba(7, 8, 15, 0.75);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: var(--gold);
+    }
+    .band .info {
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(7, 8, 15, 0.55);
+    }
+    .band + .band {
+      border-top: 3px solid #0b0e1f;
+    }
+    .band .facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .band .facts b {
+      color: var(--fg);
+      font-weight: 700;
+    }
+    @media (max-width: 560px) {
+      .band {
+        grid-template-columns: 72px minmax(0, 1fr);
+      }
+    }
 
-/* tables */
-.tablewrap{overflow-x:auto;border:2px solid var(--line);border-radius:6px;background:rgba(7,8,15,.55)}
-table{border-collapse:collapse;width:100%;min-width:620px;font-size:.92rem}
-th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid rgba(58,74,140,.6)}
-tr:last-child td{border-bottom:0}
-thead th{font-family:var(--f-label);font-weight:400;font-size:.72rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+    /* tables */
+    .tablewrap {
+      overflow-x: auto;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: rgba(7, 8, 15, 0.55);
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 620px;
+      font-size: 0.92rem;
+    }
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(58, 74, 140, 0.6);
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    thead th {
+      font-family: var(--f-label);
+      font-weight: 400;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    td.num {
+      font-family: var(--f-mono);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
 
-/* code + formulas */
-pre{margin:0;overflow-x:auto;background:#05060C;border:2px solid var(--line);border-radius:6px;padding:16px 18px;font-family:var(--f-mono);font-size:.84rem;line-height:1.55;color:#CFE3FF}
-pre .c{color:#6F7BA0}
-pre .k{color:var(--gold)}
-pre .s{color:var(--glow)}
-.formula{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:4px 18px;align-items:baseline;padding:10px 0;border-bottom:1px dashed rgba(58,74,140,.7)}
-.formula:last-child{border-bottom:0}
-.formula code{font-family:var(--f-mono);font-size:.88rem;color:var(--gold);overflow-wrap:anywhere}
-@media (max-width:560px){.formula{grid-template-columns:minmax(0,1fr)}}
+    /* code + formulas */
+    pre {
+      margin: 0;
+      overflow-x: auto;
+      background: #05060c;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      padding: 16px 18px;
+      font-family: var(--f-mono);
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: #cfe3ff;
+    }
+    pre .c {
+      color: #6f7ba0;
+    }
+    pre .k {
+      color: var(--gold);
+    }
+    pre .s {
+      color: var(--glow);
+    }
+    .formula {
+      display: grid;
+      grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+      gap: 4px 18px;
+      align-items: baseline;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(58, 74, 140, 0.7);
+    }
+    .formula:last-child {
+      border-bottom: 0;
+    }
+    .formula code {
+      font-family: var(--f-mono);
+      font-size: 0.88rem;
+      color: var(--gold);
+      overflow-wrap: anywhere;
+    }
+    @media (max-width: 560px) {
+      .formula {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
 
-/* palette */
-.ramps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 24px}
-@media (max-width:760px){.ramps{grid-template-columns:minmax(0,1fr)}}
-.ramp{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:center}
-.ramp .sws{display:flex;flex-wrap:wrap;gap:6px}
-.sw{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
-.sw i{display:block;width:52px;height:36px;border:2px solid #0B0E1F;border-radius:3px}
-.sw code{font-family:var(--f-mono);font-size:.66rem;color:var(--muted)}
-.biomepal{display:flex;flex-direction:column;gap:8px}
-.biomepal div{display:grid;grid-template-columns:140px minmax(0,1fr);gap:10px;align-items:center;font-size:.88rem}
-.biomepal span.row{display:flex;height:22px;border:2px solid #0B0E1F;border-radius:3px;overflow:hidden}
-.biomepal span.row i{flex:1}
+    /* palette */
+    .ramps {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 24px;
+    }
+    @media (max-width: 760px) {
+      .ramps {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .ramp {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+    .ramp .sws {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sw {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-items: flex-start;
+    }
+    .sw i {
+      display: block;
+      width: 52px;
+      height: 36px;
+      border: 2px solid #0b0e1f;
+      border-radius: 3px;
+    }
+    .sw code {
+      font-family: var(--f-mono);
+      font-size: 0.66rem;
+      color: var(--muted);
+    }
+    .biomepal {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .biomepal div {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+    .biomepal span.row {
+      display: flex;
+      height: 22px;
+      border: 2px solid #0b0e1f;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .biomepal span.row i {
+      flex: 1;
+    }
 
-/* light strip */
-.lightstrip{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));border:3px solid #0B0E1F;border-radius:4px;overflow:hidden}
-.lightstrip div{aspect-ratio:1;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;font-family:var(--f-mono);font-size:.68rem;color:#fff;text-shadow:1px 1px 0 #000}
+    /* light strip */
+    .lightstrip {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      border: 3px solid #0b0e1f;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .lightstrip div {
+      aspect-ratio: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 4px;
+      font-family: var(--f-mono);
+      font-size: 0.68rem;
+      color: #fff;
+      text-shadow: 1px 1px 0 #000;
+    }
 
-/* UI kit (in-game components) */
-.uikit{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;padding:22px;border-radius:6px;background:#0D1226 url() ;border:2px solid var(--line)}
-.slot{width:56px;height:56px;background:rgba(40,56,120,.72);border:2px solid var(--slot);border-radius:4px;display:grid;place-items:center;position:relative}
-.slot.on{border-color:var(--gold);background:rgba(70,80,150,.85)}
-.slot canvas{width:36px;height:36px;image-rendering:pixelated}
-.slot span{position:absolute;right:4px;bottom:1px;font-family:var(--f-label);font-size:.66rem;text-shadow:1px 1px 0 #000}
-.hotbar{display:flex;flex-wrap:wrap;gap:6px}
-.gbtn{font-family:var(--f-label);font-size:.8rem;color:var(--fg);background:#2C3F86;border:2px solid var(--slot);border-bottom-width:4px;border-radius:4px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;text-shadow:1px 1px 0 #000;cursor:pointer}
-.gbtn small{font-size:.66rem;color:var(--gold)}
-.gbtn:hover{background:#3A51A6}
-.gbtn:active{border-bottom-width:2px;transform:translateY(2px)}
-.gbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.counter{font-family:var(--f-label);font-size:.85rem;text-shadow:2px 2px 0 #000;display:flex;flex-direction:column;gap:4px}
-.counter b{color:var(--gold);font-weight:400}
-.versecard{max-width:280px;background:#10162E;border:2px solid var(--crystal);border-radius:4px;padding:14px 16px;box-shadow:0 0 18px rgba(127,214,255,.25)}
-.versecard .label{color:var(--crystal)}
-.versecard p{font-family:var(--f-display);font-size:1.05rem;line-height:1.4;margin-top:6px}
-.tooltip{background:rgba(7,8,15,.92);border:2px solid #0B0E1F;outline:2px solid var(--slot);border-radius:3px;padding:8px 10px;font-size:.84rem;max-width:220px}
-.tooltip b{font-family:var(--f-label);font-weight:400;color:var(--copper);display:block}
+    /* UI kit (in-game components) */
+    .uikit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: flex-start;
+      padding: 22px;
+      border-radius: 6px;
+      background: #0d1226 url();
+      border: 2px solid var(--line);
+    }
+    .slot {
+      width: 56px;
+      height: 56px;
+      background: rgba(40, 56, 120, 0.72);
+      border: 2px solid var(--slot);
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .slot.on {
+      border-color: var(--gold);
+      background: rgba(70, 80, 150, 0.85);
+    }
+    .slot canvas {
+      width: 36px;
+      height: 36px;
+      image-rendering: pixelated;
+    }
+    .slot span {
+      position: absolute;
+      right: 4px;
+      bottom: 1px;
+      font-family: var(--f-label);
+      font-size: 0.66rem;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .hotbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .gbtn {
+      font-family: var(--f-label);
+      font-size: 0.8rem;
+      color: var(--fg);
+      background: #2c3f86;
+      border: 2px solid var(--slot);
+      border-bottom-width: 4px;
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-shadow: 1px 1px 0 #000;
+      cursor: pointer;
+    }
+    .gbtn small {
+      font-size: 0.66rem;
+      color: var(--gold);
+    }
+    .gbtn:hover {
+      background: #3a51a6;
+    }
+    .gbtn:active {
+      border-bottom-width: 2px;
+      transform: translateY(2px);
+    }
+    .gbtn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+    .counter {
+      font-family: var(--f-label);
+      font-size: 0.85rem;
+      text-shadow: 2px 2px 0 #000;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .counter b {
+      color: var(--gold);
+      font-weight: 400;
+    }
+    .versecard {
+      max-width: 280px;
+      background: #10162e;
+      border: 2px solid var(--crystal);
+      border-radius: 4px;
+      padding: 14px 16px;
+      box-shadow: 0 0 18px rgba(127, 214, 255, 0.25);
+    }
+    .versecard .label {
+      color: var(--crystal);
+    }
+    .versecard p {
+      font-family: var(--f-display);
+      font-size: 1.05rem;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+    .tooltip {
+      background: rgba(7, 8, 15, 0.92);
+      border: 2px solid #0b0e1f;
+      outline: 2px solid var(--slot);
+      border-radius: 3px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      max-width: 220px;
+    }
+    .tooltip b {
+      font-family: var(--f-label);
+      font-weight: 400;
+      color: var(--copper);
+      display: block;
+    }
 
-/* loop diagram */
-.loopwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center}
-@media (max-width:760px){.loopwrap{grid-template-columns:minmax(0,1fr)}}
-.loopwrap svg{width:100%;height:auto;max-width:460px;justify-self:center}
+    /* loop diagram */
+    .loopwrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: center;
+    }
+    @media (max-width: 760px) {
+      .loopwrap {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .loopwrap svg {
+      width: 100%;
+      height: auto;
+      max-width: 460px;
+      justify-self: center;
+    }
 
-/* lists */
-ul.tight{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
-ul.tight li::marker{color:var(--gold)}
-dl.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px 16px;margin:0}
-dl.kv dt{font-family:var(--f-label);font-size:.72rem;color:var(--muted);padding-top:3px;text-transform:uppercase}
-dl.kv dd{margin:0}
+    /* lists */
+    ul.tight {
+      margin: 0;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    ul.tight li::marker {
+      color: var(--gold);
+    }
+    dl.kv {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 8px 16px;
+      margin: 0;
+    }
+    dl.kv dt {
+      font-family: var(--f-label);
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding-top: 3px;
+      text-transform: uppercase;
+    }
+    dl.kv dd {
+      margin: 0;
+    }
 
-/* roadmap shaft */
-.shaft{position:relative;display:flex;flex-direction:column;gap:22px;padding-left:44px}
-.shaft::before{content:"";position:absolute;left:14px;top:6px;bottom:6px;width:6px;background:repeating-linear-gradient(180deg,#C9A26B 0 4px,#9C7A48 4px 8px)}
-.ms{position:relative}
-.ms::before{content:"";position:absolute;left:-40px;top:16px;width:26px;height:8px;background:#B9824F;box-shadow:0 2px 0 #74502E}
-.ms .panel{display:flex;flex-direction:column;gap:12px}
-.ms header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
-.ms header .id{font-family:var(--f-label);color:var(--gold);font-size:.9rem}
-.size{font-family:var(--f-label);font-size:.66rem;padding:2px 6px;border-radius:3px;border:2px solid currentColor}
-.size.s{color:var(--grass)} .size.m{color:var(--copper)} .size.l{color:var(--ember)}
-.exit{border-left:4px solid var(--grass);padding-left:12px;font-size:.92rem}
-.exit b{font-family:var(--f-label);font-weight:400;font-size:.72rem;color:var(--grass);display:block}
+    /* roadmap shaft */
+    .shaft {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding-left: 44px;
+    }
+    .shaft::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 6px;
+      bottom: 6px;
+      width: 6px;
+      background: repeating-linear-gradient(180deg, #c9a26b 0 4px, #9c7a48 4px 8px);
+    }
+    .ms {
+      position: relative;
+    }
+    .ms::before {
+      content: '';
+      position: absolute;
+      left: -40px;
+      top: 16px;
+      width: 26px;
+      height: 8px;
+      background: #b9824f;
+      box-shadow: 0 2px 0 #74502e;
+    }
+    .ms .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ms header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px 14px;
+    }
+    .ms header .id {
+      font-family: var(--f-label);
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+    .size {
+      font-family: var(--f-label);
+      font-size: 0.66rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 2px solid currentColor;
+    }
+    .size.s {
+      color: var(--grass);
+    }
+    .size.m {
+      color: var(--copper);
+    }
+    .size.l {
+      color: var(--ember);
+    }
+    .exit {
+      border-left: 4px solid var(--grass);
+      padding-left: 12px;
+      font-size: 0.92rem;
+    }
+    .exit b {
+      font-family: var(--f-label);
+      font-weight: 400;
+      font-size: 0.72rem;
+      color: var(--grass);
+      display: block;
+    }
 
-.qs{display:flex;flex-direction:column;gap:12px}
-.q{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px}
-.q i{font-style:normal;font-family:var(--f-label);color:var(--gold)}
-footer{margin-top:72px;color:var(--muted);font-size:.85rem}
-@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto} }
-</style>
+    .qs {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .q {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 10px;
+    }
+    .q i {
+      font-style: normal;
+      font-family: var(--f-label);
+      color: var(--gold);
+    }
+    footer {
+      margin-top: 72px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto;
+      }
+    }
+  </style>
 
-<div class="page">
-  <nav class="gauge" aria-label="Depth gauge">
-    <a href="#surface"><span>0 FT</span>Overview</a>
-    <a href="#story"><span>50 FT</span>Story bible</a>
-    <a href="#biomes"><span>150 FT</span>Biomes</a>
-    <a href="#design"><span>300 FT</span>Game systems</a>
-    <a href="#balance"><span>500 FT</span>Progression</a>
-    <a href="#art"><span>700 FT</span>Art direction</a>
-    <a href="#tech"><span>1000 FT</span>Tech &amp; pipeline</a>
-    <a href="#roadmap"><span>1400 FT</span>Roadmap</a>
-    <a href="#heart"><span>HEART</span>Open questions</a>
-  </nav>
+  <div class="page">
+    <nav class="gauge" aria-label="Depth gauge">
+      <a href="#surface"><span>0 FT</span>Overview</a>
+      <a href="#story"><span>50 FT</span>Story bible</a>
+      <a href="#biomes"><span>150 FT</span>Biomes</a>
+      <a href="#design"><span>300 FT</span>Game systems</a>
+      <a href="#balance"><span>500 FT</span>Progression</a>
+      <a href="#art"><span>700 FT</span>Art direction</a>
+      <a href="#tech"><span>1000 FT</span>Tech &amp; pipeline</a>
+      <a href="#roadmap"><span>1400 FT</span>Roadmap</a>
+      <a href="#heart"><span>HEART</span>Open questions</a>
+    </nav>
 
-  <main>
-  <!-- ============ SURFACE ============ -->
-  <section id="surface" class="hero">
-    <div class="kicker">
-      <span class="tag">Design bible v0.1</span>
-      <span class="tag">Incremental · idle + active</span>
-      <span class="tag">Browser · desktop first, mobile ready</span>
-    </div>
-    <h1>UNDERSONG</h1>
-    <p class="tagline">A mining village digs toward a song coming from under the mountain, and finds out it has dug here before.</p>
-    <div class="keyart"><canvas id="cover" class="px" width="320" height="200" aria-label="Key art: pixel cross-section of Holloway with a hut, a tree, a shaft through dirt and stone, a glowing mushroom cave, a crystal geode and a miner at work"></canvas></div>
-    <p class="label">Key art · rendered live by the same tile and lighting rules the game will use</p>
+    <main>
+      <!-- ============ SURFACE ============ -->
+      <section id="surface" class="hero">
+        <div class="kicker">
+          <span class="tag">Design bible v0.1</span>
+          <span class="tag">Incremental · idle + active</span>
+          <span class="tag">Browser · desktop first, mobile ready</span>
+        </div>
+        <h1>UNDERSONG</h1>
+        <p class="tagline">
+          A mining village digs toward a song coming from under the mountain, and finds out it has dug here
+          before.
+        </p>
+        <div class="keyart">
+          <canvas
+            id="cover"
+            class="px"
+            width="320"
+            height="200"
+            aria-label="Key art: pixel cross-section of Holloway with a hut, a tree, a shaft through dirt and stone, a glowing mushroom cave, a crystal geode and a miner at work"
+          ></canvas>
+        </div>
+        <p class="label">Key art · rendered live by the same tile and lighting rules the game will use</p>
 
-    <div class="prose">
-      <h4>The pitch</h4>
-      <p>Undersong is an incremental mining game told in side-on cross-section, in the pixel tradition of Terraria. You are the new foreman of Holloway, a village that hums on quiet nights. You dig, hire miners, haul ore, forge tools and light the dark. Every layer of rock holds a verse of a song nobody remembers learning.</p>
-      <p>When the mountain caves in, the village starts over, but you keep the verses. Each run digs a little deeper into the song and into what Holloway keeps choosing to forget.</p>
-    </div>
+        <div class="prose">
+          <h4>The pitch</h4>
+          <p>
+            Undersong is an incremental mining game told in side-on cross-section, in the pixel tradition of
+            Terraria. You are the new foreman of Holloway, a village that hums on quiet nights. You dig, hire
+            miners, haul ore, forge tools and light the dark. Every layer of rock holds a verse of a song
+            nobody remembers learning.
+          </p>
+          <p>
+            When the mountain caves in, the village starts over, but you keep the verses. Each run digs a
+            little deeper into the song and into what Holloway keeps choosing to forget.
+          </p>
+        </div>
 
-    <div class="grid4">
-      <div class="panel pillar"><canvas data-icon="pick" width="8" height="8"></canvas><h3>The map is the game</h3><p class="muted">Everything you build lives in one cross-section. Progress is something you can see and scroll.</p></div>
-      <div class="panel pillar"><canvas data-icon="lantern" width="8" height="8"></canvas><h3>Light is a resource</h3><p class="muted">Darkness slows miners and invites pests. Placing light is the core layout puzzle.</p></div>
-      <div class="panel pillar"><canvas data-icon="crystal" width="8" height="8"></canvas><h3>The song is the story</h3><p class="muted">Twelve verses, found in the rock, are the narrative spine. Nothing is told in cutscenes.</p></div>
-      <div class="panel pillar"><canvas data-icon="echo" width="8" height="8"></canvas><h3>Every reset remembers</h3><p class="muted">Prestige is part of the fiction. Each cave-in is the village forgetting, and you remembering.</p></div>
-    </div>
-  </section>
+        <div class="grid4">
+          <div class="panel pillar">
+            <canvas data-icon="pick" width="8" height="8"></canvas>
+            <h3>The map is the game</h3>
+            <p class="muted">
+              Everything you build lives in one cross-section. Progress is something you can see and scroll.
+            </p>
+          </div>
+          <div class="panel pillar">
+            <canvas data-icon="lantern" width="8" height="8"></canvas>
+            <h3>Light is a resource</h3>
+            <p class="muted">
+              Darkness slows miners and invites pests. Placing light is the core layout puzzle.
+            </p>
+          </div>
+          <div class="panel pillar">
+            <canvas data-icon="crystal" width="8" height="8"></canvas>
+            <h3>The song is the story</h3>
+            <p class="muted">
+              Twelve verses, found in the rock, are the narrative spine. Nothing is told in cutscenes.
+            </p>
+          </div>
+          <div class="panel pillar">
+            <canvas data-icon="echo" width="8" height="8"></canvas>
+            <h3>Every reset remembers</h3>
+            <p class="muted">
+              Prestige is part of the fiction. Each cave-in is the village forgetting, and you remembering.
+            </p>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="dirt" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="dirt" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ STORY ============ -->
-  <section id="story">
-    <div class="sechead"><span class="depth">▼ 50 FT</span><h2>Story bible</h2></div>
-    <div class="grid2">
-      <div class="prose">
-        <h4>Premise</h4>
-        <p>Holloway sits on the shoulder of a mountain that hums. The last foreman went down the shaft one night and didn’t come back, so the village sent for a new one. That’s you.</p>
-        <p>The deeper you dig, the clearer the hum becomes. It’s a song. Verses are carved into cave walls in handwriting that looks a lot like yours. Old tools carry the village’s mark from before the village existed. Further down there’s a drowned town laid out exactly like Holloway.</p>
-        <p>The truth is that Holloway has dug to the heart of this mountain many times. Each time, the song got too loud and the village caused a cave-in to forget it. Each new foreman is the last one, starting over.</p>
-      </div>
-      <div class="prose">
-        <h4>The ending</h4>
-        <p>At the Hollow Heart you can finally sing all twelve verses. You choose between two endings.</p>
-        <div class="panel"><h3>Seal the shaft</h3><p class="muted">The village forgets one last time and the cycle continues, gently. This is a quiet, melancholy ending, and it unlocks Endless Depth.</p></div>
-        <div class="panel"><h3>Sing the last verse</h3><p class="muted">Holloway remembers every cycle at once. The mountain opens to the sky. This is a hopeful ending, and it unlocks New Song+ with remixed verses.</p></div>
-      </div>
-    </div>
+      <!-- ============ STORY ============ -->
+      <section id="story">
+        <div class="sechead">
+          <span class="depth">▼ 50 FT</span>
+          <h2>Story bible</h2>
+        </div>
+        <div class="grid2">
+          <div class="prose">
+            <h4>Premise</h4>
+            <p>
+              Holloway sits on the shoulder of a mountain that hums. The last foreman went down the shaft one
+              night and didn’t come back, so the village sent for a new one. That’s you.
+            </p>
+            <p>
+              The deeper you dig, the clearer the hum becomes. It’s a song. Verses are carved into cave walls
+              in handwriting that looks a lot like yours. Old tools carry the village’s mark from before the
+              village existed. Further down there’s a drowned town laid out exactly like Holloway.
+            </p>
+            <p>
+              The truth is that Holloway has dug to the heart of this mountain many times. Each time, the song
+              got too loud and the village caused a cave-in to forget it. Each new foreman is the last one,
+              starting over.
+            </p>
+          </div>
+          <div class="prose">
+            <h4>The ending</h4>
+            <p>At the Hollow Heart you can finally sing all twelve verses. You choose between two endings.</p>
+            <div class="panel">
+              <h3>Seal the shaft</h3>
+              <p class="muted">
+                The village forgets one last time and the cycle continues, gently. This is a quiet, melancholy
+                ending, and it unlocks Endless Depth.
+              </p>
+            </div>
+            <div class="panel">
+              <h3>Sing the last verse</h3>
+              <p class="muted">
+                Holloway remembers every cycle at once. The mountain opens to the sky. This is a hopeful
+                ending, and it unlocks New Song+ with remixed verses.
+              </p>
+            </div>
+          </div>
+        </div>
 
-    <h4>Characters</h4>
-    <div class="grid2">
-      <div class="panel char"><canvas data-char="foreman" width="8" height="8"></canvas><div><h3>The Foreman</h3><p class="muted">You. Practical and new to Holloway. The verses are in your handwriting, and you don’t know why yet.</p></div></div>
-      <div class="panel char"><canvas data-char="wren" width="8" height="8"></canvas><div><h3>Old Wren</h3><p class="muted">The lamplighter, who runs the Lamp-works. She knows more than she says, and her dialogue changes each cycle.</p></div></div>
-      <div class="panel char"><canvas data-char="pell" width="8" height="8"></canvas><div><h3>Pell</h3><p class="muted">A child who hums verses before you find them. Pell is the player’s hint system and the story’s heart.</p></div></div>
-      <div class="panel char"><canvas data-char="bram" width="8" height="8"></canvas><div><h3>Bram</h3><p class="muted">The smith, who runs the Forge. He’s dry and funny, and he refuses to believe in songs.</p></div></div>
-    </div>
+        <h4>Characters</h4>
+        <div class="grid2">
+          <div class="panel char">
+            <canvas data-char="foreman" width="8" height="8"></canvas>
+            <div>
+              <h3>The Foreman</h3>
+              <p class="muted">
+                You. Practical and new to Holloway. The verses are in your handwriting, and you don’t know why
+                yet.
+              </p>
+            </div>
+          </div>
+          <div class="panel char">
+            <canvas data-char="wren" width="8" height="8"></canvas>
+            <div>
+              <h3>Old Wren</h3>
+              <p class="muted">
+                The lamplighter, who runs the Lamp-works. She knows more than she says, and her dialogue
+                changes each cycle.
+              </p>
+            </div>
+          </div>
+          <div class="panel char">
+            <canvas data-char="pell" width="8" height="8"></canvas>
+            <div>
+              <h3>Pell</h3>
+              <p class="muted">
+                A child who hums verses before you find them. Pell is the player’s hint system and the story’s
+                heart.
+              </p>
+            </div>
+          </div>
+          <div class="panel char">
+            <canvas data-char="bram" width="8" height="8"></canvas>
+            <div>
+              <h3>Bram</h3>
+              <p class="muted">
+                The smith, who runs the Forge. He’s dry and funny, and he refuses to believe in songs.
+              </p>
+            </div>
+          </div>
+        </div>
 
-    <h4>How the story is delivered</h4>
-    <div class="grid3">
-      <div class="panel"><h3>Verses</h3><p class="muted">Twelve carvings hidden in the rock, one or more per biome. Finding one plays its line of the song and unlocks a story beat.</p></div>
-      <div class="panel"><h3>The Survey Book</h3><p class="muted">The prestige screen is a ledger. Every cave-in adds an entry in your handwriting, and early entries were written by foremen before you.</p></div>
-      <div class="panel"><h3>Village lines</h3><p class="muted">Villagers say one short line on the surface, and their lines change with depth, with verses found and with each cycle.</p></div>
-    </div>
-    <div class="panel"><p class="verseq">“Down where the lanterns forget their light, / the stone remembers, the stone holds tight…”</p><p class="label" style="margin-top:8px">Verse III · sample tone for verse writing: short, folk-song metre, rhymed couplets</p></div>
-  </section>
+        <h4>How the story is delivered</h4>
+        <div class="grid3">
+          <div class="panel">
+            <h3>Verses</h3>
+            <p class="muted">
+              Twelve carvings hidden in the rock, one or more per biome. Finding one plays its line of the
+              song and unlocks a story beat.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>The Survey Book</h3>
+            <p class="muted">
+              The prestige screen is a ledger. Every cave-in adds an entry in your handwriting, and early
+              entries were written by foremen before you.
+            </p>
+          </div>
+          <div class="panel">
+            <h3>Village lines</h3>
+            <p class="muted">
+              Villagers say one short line on the surface, and their lines change with depth, with verses
+              found and with each cycle.
+            </p>
+          </div>
+        </div>
+        <div class="panel">
+          <p class="verseq">
+            “Down where the lanterns forget their light, / the stone remembers, the stone holds tight…”
+          </p>
+          <p class="label" style="margin-top: 8px">
+            Verse III · sample tone for verse writing: short, folk-song metre, rhymed couplets
+          </p>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="stone" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="stone" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ BIOMES ============ -->
-  <section id="biomes">
-    <div class="sechead"><span class="depth">▼ 150 FT</span><h2>Biomes</h2><p class="muted" style="max-width:62ch">Seven layers in four acts. Each layer introduces one new resource, one new system and one threat.</p></div>
-    <div class="strata">
-      <div class="band"><div class="tex" data-tex="grass"><b>0 FT</b></div><div class="info"><h3>Holloway</h3><p class="muted">The village hub: Bunkhouse, Forge, Lamp-works and later the Song-loom. Buildings are upgraded here.</p><div class="facts"><span>Act <b>I</b></span><span>System <b>Buildings</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="stone"><b>0–150</b></div><div class="info"><h3>Topsoil &amp; Stone</h3><p class="muted">Copper and tin, a rope down the shaft and your first miners. The first verse is scratched on a wall.</p><div class="facts"><span>Act <b>I</b></span><span>Ore <b>Copper, Tin</b></span><span>System <b>Miners, Forge</b></span><span>Threat <b>Burrow beetles</b></span><span>Verses <b>I–II</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="glow"><b>150–400</b></div><div class="info"><h3>Glowroot Caverns</h3><p class="muted">Huge caves lit by glowcaps, with tools older than the village. Light becomes a real resource here.</p><div class="facts"><span>Act <b>II</b></span><span>Ore <b>Iron, Glowcap spores</b></span><span>System <b>Lumen &amp; lanterns, rails</b></span><span>Threat <b>Lantern moths</b></span><span>Verses <b>III–V</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="water"><b>400–700</b></div><div class="info"><h3>The Flooded Halls</h3><p class="muted">A drowned town laid out like Holloway. Pump it out to reveal it street by street.</p><div class="facts"><span>Act <b>III</b></span><span>Ore <b>Silver, Aquamarine</b></span><span>System <b>Water &amp; pumps</b></span><span>Threat <b>Cave eels</b></span><span>Verses <b>VI–VIII</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="crystal"><b>700–1000</b></div><div class="info"><h3>Singing Geodes</h3><p class="muted">Crystals resonate with the song. Verses here can be woven into charms.</p><div class="facts"><span>Act <b>III</b></span><span>Ore <b>Resonant crystal</b></span><span>System <b>Song-loom crafting</b></span><span>Threat <b>Shard golems</b></span><span>Verses <b>IX–X</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="ember"><b>1000–1400</b></div><div class="info"><h3>Ember Deep</h3><p class="muted">Heat that stops miners. Cooling and supports are needed to push on.</p><div class="facts"><span>Act <b>IV</b></span><span>Ore <b>Ember ore, Gold</b></span><span>System <b>Heat &amp; cooling</b></span><span>Threat <b>Cinder wisps</b></span><span>Verse <b>XI</b></span></div></div></div>
-      <div class="band"><div class="tex" data-tex="heart"><b>HEART</b></div><div class="info"><h3>The Hollow Heart</h3><p class="muted">A vast hollow full of old shafts from earlier cycles. The final verse and the choice are here.</p><div class="facts"><span>Act <b>IV</b></span><span>Ore <b>Heartstone</b></span><span>System <b>Ending, Endless Depth</b></span><span>Verse <b>XII</b></span></div></div></div>
-    </div>
-  </section>
+      <!-- ============ BIOMES ============ -->
+      <section id="biomes">
+        <div class="sechead">
+          <span class="depth">▼ 150 FT</span>
+          <h2>Biomes</h2>
+          <p class="muted" style="max-width: 62ch">
+            Seven layers in four acts. Each layer introduces one new resource, one new system and one threat.
+          </p>
+        </div>
+        <div class="strata">
+          <div class="band">
+            <div class="tex" data-tex="grass"><b>0 FT</b></div>
+            <div class="info">
+              <h3>Holloway</h3>
+              <p class="muted">
+                The village hub: Bunkhouse, Forge, Lamp-works and later the Song-loom. Buildings are upgraded
+                here.
+              </p>
+              <div class="facts">
+                <span>Act <b>I</b></span
+                ><span>System <b>Buildings</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="stone"><b>0–150</b></div>
+            <div class="info">
+              <h3>Topsoil &amp; Stone</h3>
+              <p class="muted">
+                Copper and tin, a rope down the shaft and your first miners. The first verse is scratched on a
+                wall.
+              </p>
+              <div class="facts">
+                <span>Act <b>I</b></span
+                ><span>Ore <b>Copper, Tin</b></span
+                ><span>System <b>Miners, Forge</b></span
+                ><span>Threat <b>Burrow beetles</b></span
+                ><span>Verses <b>I–II</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="glow"><b>150–400</b></div>
+            <div class="info">
+              <h3>Glowroot Caverns</h3>
+              <p class="muted">
+                Huge caves lit by glowcaps, with tools older than the village. Light becomes a real resource
+                here.
+              </p>
+              <div class="facts">
+                <span>Act <b>II</b></span
+                ><span>Ore <b>Iron, Glowcap spores</b></span
+                ><span>System <b>Lumen &amp; lanterns, rails</b></span
+                ><span>Threat <b>Lantern moths</b></span
+                ><span>Verses <b>III–V</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="water"><b>400–700</b></div>
+            <div class="info">
+              <h3>The Flooded Halls</h3>
+              <p class="muted">
+                A drowned town laid out like Holloway. Pump it out to reveal it street by street.
+              </p>
+              <div class="facts">
+                <span>Act <b>III</b></span
+                ><span>Ore <b>Silver, Aquamarine</b></span
+                ><span>System <b>Water &amp; pumps</b></span
+                ><span>Threat <b>Cave eels</b></span
+                ><span>Verses <b>VI–VIII</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="crystal"><b>700–1000</b></div>
+            <div class="info">
+              <h3>Singing Geodes</h3>
+              <p class="muted">Crystals resonate with the song. Verses here can be woven into charms.</p>
+              <div class="facts">
+                <span>Act <b>III</b></span
+                ><span>Ore <b>Resonant crystal</b></span
+                ><span>System <b>Song-loom crafting</b></span
+                ><span>Threat <b>Shard golems</b></span
+                ><span>Verses <b>IX–X</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="ember"><b>1000–1400</b></div>
+            <div class="info">
+              <h3>Ember Deep</h3>
+              <p class="muted">Heat that stops miners. Cooling and supports are needed to push on.</p>
+              <div class="facts">
+                <span>Act <b>IV</b></span
+                ><span>Ore <b>Ember ore, Gold</b></span
+                ><span>System <b>Heat &amp; cooling</b></span
+                ><span>Threat <b>Cinder wisps</b></span
+                ><span>Verse <b>XI</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="tex" data-tex="heart"><b>HEART</b></div>
+            <div class="info">
+              <h3>The Hollow Heart</h3>
+              <p class="muted">
+                A vast hollow full of old shafts from earlier cycles. The final verse and the choice are here.
+              </p>
+              <div class="facts">
+                <span>Act <b>IV</b></span
+                ><span>Ore <b>Heartstone</b></span
+                ><span>System <b>Ending, Endless Depth</b></span
+                ><span>Verse <b>XII</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="glow" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="glow" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ DESIGN ============ -->
-  <section id="design">
-    <div class="sechead"><span class="depth">▼ 300 FT</span><h2>Game systems</h2></div>
-    <div class="loopwrap">
-      <svg viewBox="0 0 460 420" role="img" aria-label="Core loop: dig, haul, smelt, craft, light, descend, and back to dig, with verses found at the centre">
-        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8DA2E8"/></marker></defs>
-        <g id="loop"></g>
-        <rect x="170" y="180" width="120" height="60" rx="4" fill="#10162E" stroke="#7FD6FF" stroke-width="2"/>
-        <text x="230" y="206" text-anchor="middle" font-family="Silkscreen, monospace" font-size="11" fill="#7FD6FF">VERSE</text>
-        <text x="230" y="225" text-anchor="middle" font-family="Silkscreen, monospace" font-size="11" fill="#7FD6FF">FOUND</text>
-      </svg>
-      <div class="prose">
-        <h4>Core loop</h4>
-        <p><b>Dig</b> rock to expose ore. <b>Haul</b> it up the shaft. <b>Smelt</b> it into bars at the Forge. <b>Craft</b> tools, rails and lanterns. <b>Light</b> the new tunnels so miners work at full speed. <b>Descend</b> to harder rock and richer ore.</p>
-        <p>Verses sit off the main path, so finding them rewards exploring the map rather than racing straight down.</p>
-      </div>
-    </div>
+      <!-- ============ DESIGN ============ -->
+      <section id="design">
+        <div class="sechead">
+          <span class="depth">▼ 300 FT</span>
+          <h2>Game systems</h2>
+        </div>
+        <div class="loopwrap">
+          <svg
+            viewBox="0 0 460 420"
+            role="img"
+            aria-label="Core loop: dig, haul, smelt, craft, light, descend, and back to dig, with verses found at the centre"
+          >
+            <defs>
+              <marker
+                id="ar"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto"
+              >
+                <path d="M0 0 L10 5 L0 10 z" fill="#8DA2E8" />
+              </marker>
+            </defs>
+            <g id="loop"></g>
+            <rect
+              x="170"
+              y="180"
+              width="120"
+              height="60"
+              rx="4"
+              fill="#10162E"
+              stroke="#7FD6FF"
+              stroke-width="2"
+            />
+            <text
+              x="230"
+              y="206"
+              text-anchor="middle"
+              font-family="Silkscreen, monospace"
+              font-size="11"
+              fill="#7FD6FF"
+            >
+              VERSE
+            </text>
+            <text
+              x="230"
+              y="225"
+              text-anchor="middle"
+              font-family="Silkscreen, monospace"
+              font-size="11"
+              fill="#7FD6FF"
+            >
+              FOUND
+            </text>
+          </svg>
+          <div class="prose">
+            <h4>Core loop</h4>
+            <p>
+              <b>Dig</b> rock to expose ore. <b>Haul</b> it up the shaft. <b>Smelt</b> it into bars at the
+              Forge. <b>Craft</b> tools, rails and lanterns. <b>Light</b> the new tunnels so miners work at
+              full speed. <b>Descend</b> to harder rock and richer ore.
+            </p>
+            <p>
+              Verses sit off the main path, so finding them rewards exploring the map rather than racing
+              straight down.
+            </p>
+          </div>
+        </div>
 
-    <div class="grid2">
-      <div class="panel prose">
-        <h3>Active play</h3>
-        <ul class="tight">
-          <li><b>Hand-mining.</b> Click or tap a tile to mine it, and hold to keep mining. The foreman is always faster than a miner.</li>
-          <li><b>Vein Rush.</b> Mining connected ore tiles quickly builds a multiplier up to ×5.</li>
-          <li><b>Chests and Glints.</b> Timed finds that appear near the active foreman and give bursts of resources.</li>
-          <li><b>Pests.</b> Clicking them off quickly stops them stalling miners in dark tunnels.</li>
-        </ul>
-      </div>
-      <div class="panel prose">
-        <h3>Idle play</h3>
-        <ul class="tight">
-          <li><b>Miners</b> work assigned faces on their own, at a speed set by light and rock hardness.</li>
-          <li><b>Logistics</b> carry ore up automatically, and throughput is the real cap.</li>
-          <li><b>Offline progress</b> covers 8 hours at 50% efficiency. Echo upgrades raise that to 24 hours at 100%.</li>
-          <li><b>“While you were away”</b> is told as a short verse-styled summary.</li>
-        </ul>
-      </div>
-    </div>
+        <div class="grid2">
+          <div class="panel prose">
+            <h3>Active play</h3>
+            <ul class="tight">
+              <li>
+                <b>Hand-mining.</b> Click or tap a tile to mine it, and hold to keep mining. The foreman is
+                always faster than a miner.
+              </li>
+              <li><b>Vein Rush.</b> Mining connected ore tiles quickly builds a multiplier up to ×5.</li>
+              <li>
+                <b>Chests and Glints.</b> Timed finds that appear near the active foreman and give bursts of
+                resources.
+              </li>
+              <li><b>Pests.</b> Clicking them off quickly stops them stalling miners in dark tunnels.</li>
+            </ul>
+          </div>
+          <div class="panel prose">
+            <h3>Idle play</h3>
+            <ul class="tight">
+              <li>
+                <b>Miners</b> work assigned faces on their own, at a speed set by light and rock hardness.
+              </li>
+              <li><b>Logistics</b> carry ore up automatically, and throughput is the real cap.</li>
+              <li>
+                <b>Offline progress</b> covers 8 hours at 50% efficiency. Echo upgrades raise that to 24 hours
+                at 100%.
+              </li>
+              <li><b>“While you were away”</b> is told as a short verse-styled summary.</li>
+            </ul>
+          </div>
+        </div>
 
-    <h4>Systems</h4>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>System</th><th>What it does</th><th>Unlocks</th></tr></thead>
-        <tbody>
-          <tr><td><b>Miners</b></td><td>Hired at the Bunkhouse and assigned to a rock face. Output depends on pick tier, light and hardness.</td><td>Act I</td></tr>
-          <tr><td><b>Logistics</b></td><td>Ore has to travel to the surface. Rope (1 tile/s), then lift (3), then rails (8), then song-lift (instant). Each shaft has a throughput cap.</td><td>Acts I–III</td></tr>
-          <tr><td><b>Forge</b></td><td>Turns ore into bars, and bars into picks, rails and supports.</td><td>Act I</td></tr>
-          <tr><td><b>Lamp-works</b></td><td>Produces Lumen. Placed lanterns cost Lumen upkeep, so light becomes a budget.</td><td>Act II</td></tr>
-          <tr><td><b>Supports</b></td><td>Deep tunnels need supports or they cause small collapses that block faces.</td><td>Act II</td></tr>
-          <tr><td><b>Water</b></td><td>Flooded tiles hold water. Pumps drain them, and flooding on purpose floats carts across gaps.</td><td>Act III</td></tr>
-          <tr><td><b>Song-loom</b></td><td>Weaves verses and crystal into charms, which are slotted passive buffs.</td><td>Act III</td></tr>
-          <tr><td><b>Heat</b></td><td>Ember tiles heat their neighbours. Miners stop above a threshold, and cooling vents push it back.</td><td>Act IV</td></tr>
-        </tbody>
-      </table>
-    </div>
+        <h4>Systems</h4>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>System</th>
+                <th>What it does</th>
+                <th>Unlocks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Miners</b></td>
+                <td>
+                  Hired at the Bunkhouse and assigned to a rock face. Output depends on pick tier, light and
+                  hardness.
+                </td>
+                <td>Act I</td>
+              </tr>
+              <tr>
+                <td><b>Logistics</b></td>
+                <td>
+                  Ore has to travel to the surface. Rope (1 tile/s), then lift (3), then rails (8), then
+                  song-lift (instant). Each shaft has a throughput cap.
+                </td>
+                <td>Acts I–III</td>
+              </tr>
+              <tr>
+                <td><b>Forge</b></td>
+                <td>Turns ore into bars, and bars into picks, rails and supports.</td>
+                <td>Act I</td>
+              </tr>
+              <tr>
+                <td><b>Lamp-works</b></td>
+                <td>Produces Lumen. Placed lanterns cost Lumen upkeep, so light becomes a budget.</td>
+                <td>Act II</td>
+              </tr>
+              <tr>
+                <td><b>Supports</b></td>
+                <td>Deep tunnels need supports or they cause small collapses that block faces.</td>
+                <td>Act II</td>
+              </tr>
+              <tr>
+                <td><b>Water</b></td>
+                <td>
+                  Flooded tiles hold water. Pumps drain them, and flooding on purpose floats carts across
+                  gaps.
+                </td>
+                <td>Act III</td>
+              </tr>
+              <tr>
+                <td><b>Song-loom</b></td>
+                <td>Weaves verses and crystal into charms, which are slotted passive buffs.</td>
+                <td>Act III</td>
+              </tr>
+              <tr>
+                <td><b>Heat</b></td>
+                <td>
+                  Ember tiles heat their neighbours. Miners stop above a threshold, and cooling vents push it
+                  back.
+                </td>
+                <td>Act IV</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-    <div class="grid2">
-      <div class="panel prose">
-        <h3>Prestige: the Cave-in</h3>
-        <p>The Cave-in unlocks after reaching 300 ft and finding Verse II. The mountain collapses and gets a new seed, so the layout changes every run.</p>
-        <dl class="kv">
-          <dt>You keep</dt><dd>Echoes, verses found, the Survey Book and heirloom tools</dd>
-          <dt>You lose</dt><dd>Depth, miners, buildings, ore and bars</dd>
-          <dt>You gain</dt><dd>Echoes, based on max depth and verses found this run</dd>
-        </dl>
-      </div>
-      <div class="panel prose">
-        <h3>The Echo tree</h3>
-        <p>Echoes are spent across three branches.</p>
-        <ul class="tight">
-          <li><b>Hands</b> covers mining speed, miner cost and Vein Rush.</li>
-          <li><b>Lamps</b> covers light radius, Lumen and pest resistance.</li>
-          <li><b>Memory</b> covers automation and story: starting with rails, auto-hiring, offline caps and verse hints from Pell.</li>
-        </ul>
-      </div>
-    </div>
-  </section>
+        <div class="grid2">
+          <div class="panel prose">
+            <h3>Prestige: the Cave-in</h3>
+            <p>
+              The Cave-in unlocks after reaching 300 ft and finding Verse II. The mountain collapses and gets
+              a new seed, so the layout changes every run.
+            </p>
+            <dl class="kv">
+              <dt>You keep</dt>
+              <dd>Echoes, verses found, the Survey Book and heirloom tools</dd>
+              <dt>You lose</dt>
+              <dd>Depth, miners, buildings, ore and bars</dd>
+              <dt>You gain</dt>
+              <dd>Echoes, based on max depth and verses found this run</dd>
+            </dl>
+          </div>
+          <div class="panel prose">
+            <h3>The Echo tree</h3>
+            <p>Echoes are spent across three branches.</p>
+            <ul class="tight">
+              <li><b>Hands</b> covers mining speed, miner cost and Vein Rush.</li>
+              <li><b>Lamps</b> covers light radius, Lumen and pest resistance.</li>
+              <li>
+                <b>Memory</b> covers automation and story: starting with rails, auto-hiring, offline caps and
+                verse hints from Pell.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="water" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="water" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ BALANCE ============ -->
-  <section id="balance">
-    <div class="sechead"><span class="depth">▼ 500 FT</span><h2>Progression &amp; balance</h2><p class="muted" style="max-width:62ch">These are first-pass targets to tune with a headless balance simulator (see Tech). Times are for an engaged player who mixes active and idle play.</p></div>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>Act</th><th>Biomes</th><th>Target play time</th><th>Cave-ins</th><th>Key unlock</th></tr></thead>
-        <tbody>
-          <tr><td><b>I</b></td><td>Holloway, Topsoil &amp; Stone</td><td class="num">0:00 – 1:00</td><td class="num">1st at ~45 min</td><td>Miners, Forge, the first Cave-in</td></tr>
-          <tr><td><b>II</b></td><td>Glowroot Caverns</td><td class="num">1:00 – 4:00</td><td class="num">3–5</td><td>Lumen, rails, Echo tree</td></tr>
-          <tr><td><b>III</b></td><td>Flooded Halls, Singing Geodes</td><td class="num">4:00 – 9:00</td><td class="num">5–8</td><td>Water, Song-loom</td></tr>
-          <tr><td><b>IV</b></td><td>Ember Deep, Hollow Heart</td><td class="num">9:00 – 14:00</td><td class="num">4–6</td><td>Heat, the ending</td></tr>
-          <tr><td><b>∞</b></td><td>Endless Depth</td><td class="num">14:00 +</td><td class="num">open</td><td>Procedural strata, remixed verses</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="panel">
-      <h4 style="margin-bottom:6px">Starting formulas</h4>
-      <div class="formula"><span>Building cost</span><code>cost(n) = base × 1.15ⁿ</code></div>
-      <div class="formula"><span>Rock hardness</span><code>H(d) = H_material × (1 + d / 60)^1.3</code></div>
-      <div class="formula"><span>Miner output</span><code>ore/s = pick × light_factor / H(d)</code></div>
-      <div class="formula"><span>Light factor</span><code>L ≥ 0.6 → 1.0 · 0.3–0.6 → 0.7 · &lt; 0.3 → 0.4</code></div>
-      <div class="formula"><span>Echoes on Cave-in</span><code>floor( √(maxDepth / 10) × (1 + 0.25 × versesThisRun) )</code></div>
-      <div class="formula"><span>Vein Rush</span><code>mult = min(5, 1 + 0.25 × chain), chain resets after 1.2 s idle</code></div>
-      <div class="formula"><span>Offline gain</span><code>rate × min(t, cap) × eff, cap 8 h → 24 h, eff 0.5 → 1.0</code></div>
-    </div>
-  </section>
+      <!-- ============ BALANCE ============ -->
+      <section id="balance">
+        <div class="sechead">
+          <span class="depth">▼ 500 FT</span>
+          <h2>Progression &amp; balance</h2>
+          <p class="muted" style="max-width: 62ch">
+            These are first-pass targets to tune with a headless balance simulator (see Tech). Times are for
+            an engaged player who mixes active and idle play.
+          </p>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Act</th>
+                <th>Biomes</th>
+                <th>Target play time</th>
+                <th>Cave-ins</th>
+                <th>Key unlock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>I</b></td>
+                <td>Holloway, Topsoil &amp; Stone</td>
+                <td class="num">0:00 – 1:00</td>
+                <td class="num">1st at ~45 min</td>
+                <td>Miners, Forge, the first Cave-in</td>
+              </tr>
+              <tr>
+                <td><b>II</b></td>
+                <td>Glowroot Caverns</td>
+                <td class="num">1:00 – 4:00</td>
+                <td class="num">3–5</td>
+                <td>Lumen, rails, Echo tree</td>
+              </tr>
+              <tr>
+                <td><b>III</b></td>
+                <td>Flooded Halls, Singing Geodes</td>
+                <td class="num">4:00 – 9:00</td>
+                <td class="num">5–8</td>
+                <td>Water, Song-loom</td>
+              </tr>
+              <tr>
+                <td><b>IV</b></td>
+                <td>Ember Deep, Hollow Heart</td>
+                <td class="num">9:00 – 14:00</td>
+                <td class="num">4–6</td>
+                <td>Heat, the ending</td>
+              </tr>
+              <tr>
+                <td><b>∞</b></td>
+                <td>Endless Depth</td>
+                <td class="num">14:00 +</td>
+                <td class="num">open</td>
+                <td>Procedural strata, remixed verses</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h4 style="margin-bottom: 6px">Starting formulas</h4>
+          <div class="formula"><span>Building cost</span><code>cost(n) = base × 1.15ⁿ</code></div>
+          <div class="formula">
+            <span>Rock hardness</span><code>H(d) = H_material × (1 + d / 60)^1.3</code>
+          </div>
+          <div class="formula"><span>Miner output</span><code>ore/s = pick × light_factor / H(d)</code></div>
+          <div class="formula">
+            <span>Light factor</span><code>L ≥ 0.6 → 1.0 · 0.3–0.6 → 0.7 · &lt; 0.3 → 0.4</code>
+          </div>
+          <div class="formula">
+            <span>Echoes on Cave-in</span><code>floor( √(maxDepth / 10) × (1 + 0.25 × versesThisRun) )</code>
+          </div>
+          <div class="formula">
+            <span>Vein Rush</span><code>mult = min(5, 1 + 0.25 × chain), chain resets after 1.2 s idle</code>
+          </div>
+          <div class="formula">
+            <span>Offline gain</span><code>rate × min(t, cap) × eff, cap 8 h → 24 h, eff 0.5 → 1.0</code>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="crystal" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="crystal" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ ART ============ -->
-  <section id="art">
-    <div class="sechead"><span class="depth">▼ 700 FT</span><h2>Art direction</h2><p class="muted" style="max-width:62ch">The look is chunky, readable pixel art with coloured light. Every asset is a text grid plus a palette, so new art always matches the old.</p></div>
+      <!-- ============ ART ============ -->
+      <section id="art">
+        <div class="sechead">
+          <span class="depth">▼ 700 FT</span>
+          <h2>Art direction</h2>
+          <p class="muted" style="max-width: 62ch">
+            The look is chunky, readable pixel art with coloured light. Every asset is a text grid plus a
+            palette, so new art always matches the old.
+          </p>
+        </div>
 
-    <div class="grid2">
-      <div class="panel prose">
-        <h3>Grid &amp; scale</h3>
-        <ul class="tight">
-          <li>Tiles are 16×16 and characters are 16×24.</li>
-          <li>Rendering uses integer scaling only (×2, ×3, ×4), with nearest-neighbour filtering and no anti-aliasing or rotation.</li>
-          <li>The camera snaps to whole pixels so tiles never shimmer.</li>
-          <li>Each material has four tile variants, chosen by a position hash so patterns never repeat in an obvious way.</li>
-        </ul>
-      </div>
-      <div class="panel prose">
-        <h3>Shading rules</h3>
-        <ul class="tight">
-          <li>Every material uses a three-tone ramp: base, light and dark.</li>
-          <li>Faces exposed to air get a highlight on top and left edges and a shadow on bottom and right edges.</li>
-          <li>Back walls use the same material at 42% brightness with less detail.</li>
-          <li>Sprites self-outline with the darkest colour in their ramp, never pure black.</li>
-        </ul>
-      </div>
-    </div>
+        <div class="grid2">
+          <div class="panel prose">
+            <h3>Grid &amp; scale</h3>
+            <ul class="tight">
+              <li>Tiles are 16×16 and characters are 16×24.</li>
+              <li>
+                Rendering uses integer scaling only (×2, ×3, ×4), with nearest-neighbour filtering and no
+                anti-aliasing or rotation.
+              </li>
+              <li>The camera snaps to whole pixels so tiles never shimmer.</li>
+              <li>
+                Each material has four tile variants, chosen by a position hash so patterns never repeat in an
+                obvious way.
+              </li>
+            </ul>
+          </div>
+          <div class="panel prose">
+            <h3>Shading rules</h3>
+            <ul class="tight">
+              <li>Every material uses a three-tone ramp: base, light and dark.</li>
+              <li>
+                Faces exposed to air get a highlight on top and left edges and a shadow on bottom and right
+                edges.
+              </li>
+              <li>Back walls use the same material at 42% brightness with less detail.</li>
+              <li>Sprites self-outline with the darkest colour in their ramp, never pure black.</li>
+            </ul>
+          </div>
+        </div>
 
-    <h4>Master palette · 32 colours</h4>
-    <div class="ramps" id="ramps"></div>
+        <h4>Master palette · 32 colours</h4>
+        <div class="ramps" id="ramps"></div>
 
-    <h4>Biome palettes</h4>
-    <div class="panel biomepal" id="biomepal"></div>
+        <h4>Biome palettes</h4>
+        <div class="panel biomepal" id="biomepal"></div>
 
-    <h4>Tile sheet</h4>
-    <div class="panel"><canvas id="tilesheet" class="px" width="184" height="64" aria-label="Tile sheet: grass, dirt, stone, slate with copper, gold, crystal, glowcap and ember variants"></canvas><p class="label" style="margin-top:10px">Generated from the palette and the shading rules above · shown at the 8px prototype size</p></div>
+        <h4>Tile sheet</h4>
+        <div class="panel">
+          <canvas
+            id="tilesheet"
+            class="px"
+            width="184"
+            height="64"
+            aria-label="Tile sheet: grass, dirt, stone, slate with copper, gold, crystal, glowcap and ember variants"
+          ></canvas>
+          <p class="label" style="margin-top: 10px">
+            Generated from the palette and the shading rules above · shown at the 8px prototype size
+          </p>
+        </div>
 
-    <h4>Lighting</h4>
-    <div class="grid2">
-      <div class="prose">
-        <p>Light is calculated per tile, the way Terraria does it. There are two channels: <b style="color:var(--copper)">warm</b> (sky, torches, lanterns, ember) and <b style="color:var(--glow)">cool</b> (glowcaps, crystals). Light spreads from each source, losing 0.085 per air tile and 0.26 per solid tile.</p>
-        <p>Darkness is a near-black navy rather than true black, so silhouettes still read. Torches flicker by ±6%.</p>
-      </div>
-      <div class="prose">
-        <div class="lightstrip" id="lightstrip"></div>
-        <p class="label">A torch in a stone tunnel · per-tile light value</p>
-      </div>
-    </div>
+        <h4>Lighting</h4>
+        <div class="grid2">
+          <div class="prose">
+            <p>
+              Light is calculated per tile, the way Terraria does it. There are two channels:
+              <b style="color: var(--copper)">warm</b> (sky, torches, lanterns, ember) and
+              <b style="color: var(--glow)">cool</b> (glowcaps, crystals). Light spreads from each source,
+              losing 0.085 per air tile and 0.26 per solid tile.
+            </p>
+            <p>
+              Darkness is a near-black navy rather than true black, so silhouettes still read. Torches flicker
+              by ±6%.
+            </p>
+          </div>
+          <div class="prose">
+            <div class="lightstrip" id="lightstrip"></div>
+            <p class="label">A torch in a stone tunnel · per-tile light value</p>
+          </div>
+        </div>
 
-    <h4>Sprites &amp; UI kit</h4>
-    <div class="uikit">
-      <div class="hotbar" id="hotbar"></div>
-      <div class="counter"><div>Depth <b>186 ft</b></div><div>Copper <b>1,284</b></div><div>Lumen <b>42/s</b></div></div>
-      <button class="gbtn" type="button" id="hirebtn">Hire miner<small>120 Cu</small></button>
-      <div class="tooltip"><b>Copper Pick</b>Mines stone and copper. Power 2.<br><span class="muted">“It hums when you hold it.”</span></div>
-      <div class="versecard"><span class="label">Verse III found</span><p>Down where the lanterns forget their light, the stone remembers, the stone holds tight.</p></div>
-    </div>
-    <div class="grid2">
-      <div class="panel prose">
-        <h3>Type</h3>
-        <p><span style="font-family:var(--f-label)">Silkscreen</span> is for numbers, labels and the HUD. <span style="font-family:var(--f-display)">Pixelify Sans</span> is for verses, titles and dialogue. Body text in menus uses a readable bitmap-style face at 2× scale.</p>
-      </div>
-      <div class="panel prose">
-        <h3>Motion &amp; sound</h3>
-        <p>Sprites animate at 8–12 fps, with 4-frame walks and 3-frame swings. Particles are single pixels with gravity. Music is a hummed lullaby on music box and low strings, adding one layer per biome so the song literally gets clearer as you descend.</p>
-      </div>
-    </div>
-  </section>
+        <h4>Sprites &amp; UI kit</h4>
+        <div class="uikit">
+          <div class="hotbar" id="hotbar"></div>
+          <div class="counter">
+            <div>Depth <b>186 ft</b></div>
+            <div>Copper <b>1,284</b></div>
+            <div>Lumen <b>42/s</b></div>
+          </div>
+          <button class="gbtn" type="button" id="hirebtn">Hire miner<small>120 Cu</small></button>
+          <div class="tooltip">
+            <b>Copper Pick</b>Mines stone and copper. Power 2.<br /><span class="muted"
+              >“It hums when you hold it.”</span
+            >
+          </div>
+          <div class="versecard">
+            <span class="label">Verse III found</span>
+            <p>Down where the lanterns forget their light, the stone remembers, the stone holds tight.</p>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="panel prose">
+            <h3>Type</h3>
+            <p>
+              <span style="font-family: var(--f-label)">Silkscreen</span> is for numbers, labels and the HUD.
+              <span style="font-family: var(--f-display)">Pixelify Sans</span> is for verses, titles and
+              dialogue. Body text in menus uses a readable bitmap-style face at 2× scale.
+            </p>
+          </div>
+          <div class="panel prose">
+            <h3>Motion &amp; sound</h3>
+            <p>
+              Sprites animate at 8–12 fps, with 4-frame walks and 3-frame swings. Particles are single pixels
+              with gravity. Music is a hummed lullaby on music box and low strings, adding one layer per biome
+              so the song literally gets clearer as you descend.
+            </p>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="ember" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="ember" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ TECH ============ -->
-  <section id="tech">
-    <div class="sechead"><span class="depth">▼ 1000 FT</span><h2>Tech &amp; asset pipeline</h2></div>
-    <div class="grid2">
-      <div class="panel prose">
-        <h3>Stack</h3>
-        <dl class="kv">
-          <dt>Language</dt><dd>TypeScript, built with Vite</dd>
-          <dt>World</dt><dd>Canvas 2D with integer scaling. The world is split into 32×32 chunks, each cached to an offscreen canvas and redrawn only when changed.</dd>
-          <dt>UI</dt><dd>DOM overlay using Preact for panels, menus and the Survey Book</dd>
-          <dt>Simulation</dt><dd>A fixed 10 Hz tick, separate from rendering and deterministic with seeded RNG</dd>
-          <dt>Numbers</dt><dd>break_eternity.js from day one, so late-game prestige never needs a migration</dd>
-          <dt>Saves</dt><dd>Compressed JSON in localStorage every 30 s, with export and import strings and versioned migrations</dd>
-          <dt>Hosting</dt><dd>Static deploy to Vercel, with an installable PWA for phones later</dd>
-        </dl>
-      </div>
-      <div class="panel prose">
-        <h3>Responsive layout</h3>
-        <ul class="tight">
-          <li><b>Desktop, landscape.</b> The cross-section sits on the left, with a side panel on the right for buildings, crafting and the Echo tree.</li>
-          <li><b>Mobile, portrait.</b> The cross-section fills the screen and scrolls vertically. The hotbar and panels become a bottom tray, and tapping a tile mines it.</li>
-          <li>Tile scale steps between ×2 and ×4 at breakpoints, never fractional.</li>
-          <li>Lighting is recomputed per changed chunk with a flood fill, so it stays cheap on phones.</li>
-        </ul>
-      </div>
-    </div>
+      <!-- ============ TECH ============ -->
+      <section id="tech">
+        <div class="sechead">
+          <span class="depth">▼ 1000 FT</span>
+          <h2>Tech &amp; asset pipeline</h2>
+        </div>
+        <div class="grid2">
+          <div class="panel prose">
+            <h3>Stack</h3>
+            <dl class="kv">
+              <dt>Language</dt>
+              <dd>TypeScript, built with Vite</dd>
+              <dt>World</dt>
+              <dd>
+                Canvas 2D with integer scaling. The world is split into 32×32 chunks, each cached to an
+                offscreen canvas and redrawn only when changed.
+              </dd>
+              <dt>UI</dt>
+              <dd>DOM overlay using Preact for panels, menus and the Survey Book</dd>
+              <dt>Simulation</dt>
+              <dd>A fixed 10 Hz tick, separate from rendering and deterministic with seeded RNG</dd>
+              <dt>Numbers</dt>
+              <dd>break_eternity.js from day one, so late-game prestige never needs a migration</dd>
+              <dt>Saves</dt>
+              <dd>
+                Compressed JSON in localStorage every 30 s, with export and import strings and versioned
+                migrations
+              </dd>
+              <dt>Hosting</dt>
+              <dd>Static deploy to Vercel, with an installable PWA for phones later</dd>
+            </dl>
+          </div>
+          <div class="panel prose">
+            <h3>Responsive layout</h3>
+            <ul class="tight">
+              <li>
+                <b>Desktop, landscape.</b> The cross-section sits on the left, with a side panel on the right
+                for buildings, crafting and the Echo tree.
+              </li>
+              <li>
+                <b>Mobile, portrait.</b> The cross-section fills the screen and scrolls vertically. The hotbar
+                and panels become a bottom tray, and tapping a tile mines it.
+              </li>
+              <li>Tile scale steps between ×2 and ×4 at breakpoints, never fractional.</li>
+              <li>
+                Lighting is recomputed per changed chunk with a flood fill, so it stays cheap on phones.
+              </li>
+            </ul>
+          </div>
+        </div>
 
-    <h4>Asset pipeline</h4>
-    <div class="grid2">
-      <div class="prose">
-        <p>Each sprite is a plain text file. Every character is a palette key, so I can write, review and diff art like code. A build script packs everything into one atlas PNG and a JSON map, and the dev server hot-reloads on save.</p>
-        <p>New ores are palette swaps and new biomes are a palette plus generator rules, so the art stays consistent from the first tile to the four-hundredth.</p>
-      </div>
-      <pre><span class="c"># assets/sprites/items/lantern.sprite</span>
+        <h4>Asset pipeline</h4>
+        <div class="grid2">
+          <div class="prose">
+            <p>
+              Each sprite is a plain text file. Every character is a palette key, so I can write, review and
+              diff art like code. A build script packs everything into one atlas PNG and a JSON map, and the
+              dev server hot-reloads on save.
+            </p>
+            <p>
+              New ores are palette swaps and new biomes are a palette plus generator rules, so the art stays
+              consistent from the first tile to the four-hundredth.
+            </p>
+          </div>
+          <pre><span class="c"># assets/sprites/items/lantern.sprite</span>
 <span class="k">palette</span>: ui.lantern   <span class="c"># k Y l from master</span>
 <span class="k">size</span>: 8x8
 <span class="s">..kkkk..
@@ -487,8 +1635,8 @@ footer{margin-top:72px;color:var(--muted);font-size:.85rem}
 .kYYYYk.
 .kkkkkk.
 ........</span></pre>
-    </div>
-    <pre><span class="c">undersong/</span>
+        </div>
+        <pre><span class="c">undersong/</span>
 ├─ src/
 │  ├─ sim/        <span class="c">economy, miners, logistics, prestige (pure, unit-tested)</span>
 │  ├─ world/      <span class="c">chunks, generator, lighting, water, heat</span>
@@ -501,306 +1649,967 @@ footer{margin-top:72px;color:var(--muted);font-size:.85rem}
 │  ├─ build-atlas.ts
 │  └─ balance-sim.ts <span class="c">  plays the game headlessly, charts time-to-milestone</span>
 └─ tests/</pre>
-  </section>
+      </section>
 
-  <canvas class="stratum" data-ramp="heart" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="heart" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ ROADMAP ============ -->
-  <section id="roadmap">
-    <div class="sechead"><span class="depth">▼ 1400 FT</span><h2>Development roadmap</h2><p class="muted" style="max-width:62ch">Six milestones, each ending in something playable. Sizes are relative: S is small, M is medium, L is large.</p></div>
-    <div class="shaft">
-      <div class="ms"><div class="panel">
-        <header><span class="id">M0</span><h3>Bedrock</h3><span class="size s">S</span></header>
-        <p class="muted">The foundations: engine and pipeline.</p>
-        <ul class="tight"><li>Vite and TypeScript repo, chunked tile world, seeded generator</li><li>Tile renderer, per-tile two-channel lighting, camera</li><li>Sprite text format, atlas build and hot reload</li><li>Save, load and the sim tick</li><li>A style sheet of 20 or more production assets</li></ul>
-        <p class="exit"><b>Exit</b>A lit, scrollable cross-section you can dig into with the mouse, on desktop and phone.</p>
-      </div></div>
-      <div class="ms"><div class="panel">
-        <header><span class="id">M1</span><h3>First Verse</h3><span class="size m">M</span><span class="label">vertical slice · Act I</span></header>
-        <p class="muted">The smallest version that proves the game is fun.</p>
-        <ul class="tight"><li>Foreman hand-mining, copper and tin, the Forge, picks</li><li>Bunkhouse, miners and rope haulage</li><li>Verses I and II, Pell and Bram</li><li>The first Cave-in, the Survey Book and five Echo upgrades</li><li>Balance sim v1</li></ul>
-        <p class="exit"><b>Exit</b>Someone new plays for 45 minutes, triggers a Cave-in and wants to dig again.</p>
-      </div></div>
-      <div class="ms"><div class="panel">
-        <header><span class="id">M2</span><h3>Glowroot</h3><span class="size l">L</span><span class="label">core systems · Act II</span></header>
-        <ul class="tight"><li>Lamp-works, Lumen budget and lantern placement</li><li>Rails, lifts, throughput and supports</li><li>Lantern moths and burrow beetles</li><li>The full three-branch Echo tree, offline progress and the away summary</li><li>Mobile portrait layout and bottom tray</li><li>Verses III to V and Old Wren</li></ul>
-        <p class="exit"><b>Exit</b>Act I and Act II are playable start to finish on desktop and phone.</p>
-      </div></div>
-      <div class="ms"><div class="panel">
-        <header><span class="id">M3</span><h3>Drowned</h3><span class="size l">L</span><span class="label">content · Act III</span></header>
-        <ul class="tight"><li>Water simulation and pumps</li><li>The drowned town as a revealed set piece</li><li>Singing Geodes, the Song-loom and charms</li><li>Verses VI to X</li><li>Cave eels and shard golems</li></ul>
-        <p class="exit"><b>Exit</b>The mid-game twist lands. Playtesters can say what Holloway is hiding.</p>
-      </div></div>
-      <div class="ms"><div class="panel">
-        <header><span class="id">M4</span><h3>The Heart</h3><span class="size m">M</span><span class="label">Act IV · ending</span></header>
-        <ul class="tight"><li>Ember Deep, the heat system and cooling</li><li>The Hollow Heart, with old shafts from earlier cycles</li><li>Verses XI and XII, both endings</li><li>Endless Depth and New Song+</li></ul>
-        <p class="exit"><b>Exit</b>The game can be finished, and both endings feel earned.</p>
-      </div></div>
-      <div class="ms"><div class="panel">
-        <header><span class="id">M5</span><h3>Surface</h3><span class="size m">M</span><span class="label">polish · launch</span></header>
-        <ul class="tight"><li>Layered music and sound effects</li><li>A full balance pass using sim data</li><li>Accessibility: reduced motion, text scaling and light that doesn’t rely on colour alone</li><li>Achievements, settings and save export</li><li>Launch on the web and on itch.io</li></ul>
-        <p class="exit"><b>Exit</b>Public release.</p>
-      </div></div>
-    </div>
-  </section>
+      <!-- ============ ROADMAP ============ -->
+      <section id="roadmap">
+        <div class="sechead">
+          <span class="depth">▼ 1400 FT</span>
+          <h2>Development roadmap</h2>
+          <p class="muted" style="max-width: 62ch">
+            Six milestones, each ending in something playable. Sizes are relative: S is small, M is medium, L
+            is large.
+          </p>
+        </div>
+        <div class="shaft">
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M0</span>
+                <h3>Bedrock</h3>
+                <span class="size s">S</span>
+              </header>
+              <p class="muted">The foundations: engine and pipeline.</p>
+              <ul class="tight">
+                <li>Vite and TypeScript repo, chunked tile world, seeded generator</li>
+                <li>Tile renderer, per-tile two-channel lighting, camera</li>
+                <li>Sprite text format, atlas build and hot reload</li>
+                <li>Save, load and the sim tick</li>
+                <li>A style sheet of 20 or more production assets</li>
+              </ul>
+              <p class="exit">
+                <b>Exit</b>A lit, scrollable cross-section you can dig into with the mouse, on desktop and
+                phone.
+              </p>
+            </div>
+          </div>
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M1</span>
+                <h3>First Verse</h3>
+                <span class="size m">M</span><span class="label">vertical slice · Act I</span>
+              </header>
+              <p class="muted">The smallest version that proves the game is fun.</p>
+              <ul class="tight">
+                <li>Foreman hand-mining, copper and tin, the Forge, picks</li>
+                <li>Bunkhouse, miners and rope haulage</li>
+                <li>Verses I and II, Pell and Bram</li>
+                <li>The first Cave-in, the Survey Book and five Echo upgrades</li>
+                <li>Balance sim v1</li>
+              </ul>
+              <p class="exit">
+                <b>Exit</b>Someone new plays for 45 minutes, triggers a Cave-in and wants to dig again.
+              </p>
+            </div>
+          </div>
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M2</span>
+                <h3>Glowroot</h3>
+                <span class="size l">L</span><span class="label">core systems · Act II</span>
+              </header>
+              <ul class="tight">
+                <li>Lamp-works, Lumen budget and lantern placement</li>
+                <li>Rails, lifts, throughput and supports</li>
+                <li>Lantern moths and burrow beetles</li>
+                <li>The full three-branch Echo tree, offline progress and the away summary</li>
+                <li>Mobile portrait layout and bottom tray</li>
+                <li>Verses III to V and Old Wren</li>
+              </ul>
+              <p class="exit">
+                <b>Exit</b>Act I and Act II are playable start to finish on desktop and phone.
+              </p>
+            </div>
+          </div>
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M3</span>
+                <h3>Drowned</h3>
+                <span class="size l">L</span><span class="label">content · Act III</span>
+              </header>
+              <ul class="tight">
+                <li>Water simulation and pumps</li>
+                <li>The drowned town as a revealed set piece</li>
+                <li>Singing Geodes, the Song-loom and charms</li>
+                <li>Verses VI to X</li>
+                <li>Cave eels and shard golems</li>
+              </ul>
+              <p class="exit">
+                <b>Exit</b>The mid-game twist lands. Playtesters can say what Holloway is hiding.
+              </p>
+            </div>
+          </div>
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M4</span>
+                <h3>The Heart</h3>
+                <span class="size m">M</span><span class="label">Act IV · ending</span>
+              </header>
+              <ul class="tight">
+                <li>Ember Deep, the heat system and cooling</li>
+                <li>The Hollow Heart, with old shafts from earlier cycles</li>
+                <li>Verses XI and XII, both endings</li>
+                <li>Endless Depth and New Song+</li>
+              </ul>
+              <p class="exit"><b>Exit</b>The game can be finished, and both endings feel earned.</p>
+            </div>
+          </div>
+          <div class="ms">
+            <div class="panel">
+              <header>
+                <span class="id">M5</span>
+                <h3>Surface</h3>
+                <span class="size m">M</span><span class="label">polish · launch</span>
+              </header>
+              <ul class="tight">
+                <li>Layered music and sound effects</li>
+                <li>A full balance pass using sim data</li>
+                <li>
+                  Accessibility: reduced motion, text scaling and light that doesn’t rely on colour alone
+                </li>
+                <li>Achievements, settings and save export</li>
+                <li>Launch on the web and on itch.io</li>
+              </ul>
+              <p class="exit"><b>Exit</b>Public release.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  <canvas class="stratum" data-ramp="heart" width="320" height="12" aria-hidden="true"></canvas>
+      <canvas class="stratum" data-ramp="heart" width="320" height="12" aria-hidden="true"></canvas>
 
-  <!-- ============ HEART ============ -->
-  <section id="heart">
-    <div class="sechead"><span class="depth">▼ THE HEART</span><h2>Open questions</h2></div>
-    <div class="panel qs">
-      <div class="q"><i>?</i><p><b>Where should the code live?</b> I’d start M0 in a new GitHub repo connected to this project.</p></div>
-      <div class="q"><i>?</i><p><b>Business model.</b> Free on the web, premium on itch.io or Steam, or a free demo with a paid full game. This affects save sync and whether the build has a fixed ending.</p></div>
-      <div class="q"><i>?</i><p><b>Combat depth.</b> This spec keeps pests as quick taps. Real Terraria-style fights would be a much larger scope.</p></div>
-      <div class="q"><i>?</i><p><b>The name.</b> Undersong is the working title.</p></div>
-    </div>
-    <footer>Undersong design bible · v0.1 · 6 October 2026 · every pixel on this page is drawn live from the game’s palette and sprite rules.</footer>
-  </section>
-  </main>
-</div>
+      <!-- ============ HEART ============ -->
+      <section id="heart">
+        <div class="sechead">
+          <span class="depth">▼ THE HEART</span>
+          <h2>Open questions</h2>
+        </div>
+        <div class="panel qs">
+          <div class="q">
+            <i>?</i>
+            <p>
+              <b>Where should the code live?</b> I’d start M0 in a new GitHub repo connected to this project.
+            </p>
+          </div>
+          <div class="q">
+            <i>?</i>
+            <p>
+              <b>Business model.</b> Free on the web, premium on itch.io or Steam, or a free demo with a paid
+              full game. This affects save sync and whether the build has a fixed ending.
+            </p>
+          </div>
+          <div class="q">
+            <i>?</i>
+            <p>
+              <b>Combat depth.</b> This spec keeps pests as quick taps. Real Terraria-style fights would be a
+              much larger scope.
+            </p>
+          </div>
+          <div class="q">
+            <i>?</i>
+            <p><b>The name.</b> Undersong is the working title.</p>
+          </div>
+        </div>
+        <footer>
+          Undersong design bible · v0.1 · 6 October 2026 · every pixel on this page is drawn live from the
+          game’s palette and sprite rules.
+        </footer>
+      </section>
+    </main>
+  </div>
 
-<script>
-const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  <script>
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- master palette ---------- */
-const RAMPS = {
-  Earth:   ['#3A2A20','#6B4329','#8A5A3B','#A46D48'],
-  Grass:   ['#3A7A2C','#4F9A3A','#6CC04A'],
-  Stone:   ['#3F444E','#555B66','#6D7480','#878E9A'],
-  Slate:   ['#262940','#373A52','#4B4F6B','#5F6487'],
-  Copper:  ['#9C5420','#D9823B','#F2A35E'],
-  Gold:    ['#B8902A','#FFD65A','#FFF2A8'],
-  Glowcap: ['#1E6B66','#5FF0D8','#B9FFF3'],
-  Crystal: ['#2A5E86','#7FD6FF','#C4F0FF'],
-  Ember:   ['#7A2A1E','#E0532F','#FF9A3C'],
-  Night:   ['#141A33','#E8F4F0'],
-};
-// material ramps: [base, light, dark]
-const MAT = {
-  dirt:   ['#8A5A3B','#A46D48','#6B4329'],
-  stone:  ['#6D7480','#878E9A','#555B66'],
-  slate:  ['#4B4F6B','#5F6487','#373A52'],
-  crystal:['#2A5E86','#7FD6FF','#262940'],
-  ember:  ['#7A2A1E','#E0532F','#3A2A20'],
-  water:  ['#373A52','#5F6487','#262940'],
-  heart:  ['#262940','#4B4F6B','#141A33'],
-};
-const hash=(x,y,k=0)=>{let h=(x*374761393+y*668265263+k*2147483647)|0;h=(h^(h>>>13))*1274126177|0;return ((h^(h>>>16))>>>0)/4294967295;};
+    /* ---------- master palette ---------- */
+    const RAMPS = {
+      Earth: ['#3A2A20', '#6B4329', '#8A5A3B', '#A46D48'],
+      Grass: ['#3A7A2C', '#4F9A3A', '#6CC04A'],
+      Stone: ['#3F444E', '#555B66', '#6D7480', '#878E9A'],
+      Slate: ['#262940', '#373A52', '#4B4F6B', '#5F6487'],
+      Copper: ['#9C5420', '#D9823B', '#F2A35E'],
+      Gold: ['#B8902A', '#FFD65A', '#FFF2A8'],
+      Glowcap: ['#1E6B66', '#5FF0D8', '#B9FFF3'],
+      Crystal: ['#2A5E86', '#7FD6FF', '#C4F0FF'],
+      Ember: ['#7A2A1E', '#E0532F', '#FF9A3C'],
+      Night: ['#141A33', '#E8F4F0'],
+    };
+    // material ramps: [base, light, dark]
+    const MAT = {
+      dirt: ['#8A5A3B', '#A46D48', '#6B4329'],
+      stone: ['#6D7480', '#878E9A', '#555B66'],
+      slate: ['#4B4F6B', '#5F6487', '#373A52'],
+      crystal: ['#2A5E86', '#7FD6FF', '#262940'],
+      ember: ['#7A2A1E', '#E0532F', '#3A2A20'],
+      water: ['#373A52', '#5F6487', '#262940'],
+      heart: ['#262940', '#4B4F6B', '#141A33'],
+    };
+    const hash = (x, y, k = 0) => {
+      let h = (x * 374761393 + y * 668265263 + k * 2147483647) | 0;
+      h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+      return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+    };
 
-function spriteCanvas(rows,pal,c){ c=c||document.createElement('canvas'); c.width=rows[0].length; c.height=rows.length; const x=c.getContext('2d'); x.clearRect(0,0,c.width,c.height); rows.forEach((r,y)=>[...r].forEach((ch,i)=>{ if(pal[ch]){x.fillStyle=pal[ch];x.fillRect(i,y,1,1);} })); return c; }
-
-/* draws one 8px tile; ore: null | 'copper' | 'gold' | 'crystal' | 'glow' | 'ember' | 'grass' */
-function tile(ctx,X,Y,p,seedX,seedY,ore,edges){
-  const px=(c,x,y,w=1,h=1)=>{ctx.fillStyle=c;ctx.fillRect(X+x,Y+y,w,h);};
-  px(p[0],0,0,8,8);
-  for(let i=0;i<5;i++){ px(i%2?p[1]:p[2],(hash(seedX,seedY,i)*7)|0,(hash(seedX,seedY,i+9)*7)|0,i===0?2:1,1); }
-  if(edges){ if(edges.t)px(p[1],0,0,8,1); if(edges.l)px(p[1],0,0,1,8); if(edges.b)px(p[2],0,7,8,1); if(edges.r)px(p[2],7,0,1,8); }
-  if(ore==='copper') [[1,2],[4,1],[3,5]].forEach(([a,c])=>{px('#D9823B',a,c,2,1);px('#F2A35E',a,c);px('#9C5420',a+1,c+1);});
-  if(ore==='gold') [[2,1],[5,4],[1,5]].forEach(([a,c])=>{px('#FFD65A',a,c,2,1);px('#FFF2A8',a,c);px('#B8902A',a+1,c+1);});
-  if(ore==='crystal'){ px('#C4F0FF',2,1,1,3); px('#7FD6FF',3,2,1,4); px('#C4F0FF',5,3,1,2); }
-  if(ore==='glow'){ px('#1E6B66',2,3,4,3); px('#5FF0D8',3,4); px('#5FF0D8',5,2); px('#B9FFF3',1,6); }
-  if(ore==='ember'){ px('#E0532F',1,2,3,1); px('#FF9A3C',2,2); px('#E0532F',4,5,3,1); px('#FF9A3C',5,5); }
-  if(ore==='water'){ px('#5F6487',0,2,3,1); px('#7FD6FF',4,4,3,1); px('#5F6487',1,6,2,1); }
-  if(ore==='grass'){ px('#4F9A3A',0,0,8,2); px('#6CC04A',0,0,8,1); px('#3A7A2C',(hash(seedX,seedY,2)*6)|0,2,2,1); }
-}
-
-/* ---------- strata dividers ---------- */
-const STRATA = {
-  dirt:{top:'grass',rows:[['dirt',null,0],['dirt','copper',.05]]},
-  stone:{rows:[['stone','copper',.12],['stone',null,0]]},
-  glow:{rows:[['slate','glow',.22],['stone','glow',.08]]},
-  water:{rows:[['water','water',.35],['slate',null,0]]},
-  crystal:{rows:[['slate','crystal',.25],['crystal','crystal',.4]]},
-  ember:{rows:[['ember','ember',.3],['slate','gold',.08]]},
-  heart:{rows:[['heart','gold',.06],['heart','ember',.05]]},
-};
-document.querySelectorAll('canvas.stratum').forEach((cv,ci)=>{
-  const ctx=cv.getContext('2d'); const s=STRATA[cv.dataset.ramp];
-  // top jagged edge row: background so canvas has 12px = 1.5 tiles; draw tiles at y=4..12 and half row on top
-  ctx.clearRect(0,0,320,12);
-  for(let x=0;x<40;x++){
-    const [m,ore,p]=s.rows[1]; tile(ctx,x*8,4,MAT[m],x+ci*50,1,hash(x,ci,7)<p?ore:null,{t:false});
-    const top=s.rows[0]; const h=hash(x,ci,3)<.25?1:0;
-    ctx.save(); ctx.beginPath(); ctx.rect(x*8,h,8,4-h); ctx.clip();
-    tile(ctx,x*8,-4,MAT[top[0]],x+ci*50,0,cv.dataset.ramp==='dirt'?'grass':(hash(x,ci,9)<top[2]?top[1]:null),{t:false});
-    ctx.restore();
-    ctx.fillStyle=MAT[top[0]][1]; if(cv.dataset.ramp!=='dirt') ctx.fillRect(x*8,h,8,1);
-  }
-});
-
-/* ---------- biome textures for strata column ---------- */
-function texURL(kind){
-  const c=document.createElement('canvas'); c.width=16; c.height=16; const x=c.getContext('2d');
-  const map={grass:['dirt','grass'],stone:['stone','copper'],glow:['slate','glow'],water:['water','water'],crystal:['crystal','crystal'],ember:['ember','ember'],heart:['heart','gold']}[kind];
-  for(let ty=0;ty<2;ty++) for(let tx=0;tx<2;tx++){ const ore = kind==='grass' ? (ty===0?'grass':null) : ((tx+ty)%2===0?map[1]:null); tile(x,tx*8,ty*8,MAT[map[0]],tx+kind.length*3,ty+7,ore,null); }
-  return c.toDataURL();
-}
-document.querySelectorAll('.tex').forEach(el=>{ el.style.backgroundImage=`url(${texURL(el.dataset.tex)})`; });
-
-/* ---------- palette ---------- */
-const rampsEl=document.getElementById('ramps');
-Object.entries(RAMPS).forEach(([name,cols])=>{
-  const row=document.createElement('div'); row.className='ramp';
-  row.innerHTML=`<span class="label">${name}</span><div class="sws">${cols.map(c=>`<span class="sw"><i style="background:${c}"></i><code>${c}</code></span>`).join('')}</div>`;
-  rampsEl.appendChild(row);
-});
-const BIOME_PAL={
-  'Holloway':['#3B6E9C','#A6D9F2','#6CC04A','#4F9A3A','#8A5A3B','#7A3B2E'],
-  'Topsoil & Stone':['#8A5A3B','#6B4329','#6D7480','#555B66','#D9823B','#F2A35E'],
-  'Glowroot':['#4B4F6B','#373A52','#1E6B66','#5FF0D8','#B9FFF3','#878E9A'],
-  'Flooded Halls':['#262940','#373A52','#5F6487','#7FD6FF','#878E9A','#E8F4F0'],
-  'Singing Geodes':['#262940','#2A5E86','#7FD6FF','#C4F0FF','#4B4F6B','#FFF2A8'],
-  'Ember Deep':['#3A2A20','#7A2A1E','#E0532F','#FF9A3C','#FFD65A','#373A52'],
-  'Hollow Heart':['#141A33','#262940','#4B4F6B','#FFD65A','#FFF2A8','#B9FFF3'],
-};
-const bp=document.getElementById('biomepal');
-Object.entries(BIOME_PAL).forEach(([n,c])=>{ const d=document.createElement('div'); d.innerHTML=`<span>${n}</span><span class="row">${c.map(h=>`<i style="background:${h}"></i>`).join('')}</span>`; bp.appendChild(d); });
-
-/* ---------- tile sheet ---------- */
-(function(){
-  const cv=document.getElementById('tilesheet'), ctx=cv.getContext('2d');
-  ctx.fillStyle='#0B0E1F'; ctx.fillRect(0,0,184,64);
-  const cols=[['dirt','grass'],['dirt',null],['stone',null],['stone','copper'],['slate',null],['slate','gold'],['slate','glow'],['crystal','crystal'],['water','water'],['ember','ember'],['heart','gold']];
-  // 4 variants per row, 2 rows of tiles each 8px with 4px gap => fits 11 cols? 11*(8+4)*... use 2 rows of materials
-  cols.forEach(([m,o],i)=>{
-    const col=i%6,row=(i/6)|0;
-    for(let v=0;v<4;v++){
-      const X=8+col*30+(v%2)*8, Y=8+row*28+((v/2)|0)*8;
-      tile(ctx,X,Y,MAT[m],v*13+i,i,o,{t:v===0,l:v<2,b:v===3,r:v%2===1});
+    function spriteCanvas(rows, pal, c) {
+      c = c || document.createElement('canvas');
+      c.width = rows[0].length;
+      c.height = rows.length;
+      const x = c.getContext('2d');
+      x.clearRect(0, 0, c.width, c.height);
+      rows.forEach((r, y) =>
+        [...r].forEach((ch, i) => {
+          if (pal[ch]) {
+            x.fillStyle = pal[ch];
+            x.fillRect(i, y, 1, 1);
+          }
+        }),
+      );
+      return c;
     }
-  });
-})();
 
-/* ---------- light strip ---------- */
-(function(){
-  const el=document.getElementById('lightstrip'); const base=[109,116,128];
-  for(let i=0;i<12;i++){
-    const L=Math.max(0,1-i*0.085); const warm=Math.min(1,L);
-    const r=Math.round(base[0]*L+ (255-base[0])*0.08*L), g=Math.round(base[1]*L+ (170-base[1])*0.05*L), b=Math.round(base[2]*L);
-    const d=document.createElement('div'); d.style.background=`rgb(${Math.max(r,6)},${Math.max(g,8)},${Math.max(b,18)})`;
-    d.textContent=i===0?'🔥':L.toFixed(2); if(i===0){d.textContent='';const c=spriteCanvas(['.f.','fYf','.s.','.s.'],{f:'#FF9A3C',Y:'#FFF2A8',s:'#9C6B3F'});c.style.cssText='width:40%;height:auto;image-rendering:pixelated;margin:auto';d.style.alignItems='center';d.appendChild(c);}
-    el.appendChild(d);
-  }
-})();
+    /* draws one 8px tile; ore: null | 'copper' | 'gold' | 'crystal' | 'glow' | 'ember' | 'grass' */
+    function tile(ctx, X, Y, p, seedX, seedY, ore, edges) {
+      const px = (c, x, y, w = 1, h = 1) => {
+        ctx.fillStyle = c;
+        ctx.fillRect(X + x, Y + y, w, h);
+      };
+      px(p[0], 0, 0, 8, 8);
+      for (let i = 0; i < 5; i++) {
+        px(
+          i % 2 ? p[1] : p[2],
+          (hash(seedX, seedY, i) * 7) | 0,
+          (hash(seedX, seedY, i + 9) * 7) | 0,
+          i === 0 ? 2 : 1,
+          1,
+        );
+      }
+      if (edges) {
+        if (edges.t) px(p[1], 0, 0, 8, 1);
+        if (edges.l) px(p[1], 0, 0, 1, 8);
+        if (edges.b) px(p[2], 0, 7, 8, 1);
+        if (edges.r) px(p[2], 7, 0, 1, 8);
+      }
+      if (ore === 'copper')
+        [
+          [1, 2],
+          [4, 1],
+          [3, 5],
+        ].forEach(([a, c]) => {
+          px('#D9823B', a, c, 2, 1);
+          px('#F2A35E', a, c);
+          px('#9C5420', a + 1, c + 1);
+        });
+      if (ore === 'gold')
+        [
+          [2, 1],
+          [5, 4],
+          [1, 5],
+        ].forEach(([a, c]) => {
+          px('#FFD65A', a, c, 2, 1);
+          px('#FFF2A8', a, c);
+          px('#B8902A', a + 1, c + 1);
+        });
+      if (ore === 'crystal') {
+        px('#C4F0FF', 2, 1, 1, 3);
+        px('#7FD6FF', 3, 2, 1, 4);
+        px('#C4F0FF', 5, 3, 1, 2);
+      }
+      if (ore === 'glow') {
+        px('#1E6B66', 2, 3, 4, 3);
+        px('#5FF0D8', 3, 4);
+        px('#5FF0D8', 5, 2);
+        px('#B9FFF3', 1, 6);
+      }
+      if (ore === 'ember') {
+        px('#E0532F', 1, 2, 3, 1);
+        px('#FF9A3C', 2, 2);
+        px('#E0532F', 4, 5, 3, 1);
+        px('#FF9A3C', 5, 5);
+      }
+      if (ore === 'water') {
+        px('#5F6487', 0, 2, 3, 1);
+        px('#7FD6FF', 4, 4, 3, 1);
+        px('#5F6487', 1, 6, 2, 1);
+      }
+      if (ore === 'grass') {
+        px('#4F9A3A', 0, 0, 8, 2);
+        px('#6CC04A', 0, 0, 8, 1);
+        px('#3A7A2C', (hash(seedX, seedY, 2) * 6) | 0, 2, 2, 1);
+      }
+    }
 
-/* ---------- icons, characters, hotbar ---------- */
-const ICONS={
-  pick:{r:['.....ww.','....w..w','...s...w','..s.....','.s......','s.......','........','........'],p:{w:'#B8BEC9',s:'#9C6B3F'}},
-  torch:{r:['..ff....','.fYYf...','..ff....','..ss....','..ss....','..ss....','..ss....','........'],p:{f:'#FF9A3C',Y:'#FFF2A8',s:'#9C6B3F'}},
-  bar:{r:['........','........','.LLLLLL.','LooooooD','oooooooD','.DDDDDD.','........','........'],p:{L:'#F2A35E',o:'#D9823B',D:'#9C5420'}},
-  lantern:{r:['..kkkk..','..k..k..','.kkkkkk.','.kYYYYk.','.kYllYk.','.kYYYYk.','.kkkkkk.','........'],p:{k:'#3A2A20',Y:'#FFD65A',l:'#FFF2A8'}},
-  rail:{r:['........','s..s..s.','rrrrrrrr','s..s..s.','s..s..s.','rrrrrrrr','s..s..s.','........'],p:{s:'#74502E',r:'#8A909C'}},
-  crystal:{r:['...c....','..cCc...','..cCc..c','.ccCcc.C','.cCCCc.c','.cCCCc..','..ccc...','........'],p:{c:'#3E86B8',C:'#C4F0FF'}},
-  echo:{r:['..gggg..','.g....g.','g..gg..g','g.gGGg.g','g.gGGg.g','g..gg..g','.g....g.','..gggg..'],p:{g:'#5FF0D8',G:'#B9FFF3'}},
-};
-document.querySelectorAll('canvas[data-icon]').forEach(c=>{ const i=ICONS[c.dataset.icon]; spriteCanvas(i.r,i.p,c); });
-const CHARS={
-  foreman:{r:['..hhh...','.hhhHh..','..fff...','..fef...','.bbbbb..','bbbbbb..','..bbb...','..l.l...'],p:{h:'#E8B21E',H:'#FFF2A8',f:'#F0C29A',e:'#2A1A12',b:'#3D5AA8',l:'#3A2A20'}},
-  wren:{r:['..www...','.wwwww..','..fff...','..fef..Y','.ccccc.k','cccccc..','.cccc...','..l.l...'],p:{w:'#D8DDE6',f:'#E2B48C',e:'#2A1A12',c:'#5E3A6E',l:'#3A2A20',Y:'#FFD65A',k:'#3A2A20'}},
-  pell:{r:['........','..rrr...','.rrrrr..','..fff...','..fef...','.ggggg..','..ggg...','..l.l...'],p:{r:'#B5542E',f:'#F0C29A',e:'#2A1A12',g:'#4F9A3A',l:'#3A2A20'}},
-  bram:{r:['..ddd...','.dfffd..','..fef...','.dddd...','aaaaaa..','aaaaaaH.','.aaaa.H.','..l.l...'],p:{d:'#5A3A22',f:'#C98E66',e:'#2A1A12',a:'#6B4329',l:'#3A2A20',H:'#878E9A'}},
-};
-document.querySelectorAll('canvas[data-char]').forEach(c=>{ const i=CHARS[c.dataset.char]; spriteCanvas(i.r,i.p,c); });
-const hb=document.getElementById('hotbar');
-[['pick','1',true],['torch','99'],['bar','64'],['lantern','3'],['rail','40'],['crystal','7']].forEach(([k,n,on])=>{ const s=document.createElement('div'); s.className='slot'+(on?' on':''); const c=spriteCanvas(ICONS[k].r,ICONS[k].p); s.appendChild(c); const sp=document.createElement('span'); sp.textContent=n; s.appendChild(sp); hb.appendChild(s); });
-let miners=0; document.getElementById('hirebtn').addEventListener('click',e=>{ miners++; e.currentTarget.firstChild.textContent=`Hired ×${miners} `; });
+    /* ---------- strata dividers ---------- */
+    const STRATA = {
+      dirt: {
+        top: 'grass',
+        rows: [
+          ['dirt', null, 0],
+          ['dirt', 'copper', 0.05],
+        ],
+      },
+      stone: {
+        rows: [
+          ['stone', 'copper', 0.12],
+          ['stone', null, 0],
+        ],
+      },
+      glow: {
+        rows: [
+          ['slate', 'glow', 0.22],
+          ['stone', 'glow', 0.08],
+        ],
+      },
+      water: {
+        rows: [
+          ['water', 'water', 0.35],
+          ['slate', null, 0],
+        ],
+      },
+      crystal: {
+        rows: [
+          ['slate', 'crystal', 0.25],
+          ['crystal', 'crystal', 0.4],
+        ],
+      },
+      ember: {
+        rows: [
+          ['ember', 'ember', 0.3],
+          ['slate', 'gold', 0.08],
+        ],
+      },
+      heart: {
+        rows: [
+          ['heart', 'gold', 0.06],
+          ['heart', 'ember', 0.05],
+        ],
+      },
+    };
+    document.querySelectorAll('canvas.stratum').forEach((cv, ci) => {
+      const ctx = cv.getContext('2d');
+      const s = STRATA[cv.dataset.ramp];
+      // top jagged edge row: background so canvas has 12px = 1.5 tiles; draw tiles at y=4..12 and half row on top
+      ctx.clearRect(0, 0, 320, 12);
+      for (let x = 0; x < 40; x++) {
+        const [m, ore, p] = s.rows[1];
+        tile(ctx, x * 8, 4, MAT[m], x + ci * 50, 1, hash(x, ci, 7) < p ? ore : null, { t: false });
+        const top = s.rows[0];
+        const h = hash(x, ci, 3) < 0.25 ? 1 : 0;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x * 8, h, 8, 4 - h);
+        ctx.clip();
+        tile(
+          ctx,
+          x * 8,
+          -4,
+          MAT[top[0]],
+          x + ci * 50,
+          0,
+          cv.dataset.ramp === 'dirt' ? 'grass' : hash(x, ci, 9) < top[2] ? top[1] : null,
+          { t: false },
+        );
+        ctx.restore();
+        ctx.fillStyle = MAT[top[0]][1];
+        if (cv.dataset.ramp !== 'dirt') ctx.fillRect(x * 8, h, 8, 1);
+      }
+    });
 
-/* ---------- core loop svg ---------- */
-(function(){
-  const g=document.getElementById('loop'); const NS='http://www.w3.org/2000/svg';
-  const nodes=[['DIG','#A46D48'],['HAUL','#C9A26B'],['SMELT','#F2A35E'],['CRAFT','#878E9A'],['LIGHT','#FFD65A'],['DESCEND','#7FD6FF']];
-  const cx=230,cy=210,R=160;
-  const pts=nodes.map((n,i)=>{const a=-Math.PI/2+i*Math.PI*2/6;return [cx+R*Math.cos(a),cy+R*Math.sin(a)];});
-  pts.forEach((p,i)=>{ const q=pts[(i+1)%6]; const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy); const k=46/L;
-    const ln=document.createElementNS(NS,'line'); ln.setAttribute('x1',p[0]+dx*k); ln.setAttribute('y1',p[1]+dy*k); ln.setAttribute('x2',q[0]-dx*k); ln.setAttribute('y2',q[1]-dy*k); ln.setAttribute('stroke','#8DA2E8'); ln.setAttribute('stroke-width','3'); ln.setAttribute('stroke-dasharray','6 4'); ln.setAttribute('marker-end','url(#ar)'); g.appendChild(ln); });
-  pts.forEach((p,i)=>{ const r=document.createElementNS(NS,'rect'); r.setAttribute('x',p[0]-44); r.setAttribute('y',p[1]-18); r.setAttribute('width',88); r.setAttribute('height',36); r.setAttribute('rx',4); r.setAttribute('fill','#1B2347'); r.setAttribute('stroke',nodes[i][1]); r.setAttribute('stroke-width','3'); g.appendChild(r);
-    const t=document.createElementNS(NS,'text'); t.setAttribute('x',p[0]); t.setAttribute('y',p[1]+5); t.setAttribute('text-anchor','middle'); t.setAttribute('font-family','Silkscreen, monospace'); t.setAttribute('font-size','13'); t.setAttribute('fill',nodes[i][1]); t.textContent=nodes[i][0]; g.appendChild(t); });
-  // spokes to centre from DESCEND (verse found off-path)
-  const s=document.createElementNS(NS,'line'); s.setAttribute('x1',pts[5][0]+30); s.setAttribute('y1',pts[5][1]+16); s.setAttribute('x2',176); s.setAttribute('y2',190); s.setAttribute('stroke','#7FD6FF'); s.setAttribute('stroke-width','2'); s.setAttribute('stroke-dasharray','2 4'); g.appendChild(s);
-})();
+    /* ---------- biome textures for strata column ---------- */
+    function texURL(kind) {
+      const c = document.createElement('canvas');
+      c.width = 16;
+      c.height = 16;
+      const x = c.getContext('2d');
+      const map = {
+        grass: ['dirt', 'grass'],
+        stone: ['stone', 'copper'],
+        glow: ['slate', 'glow'],
+        water: ['water', 'water'],
+        crystal: ['crystal', 'crystal'],
+        ember: ['ember', 'ember'],
+        heart: ['heart', 'gold'],
+      }[kind];
+      for (let ty = 0; ty < 2; ty++)
+        for (let tx = 0; tx < 2; tx++) {
+          const ore = kind === 'grass' ? (ty === 0 ? 'grass' : null) : (tx + ty) % 2 === 0 ? map[1] : null;
+          tile(x, tx * 8, ty * 8, MAT[map[0]], tx + kind.length * 3, ty + 7, ore, null);
+        }
+      return c.toDataURL();
+    }
+    document.querySelectorAll('.tex').forEach((el) => {
+      el.style.backgroundImage = `url(${texURL(el.dataset.tex)})`;
+    });
 
-/* ---------- cover key art (same renderer as concept mockup) ---------- */
-(function(){
-  const cv=document.getElementById('cover'), ctx=cv.getContext('2d');
-  const T=8, COLS=40, ROWS=25;
-  const A=0,DIRT=1,GRASS=2,STONE=3,DEEP=4,COP=5,GOLD=6,CRYS=7;
-  const PAL={[DIRT]:MAT.dirt,[GRASS]:MAT.dirt,[STONE]:MAT.stone,[DEEP]:MAT.slate,[COP]:MAT.stone,[GOLD]:MAT.slate,[CRYS]:['#3E86B8','#7FD6FF','#2A5E86']};
-  const g=[],wall=[],surf=[];
-  for(let x=0;x<COLS;x++){ let s=8+Math.round(Math.sin(x*.45)*0.8+Math.sin(x*.17+1)*0.9); if(x>=2&&x<=12)s=8; if(x>=18&&x<=25)s=8; surf[x]=s; }
-  for(let y=0;y<ROWS;y++){g[y]=[];wall[y]=[];for(let x=0;x<COLS;x++){ let t=A; const s=surf[x];
-    if(y===s)t=GRASS; else if(y>s){ const d=y-s; t=d<4?DIRT:(y<19?STONE:DEEP); if(t===STONE&&hash(x,y,3)<.08)t=DIRT; if(t===STONE&&hash(x,y,5)<.07)t=COP; if(t===DEEP&&hash(x,y,7)<.06)t=GOLD; }
-    g[y][x]=t; wall[y][x]=y>s?(t===A?DIRT:t):A; }}
-  const carve=(x,y)=>{ if(y>=0&&y<ROWS&&x>=0&&x<COLS&&g[y][x]!==A){ wall[y][x]=y>12?(y>18?DEEP:STONE):DIRT; g[y][x]=A; } };
-  for(let y=9;y<=22;y++){carve(21,y);carve(22,y);}
-  for(let x=7;x<=21;x++){carve(x,16);carve(x,17);}
-  for(let y=-3;y<=3;y++)for(let x=-7;x<=7;x++)if((x*x)/49+(y*y)/7<1)carve(11+x,15+y);
-  for(let x=22;x<=30;x++){carve(x,21);carve(x,22);}
-  for(let y=-3;y<=3;y++)for(let x=-5;x<=5;x++)if((x*x)/25+(y*y)/7.5<1)carve(32+x,21+y);
-  for(let y=16;y<ROWS;y++)for(let x=25;x<COLS;x++)if(g[y][x]!==A){const n=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>g[y+dy]&&g[y+dy][x+dx]===A); if(n&&Math.hypot(x-32,(y-21)*1.4)<7.5)g[y][x]=CRYS;}
-  const torches=[[20,11],[23,15],[16,15],[20,20],[27,20]];
-  const shrooms=[[6,17],[9,17],[13,17],[16,17]];
-  function computeLight(){
-    const fl=reduce?1:(0.94+Math.random()*0.12);
-    const W=[],C=[]; for(let y=0;y<ROWS;y++){W[y]=[];C[y]=[];for(let x=0;x<COLS;x++){W[y][x]=y<=surf[x]?1:0;C[y][x]=0;}}
-    torches.forEach(([x,y])=>W[y][x]=fl); W[22][22]=.8; shrooms.forEach(([x,y])=>C[y][x]=.85); C[21][32]=.9; C[22][28]=.6;
-    for(let pass=0;pass<14;pass++) for(const L of [W,C]) for(let y=0;y<ROWS;y++) for(let x=0;x<COLS;x++){ const dec=g[y][x]!==A?0.26:0.085; let b=L[y][x];
-      if(x>0)b=Math.max(b,L[y][x-1]-dec); if(x<COLS-1)b=Math.max(b,L[y][x+1]-dec); if(y>0)b=Math.max(b,L[y-1][x]-dec); if(y<ROWS-1)b=Math.max(b,L[y+1][x]-dec); L[y][x]=b; }
-    return [W,C];
-  }
-  const base=document.createElement('canvas'); base.width=320; base.height=200; const b=base.getContext('2d');
-  const px=(c,x,y,w=1,h=1)=>{b.fillStyle=c;b.fillRect(x,y,w,h);};
-  const sky=['#5AA8DA','#69B4E2','#7BC1E8','#8FCDEE','#A6D9F2','#BFE6F5'];
-  for(let y=0;y<80;y++){px(sky[Math.min(5,(y/12)|0)],0,y,320,1);} for(let i=1;i<6;i++)for(let x=0;x<320;x+=2)px(sky[i],x+(i%2),i*12-1);
-  b.fillStyle='#7FA9C9'; for(let x=0;x<320;x++){const h=Math.round(46+Math.sin(x*.03)*8+Math.sin(x*.011+2)*6);b.fillRect(x,h,1,80-h);}
-  b.fillStyle='#5E8FA8'; for(let x=0;x<320;x++){const h=Math.round(56+Math.sin(x*.05+1)*5+Math.sin(x*.021)*4);b.fillRect(x,h,1,80-h);}
-  [[30,14],[150,8],[250,20]].forEach(([cx,cy])=>{b.fillStyle='#F2FAFF';b.fillRect(cx,cy,26,4);b.fillRect(cx+4,cy-3,14,3);b.fillRect(cx+8,cy-5,8,2);b.fillStyle='#D5ECF7';b.fillRect(cx,cy+4,26,1);});
-  b.fillStyle='#0C0F1E'; b.fillRect(0,64,320,136);
-  const air=(x,y)=>y>=0&&y<ROWS&&x>=0&&x<COLS&&g[y][x]===A;
-  const dimmed=p=>p.map(h=>{const n=parseInt(h.slice(1),16);return `rgb(${((n>>16)&255)*.42|0},${((n>>8)&255)*.42|0},${(n&255)*.42|0})`;});
-  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    const t=g[y][x];
-    if(t!==A){ const ore={[COP]:'copper',[GOLD]:'gold',[CRYS]:'crystal',[GRASS]:'grass'}[t]||null;
-      tile(b,x*T,y*T,PAL[t],x,y,ore,{t:air(x,y-1),b:air(x,y+1),l:air(x-1,y),r:air(x+1,y)});
-      if(t===GRASS&&air(x,y-1))for(let i=0;i<3;i++){const bx=x*T+((hash(x,y,20+i)*7)|0);const hh=1+((hash(x,y,30+i)*2)|0);px('#6CC04A',bx,y*T-hh,1,hh);} }
-    else if(wall[y][x]!==A) tile(b,x*T,y*T,dimmed(PAL[wall[y][x]]),x,y,null,null);
-  }
-  for(let y=9*T;y<22*T;y+=2){px('#C9A26B',21*T+3,y);px('#9C7A48',21*T+3,y+1);}
-  [13,18].forEach(r=>{px('#B9824F',21*T,r*T,16,2);px('#74502E',21*T,r*T+2,16,1);});
-  for(let x=23*T;x<30*T;x++){px('#5A5F6B',x,23*T-2);if(x%4===0)px('#74502E',x,23*T-1,2,1);}
-  const hx=32,hy=64; b.fillStyle='#9C6B3F';b.fillRect(hx,hy-22,40,22); for(let i=0;i<5;i++){b.fillStyle=i%2?'#B9824F':'#8C5F37';b.fillRect(hx,hy-22+i*4+1,40,1);}
-  for(let i=0;i<14;i++){b.fillStyle='#7A3B2E';b.fillRect(hx-4+i,hy-22-i,48-2*i,1);b.fillStyle='#A1503C';b.fillRect(hx-4+i,hy-22-i,2,1);}
-  px('#4A2E1A',hx+16,hy-12,8,12); px('#FFD65A',hx+22,hy-6);
-  [[4],[29]].forEach(([o])=>{px('#FFE08A',hx+o,hy-16,7,6);px('#4A2E1A',hx+o+3,hy-16,1,6);px('#4A2E1A',hx+o,hy-13,7,1);});
-  const tx=122,ty=64; px('#6B4329',tx+3,ty-20,4,20); px('#8A5A3B',tx+3,ty-20,1,20);
-  [['#3A7A2C',-6,-38,22,16],['#4F9A3A',-4,-40,18,12],['#6CC04A',-2,-40,8,4],['#3A7A2C',-8,-28,26,8]].forEach(([c,a,bb,w,h])=>px(c,tx+a,ty+bb,w,h));
-  px('#74502E',21*T-2,46,2,18); px('#74502E',23*T,46,2,18); px('#74502E',21*T-4,44,24,3); px('#C9A26B',21*T+3,47,1,17);
-  const cx=120,cy=144; px('#74502E',cx-1,cy-6,9,6); px('#9C6B3F',cx,cy-6,7,2); px('#FFD65A',cx+3,cy-4,1,2); px('#B8902A',cx-1,cy-4,9,1);
-  shrooms.forEach(([x,y])=>{const X=x*T+2,Y=y*T+T;px('#E8F4F0',X+1,Y-3,1,3);px('#5FF0D8',X,Y-5,3,2);px('#B9FFF3',X+1,Y-5);});
-  const minerS=spriteCanvas(CHARS.foreman.r,CHARS.foreman.p);
-  const pickA=spriteCanvas(['...ww','..w..','.s...','s....'],{w:'#B8BEC9',s:'#9C6B3F'});
-  const pickB=spriteCanvas(['.....','.....','sssww','.....'],{w:'#B8BEC9',s:'#9C6B3F'});
-  const torchS=spriteCanvas(['.f.','fYf','.s.','.s.'],{f:'#FF9A3C',Y:'#FFF2A8',s:'#9C6B3F'});
-  let frame=0,parts=[];
-  function render(){
-    const [W,C]=computeLight(); ctx.drawImage(base,0,0);
-    torches.forEach(([x,y])=>ctx.drawImage(torchS,x*T+2,y*T+3));
-    ctx.drawImage(minerS,22*T-1,22*T); ctx.drawImage(frame%2?pickB:pickA,22*T+5,22*T+3);
-    parts.forEach(p=>{ctx.fillStyle=p.c;ctx.fillRect(p.x|0,p.y|0,1,1);});
-    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ const w=W[y][x],c=C[y][x],L=Math.min(1,w+c),dk=(1-L)*.94;
-      if(dk>.01){ctx.fillStyle=`rgba(6,8,18,${dk.toFixed(3)})`;ctx.fillRect(x*T,y*T,T,T);}
-      if(c>.12&&y>surf[x]){ctx.fillStyle=`rgba(70,230,220,${(c*.16).toFixed(3)})`;ctx.fillRect(x*T,y*T,T,T);}
-      if(w>.2&&y>surf[x]+1){ctx.fillStyle=`rgba(255,170,70,${(Math.min(w,1)*.07).toFixed(3)})`;ctx.fillRect(x*T,y*T,T,T);} }
-  }
-  render();
-  if(!reduce) setInterval(()=>{ frame++; if(frame%2===0)for(let i=0;i<3;i++)parts.push({x:23*T+1,y:22*T+3+Math.random()*4,vx:Math.random()*1.2-.2,vy:-Math.random()*1.4,c:Math.random()<.5?'#D9823B':'#878E9A',life:10}); parts=parts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.25;return --p.life>0;}); render(); },180);
-})();
+    /* ---------- palette ---------- */
+    const rampsEl = document.getElementById('ramps');
+    Object.entries(RAMPS).forEach(([name, cols]) => {
+      const row = document.createElement('div');
+      row.className = 'ramp';
+      row.innerHTML = `<span class="label">${name}</span><div class="sws">${cols.map((c) => `<span class="sw"><i style="background:${c}"></i><code>${c}</code></span>`).join('')}</div>`;
+      rampsEl.appendChild(row);
+    });
+    const BIOME_PAL = {
+      Holloway: ['#3B6E9C', '#A6D9F2', '#6CC04A', '#4F9A3A', '#8A5A3B', '#7A3B2E'],
+      'Topsoil & Stone': ['#8A5A3B', '#6B4329', '#6D7480', '#555B66', '#D9823B', '#F2A35E'],
+      Glowroot: ['#4B4F6B', '#373A52', '#1E6B66', '#5FF0D8', '#B9FFF3', '#878E9A'],
+      'Flooded Halls': ['#262940', '#373A52', '#5F6487', '#7FD6FF', '#878E9A', '#E8F4F0'],
+      'Singing Geodes': ['#262940', '#2A5E86', '#7FD6FF', '#C4F0FF', '#4B4F6B', '#FFF2A8'],
+      'Ember Deep': ['#3A2A20', '#7A2A1E', '#E0532F', '#FF9A3C', '#FFD65A', '#373A52'],
+      'Hollow Heart': ['#141A33', '#262940', '#4B4F6B', '#FFD65A', '#FFF2A8', '#B9FFF3'],
+    };
+    const bp = document.getElementById('biomepal');
+    Object.entries(BIOME_PAL).forEach(([n, c]) => {
+      const d = document.createElement('div');
+      d.innerHTML = `<span>${n}</span><span class="row">${c.map((h) => `<i style="background:${h}"></i>`).join('')}</span>`;
+      bp.appendChild(d);
+    });
 
-/* ---------- depth gauge highlight ---------- */
-(function(){
-  const links=[...document.querySelectorAll('.gauge a')]; const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
-  const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ links.forEach(l=>l.classList.remove('on')); map.get(e.target.id)?.classList.add('on'); } }); },{rootMargin:'-30% 0px -60% 0px'});
-  document.querySelectorAll('main section[id]').forEach(s=>io.observe(s));
-  links[0].classList.add('on');
-})();
-</script>
+    /* ---------- tile sheet ---------- */
+    (function () {
+      const cv = document.getElementById('tilesheet'),
+        ctx = cv.getContext('2d');
+      ctx.fillStyle = '#0B0E1F';
+      ctx.fillRect(0, 0, 184, 64);
+      const cols = [
+        ['dirt', 'grass'],
+        ['dirt', null],
+        ['stone', null],
+        ['stone', 'copper'],
+        ['slate', null],
+        ['slate', 'gold'],
+        ['slate', 'glow'],
+        ['crystal', 'crystal'],
+        ['water', 'water'],
+        ['ember', 'ember'],
+        ['heart', 'gold'],
+      ];
+      // 4 variants per row, 2 rows of tiles each 8px with 4px gap => fits 11 cols? 11*(8+4)*... use 2 rows of materials
+      cols.forEach(([m, o], i) => {
+        const col = i % 6,
+          row = (i / 6) | 0;
+        for (let v = 0; v < 4; v++) {
+          const X = 8 + col * 30 + (v % 2) * 8,
+            Y = 8 + row * 28 + ((v / 2) | 0) * 8;
+          tile(ctx, X, Y, MAT[m], v * 13 + i, i, o, { t: v === 0, l: v < 2, b: v === 3, r: v % 2 === 1 });
+        }
+      });
+    })();
+
+    /* ---------- light strip ---------- */
+    (function () {
+      const el = document.getElementById('lightstrip');
+      const base = [109, 116, 128];
+      for (let i = 0; i < 12; i++) {
+        const L = Math.max(0, 1 - i * 0.085);
+        const warm = Math.min(1, L);
+        const r = Math.round(base[0] * L + (255 - base[0]) * 0.08 * L),
+          g = Math.round(base[1] * L + (170 - base[1]) * 0.05 * L),
+          b = Math.round(base[2] * L);
+        const d = document.createElement('div');
+        d.style.background = `rgb(${Math.max(r, 6)},${Math.max(g, 8)},${Math.max(b, 18)})`;
+        d.textContent = i === 0 ? '🔥' : L.toFixed(2);
+        if (i === 0) {
+          d.textContent = '';
+          const c = spriteCanvas(['.f.', 'fYf', '.s.', '.s.'], { f: '#FF9A3C', Y: '#FFF2A8', s: '#9C6B3F' });
+          c.style.cssText = 'width:40%;height:auto;image-rendering:pixelated;margin:auto';
+          d.style.alignItems = 'center';
+          d.appendChild(c);
+        }
+        el.appendChild(d);
+      }
+    })();
+
+    /* ---------- icons, characters, hotbar ---------- */
+    const ICONS = {
+      pick: {
+        r: ['.....ww.', '....w..w', '...s...w', '..s.....', '.s......', 's.......', '........', '........'],
+        p: { w: '#B8BEC9', s: '#9C6B3F' },
+      },
+      torch: {
+        r: ['..ff....', '.fYYf...', '..ff....', '..ss....', '..ss....', '..ss....', '..ss....', '........'],
+        p: { f: '#FF9A3C', Y: '#FFF2A8', s: '#9C6B3F' },
+      },
+      bar: {
+        r: ['........', '........', '.LLLLLL.', 'LooooooD', 'oooooooD', '.DDDDDD.', '........', '........'],
+        p: { L: '#F2A35E', o: '#D9823B', D: '#9C5420' },
+      },
+      lantern: {
+        r: ['..kkkk..', '..k..k..', '.kkkkkk.', '.kYYYYk.', '.kYllYk.', '.kYYYYk.', '.kkkkkk.', '........'],
+        p: { k: '#3A2A20', Y: '#FFD65A', l: '#FFF2A8' },
+      },
+      rail: {
+        r: ['........', 's..s..s.', 'rrrrrrrr', 's..s..s.', 's..s..s.', 'rrrrrrrr', 's..s..s.', '........'],
+        p: { s: '#74502E', r: '#8A909C' },
+      },
+      crystal: {
+        r: ['...c....', '..cCc...', '..cCc..c', '.ccCcc.C', '.cCCCc.c', '.cCCCc..', '..ccc...', '........'],
+        p: { c: '#3E86B8', C: '#C4F0FF' },
+      },
+      echo: {
+        r: ['..gggg..', '.g....g.', 'g..gg..g', 'g.gGGg.g', 'g.gGGg.g', 'g..gg..g', '.g....g.', '..gggg..'],
+        p: { g: '#5FF0D8', G: '#B9FFF3' },
+      },
+    };
+    document.querySelectorAll('canvas[data-icon]').forEach((c) => {
+      const i = ICONS[c.dataset.icon];
+      spriteCanvas(i.r, i.p, c);
+    });
+    const CHARS = {
+      foreman: {
+        r: ['..hhh...', '.hhhHh..', '..fff...', '..fef...', '.bbbbb..', 'bbbbbb..', '..bbb...', '..l.l...'],
+        p: { h: '#E8B21E', H: '#FFF2A8', f: '#F0C29A', e: '#2A1A12', b: '#3D5AA8', l: '#3A2A20' },
+      },
+      wren: {
+        r: ['..www...', '.wwwww..', '..fff...', '..fef..Y', '.ccccc.k', 'cccccc..', '.cccc...', '..l.l...'],
+        p: {
+          w: '#D8DDE6',
+          f: '#E2B48C',
+          e: '#2A1A12',
+          c: '#5E3A6E',
+          l: '#3A2A20',
+          Y: '#FFD65A',
+          k: '#3A2A20',
+        },
+      },
+      pell: {
+        r: ['........', '..rrr...', '.rrrrr..', '..fff...', '..fef...', '.ggggg..', '..ggg...', '..l.l...'],
+        p: { r: '#B5542E', f: '#F0C29A', e: '#2A1A12', g: '#4F9A3A', l: '#3A2A20' },
+      },
+      bram: {
+        r: ['..ddd...', '.dfffd..', '..fef...', '.dddd...', 'aaaaaa..', 'aaaaaaH.', '.aaaa.H.', '..l.l...'],
+        p: { d: '#5A3A22', f: '#C98E66', e: '#2A1A12', a: '#6B4329', l: '#3A2A20', H: '#878E9A' },
+      },
+    };
+    document.querySelectorAll('canvas[data-char]').forEach((c) => {
+      const i = CHARS[c.dataset.char];
+      spriteCanvas(i.r, i.p, c);
+    });
+    const hb = document.getElementById('hotbar');
+    [
+      ['pick', '1', true],
+      ['torch', '99'],
+      ['bar', '64'],
+      ['lantern', '3'],
+      ['rail', '40'],
+      ['crystal', '7'],
+    ].forEach(([k, n, on]) => {
+      const s = document.createElement('div');
+      s.className = 'slot' + (on ? ' on' : '');
+      const c = spriteCanvas(ICONS[k].r, ICONS[k].p);
+      s.appendChild(c);
+      const sp = document.createElement('span');
+      sp.textContent = n;
+      s.appendChild(sp);
+      hb.appendChild(s);
+    });
+    let miners = 0;
+    document.getElementById('hirebtn').addEventListener('click', (e) => {
+      miners++;
+      e.currentTarget.firstChild.textContent = `Hired ×${miners} `;
+    });
+
+    /* ---------- core loop svg ---------- */
+    (function () {
+      const g = document.getElementById('loop');
+      const NS = 'http://www.w3.org/2000/svg';
+      const nodes = [
+        ['DIG', '#A46D48'],
+        ['HAUL', '#C9A26B'],
+        ['SMELT', '#F2A35E'],
+        ['CRAFT', '#878E9A'],
+        ['LIGHT', '#FFD65A'],
+        ['DESCEND', '#7FD6FF'],
+      ];
+      const cx = 230,
+        cy = 210,
+        R = 160;
+      const pts = nodes.map((n, i) => {
+        const a = -Math.PI / 2 + (i * Math.PI * 2) / 6;
+        return [cx + R * Math.cos(a), cy + R * Math.sin(a)];
+      });
+      pts.forEach((p, i) => {
+        const q = pts[(i + 1) % 6];
+        const dx = q[0] - p[0],
+          dy = q[1] - p[1],
+          L = Math.hypot(dx, dy);
+        const k = 46 / L;
+        const ln = document.createElementNS(NS, 'line');
+        ln.setAttribute('x1', p[0] + dx * k);
+        ln.setAttribute('y1', p[1] + dy * k);
+        ln.setAttribute('x2', q[0] - dx * k);
+        ln.setAttribute('y2', q[1] - dy * k);
+        ln.setAttribute('stroke', '#8DA2E8');
+        ln.setAttribute('stroke-width', '3');
+        ln.setAttribute('stroke-dasharray', '6 4');
+        ln.setAttribute('marker-end', 'url(#ar)');
+        g.appendChild(ln);
+      });
+      pts.forEach((p, i) => {
+        const r = document.createElementNS(NS, 'rect');
+        r.setAttribute('x', p[0] - 44);
+        r.setAttribute('y', p[1] - 18);
+        r.setAttribute('width', 88);
+        r.setAttribute('height', 36);
+        r.setAttribute('rx', 4);
+        r.setAttribute('fill', '#1B2347');
+        r.setAttribute('stroke', nodes[i][1]);
+        r.setAttribute('stroke-width', '3');
+        g.appendChild(r);
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', p[0]);
+        t.setAttribute('y', p[1] + 5);
+        t.setAttribute('text-anchor', 'middle');
+        t.setAttribute('font-family', 'Silkscreen, monospace');
+        t.setAttribute('font-size', '13');
+        t.setAttribute('fill', nodes[i][1]);
+        t.textContent = nodes[i][0];
+        g.appendChild(t);
+      });
+      // spokes to centre from DESCEND (verse found off-path)
+      const s = document.createElementNS(NS, 'line');
+      s.setAttribute('x1', pts[5][0] + 30);
+      s.setAttribute('y1', pts[5][1] + 16);
+      s.setAttribute('x2', 176);
+      s.setAttribute('y2', 190);
+      s.setAttribute('stroke', '#7FD6FF');
+      s.setAttribute('stroke-width', '2');
+      s.setAttribute('stroke-dasharray', '2 4');
+      g.appendChild(s);
+    })();
+
+    /* ---------- cover key art (same renderer as concept mockup) ---------- */
+    (function () {
+      const cv = document.getElementById('cover'),
+        ctx = cv.getContext('2d');
+      const T = 8,
+        COLS = 40,
+        ROWS = 25;
+      const A = 0,
+        DIRT = 1,
+        GRASS = 2,
+        STONE = 3,
+        DEEP = 4,
+        COP = 5,
+        GOLD = 6,
+        CRYS = 7;
+      const PAL = {
+        [DIRT]: MAT.dirt,
+        [GRASS]: MAT.dirt,
+        [STONE]: MAT.stone,
+        [DEEP]: MAT.slate,
+        [COP]: MAT.stone,
+        [GOLD]: MAT.slate,
+        [CRYS]: ['#3E86B8', '#7FD6FF', '#2A5E86'],
+      };
+      const g = [],
+        wall = [],
+        surf = [];
+      for (let x = 0; x < COLS; x++) {
+        let s = 8 + Math.round(Math.sin(x * 0.45) * 0.8 + Math.sin(x * 0.17 + 1) * 0.9);
+        if (x >= 2 && x <= 12) s = 8;
+        if (x >= 18 && x <= 25) s = 8;
+        surf[x] = s;
+      }
+      for (let y = 0; y < ROWS; y++) {
+        g[y] = [];
+        wall[y] = [];
+        for (let x = 0; x < COLS; x++) {
+          let t = A;
+          const s = surf[x];
+          if (y === s) t = GRASS;
+          else if (y > s) {
+            const d = y - s;
+            t = d < 4 ? DIRT : y < 19 ? STONE : DEEP;
+            if (t === STONE && hash(x, y, 3) < 0.08) t = DIRT;
+            if (t === STONE && hash(x, y, 5) < 0.07) t = COP;
+            if (t === DEEP && hash(x, y, 7) < 0.06) t = GOLD;
+          }
+          g[y][x] = t;
+          wall[y][x] = y > s ? (t === A ? DIRT : t) : A;
+        }
+      }
+      const carve = (x, y) => {
+        if (y >= 0 && y < ROWS && x >= 0 && x < COLS && g[y][x] !== A) {
+          wall[y][x] = y > 12 ? (y > 18 ? DEEP : STONE) : DIRT;
+          g[y][x] = A;
+        }
+      };
+      for (let y = 9; y <= 22; y++) {
+        carve(21, y);
+        carve(22, y);
+      }
+      for (let x = 7; x <= 21; x++) {
+        carve(x, 16);
+        carve(x, 17);
+      }
+      for (let y = -3; y <= 3; y++)
+        for (let x = -7; x <= 7; x++) if ((x * x) / 49 + (y * y) / 7 < 1) carve(11 + x, 15 + y);
+      for (let x = 22; x <= 30; x++) {
+        carve(x, 21);
+        carve(x, 22);
+      }
+      for (let y = -3; y <= 3; y++)
+        for (let x = -5; x <= 5; x++) if ((x * x) / 25 + (y * y) / 7.5 < 1) carve(32 + x, 21 + y);
+      for (let y = 16; y < ROWS; y++)
+        for (let x = 25; x < COLS; x++)
+          if (g[y][x] !== A) {
+            const n = [
+              [1, 0],
+              [-1, 0],
+              [0, 1],
+              [0, -1],
+            ].some(([dx, dy]) => g[y + dy] && g[y + dy][x + dx] === A);
+            if (n && Math.hypot(x - 32, (y - 21) * 1.4) < 7.5) g[y][x] = CRYS;
+          }
+      const torches = [
+        [20, 11],
+        [23, 15],
+        [16, 15],
+        [20, 20],
+        [27, 20],
+      ];
+      const shrooms = [
+        [6, 17],
+        [9, 17],
+        [13, 17],
+        [16, 17],
+      ];
+      function computeLight() {
+        const fl = reduce ? 1 : 0.94 + Math.random() * 0.12;
+        const W = [],
+          C = [];
+        for (let y = 0; y < ROWS; y++) {
+          W[y] = [];
+          C[y] = [];
+          for (let x = 0; x < COLS; x++) {
+            W[y][x] = y <= surf[x] ? 1 : 0;
+            C[y][x] = 0;
+          }
+        }
+        torches.forEach(([x, y]) => (W[y][x] = fl));
+        W[22][22] = 0.8;
+        shrooms.forEach(([x, y]) => (C[y][x] = 0.85));
+        C[21][32] = 0.9;
+        C[22][28] = 0.6;
+        for (let pass = 0; pass < 14; pass++)
+          for (const L of [W, C])
+            for (let y = 0; y < ROWS; y++)
+              for (let x = 0; x < COLS; x++) {
+                const dec = g[y][x] !== A ? 0.26 : 0.085;
+                let b = L[y][x];
+                if (x > 0) b = Math.max(b, L[y][x - 1] - dec);
+                if (x < COLS - 1) b = Math.max(b, L[y][x + 1] - dec);
+                if (y > 0) b = Math.max(b, L[y - 1][x] - dec);
+                if (y < ROWS - 1) b = Math.max(b, L[y + 1][x] - dec);
+                L[y][x] = b;
+              }
+        return [W, C];
+      }
+      const base = document.createElement('canvas');
+      base.width = 320;
+      base.height = 200;
+      const b = base.getContext('2d');
+      const px = (c, x, y, w = 1, h = 1) => {
+        b.fillStyle = c;
+        b.fillRect(x, y, w, h);
+      };
+      const sky = ['#5AA8DA', '#69B4E2', '#7BC1E8', '#8FCDEE', '#A6D9F2', '#BFE6F5'];
+      for (let y = 0; y < 80; y++) {
+        px(sky[Math.min(5, (y / 12) | 0)], 0, y, 320, 1);
+      }
+      for (let i = 1; i < 6; i++) for (let x = 0; x < 320; x += 2) px(sky[i], x + (i % 2), i * 12 - 1);
+      b.fillStyle = '#7FA9C9';
+      for (let x = 0; x < 320; x++) {
+        const h = Math.round(46 + Math.sin(x * 0.03) * 8 + Math.sin(x * 0.011 + 2) * 6);
+        b.fillRect(x, h, 1, 80 - h);
+      }
+      b.fillStyle = '#5E8FA8';
+      for (let x = 0; x < 320; x++) {
+        const h = Math.round(56 + Math.sin(x * 0.05 + 1) * 5 + Math.sin(x * 0.021) * 4);
+        b.fillRect(x, h, 1, 80 - h);
+      }
+      [
+        [30, 14],
+        [150, 8],
+        [250, 20],
+      ].forEach(([cx, cy]) => {
+        b.fillStyle = '#F2FAFF';
+        b.fillRect(cx, cy, 26, 4);
+        b.fillRect(cx + 4, cy - 3, 14, 3);
+        b.fillRect(cx + 8, cy - 5, 8, 2);
+        b.fillStyle = '#D5ECF7';
+        b.fillRect(cx, cy + 4, 26, 1);
+      });
+      b.fillStyle = '#0C0F1E';
+      b.fillRect(0, 64, 320, 136);
+      const air = (x, y) => y >= 0 && y < ROWS && x >= 0 && x < COLS && g[y][x] === A;
+      const dimmed = (p) =>
+        p.map((h) => {
+          const n = parseInt(h.slice(1), 16);
+          return `rgb(${(((n >> 16) & 255) * 0.42) | 0},${(((n >> 8) & 255) * 0.42) | 0},${((n & 255) * 0.42) | 0})`;
+        });
+      for (let y = 0; y < ROWS; y++)
+        for (let x = 0; x < COLS; x++) {
+          const t = g[y][x];
+          if (t !== A) {
+            const ore = { [COP]: 'copper', [GOLD]: 'gold', [CRYS]: 'crystal', [GRASS]: 'grass' }[t] || null;
+            tile(b, x * T, y * T, PAL[t], x, y, ore, {
+              t: air(x, y - 1),
+              b: air(x, y + 1),
+              l: air(x - 1, y),
+              r: air(x + 1, y),
+            });
+            if (t === GRASS && air(x, y - 1))
+              for (let i = 0; i < 3; i++) {
+                const bx = x * T + ((hash(x, y, 20 + i) * 7) | 0);
+                const hh = 1 + ((hash(x, y, 30 + i) * 2) | 0);
+                px('#6CC04A', bx, y * T - hh, 1, hh);
+              }
+          } else if (wall[y][x] !== A) tile(b, x * T, y * T, dimmed(PAL[wall[y][x]]), x, y, null, null);
+        }
+      for (let y = 9 * T; y < 22 * T; y += 2) {
+        px('#C9A26B', 21 * T + 3, y);
+        px('#9C7A48', 21 * T + 3, y + 1);
+      }
+      [13, 18].forEach((r) => {
+        px('#B9824F', 21 * T, r * T, 16, 2);
+        px('#74502E', 21 * T, r * T + 2, 16, 1);
+      });
+      for (let x = 23 * T; x < 30 * T; x++) {
+        px('#5A5F6B', x, 23 * T - 2);
+        if (x % 4 === 0) px('#74502E', x, 23 * T - 1, 2, 1);
+      }
+      const hx = 32,
+        hy = 64;
+      b.fillStyle = '#9C6B3F';
+      b.fillRect(hx, hy - 22, 40, 22);
+      for (let i = 0; i < 5; i++) {
+        b.fillStyle = i % 2 ? '#B9824F' : '#8C5F37';
+        b.fillRect(hx, hy - 22 + i * 4 + 1, 40, 1);
+      }
+      for (let i = 0; i < 14; i++) {
+        b.fillStyle = '#7A3B2E';
+        b.fillRect(hx - 4 + i, hy - 22 - i, 48 - 2 * i, 1);
+        b.fillStyle = '#A1503C';
+        b.fillRect(hx - 4 + i, hy - 22 - i, 2, 1);
+      }
+      px('#4A2E1A', hx + 16, hy - 12, 8, 12);
+      px('#FFD65A', hx + 22, hy - 6);
+      [[4], [29]].forEach(([o]) => {
+        px('#FFE08A', hx + o, hy - 16, 7, 6);
+        px('#4A2E1A', hx + o + 3, hy - 16, 1, 6);
+        px('#4A2E1A', hx + o, hy - 13, 7, 1);
+      });
+      const tx = 122,
+        ty = 64;
+      px('#6B4329', tx + 3, ty - 20, 4, 20);
+      px('#8A5A3B', tx + 3, ty - 20, 1, 20);
+      [
+        ['#3A7A2C', -6, -38, 22, 16],
+        ['#4F9A3A', -4, -40, 18, 12],
+        ['#6CC04A', -2, -40, 8, 4],
+        ['#3A7A2C', -8, -28, 26, 8],
+      ].forEach(([c, a, bb, w, h]) => px(c, tx + a, ty + bb, w, h));
+      px('#74502E', 21 * T - 2, 46, 2, 18);
+      px('#74502E', 23 * T, 46, 2, 18);
+      px('#74502E', 21 * T - 4, 44, 24, 3);
+      px('#C9A26B', 21 * T + 3, 47, 1, 17);
+      const cx = 120,
+        cy = 144;
+      px('#74502E', cx - 1, cy - 6, 9, 6);
+      px('#9C6B3F', cx, cy - 6, 7, 2);
+      px('#FFD65A', cx + 3, cy - 4, 1, 2);
+      px('#B8902A', cx - 1, cy - 4, 9, 1);
+      shrooms.forEach(([x, y]) => {
+        const X = x * T + 2,
+          Y = y * T + T;
+        px('#E8F4F0', X + 1, Y - 3, 1, 3);
+        px('#5FF0D8', X, Y - 5, 3, 2);
+        px('#B9FFF3', X + 1, Y - 5);
+      });
+      const minerS = spriteCanvas(CHARS.foreman.r, CHARS.foreman.p);
+      const pickA = spriteCanvas(['...ww', '..w..', '.s...', 's....'], { w: '#B8BEC9', s: '#9C6B3F' });
+      const pickB = spriteCanvas(['.....', '.....', 'sssww', '.....'], { w: '#B8BEC9', s: '#9C6B3F' });
+      const torchS = spriteCanvas(['.f.', 'fYf', '.s.', '.s.'], { f: '#FF9A3C', Y: '#FFF2A8', s: '#9C6B3F' });
+      let frame = 0,
+        parts = [];
+      function render() {
+        const [W, C] = computeLight();
+        ctx.drawImage(base, 0, 0);
+        torches.forEach(([x, y]) => ctx.drawImage(torchS, x * T + 2, y * T + 3));
+        ctx.drawImage(minerS, 22 * T - 1, 22 * T);
+        ctx.drawImage(frame % 2 ? pickB : pickA, 22 * T + 5, 22 * T + 3);
+        parts.forEach((p) => {
+          ctx.fillStyle = p.c;
+          ctx.fillRect(p.x | 0, p.y | 0, 1, 1);
+        });
+        for (let y = 0; y < ROWS; y++)
+          for (let x = 0; x < COLS; x++) {
+            const w = W[y][x],
+              c = C[y][x],
+              L = Math.min(1, w + c),
+              dk = (1 - L) * 0.94;
+            if (dk > 0.01) {
+              ctx.fillStyle = `rgba(6,8,18,${dk.toFixed(3)})`;
+              ctx.fillRect(x * T, y * T, T, T);
+            }
+            if (c > 0.12 && y > surf[x]) {
+              ctx.fillStyle = `rgba(70,230,220,${(c * 0.16).toFixed(3)})`;
+              ctx.fillRect(x * T, y * T, T, T);
+            }
+            if (w > 0.2 && y > surf[x] + 1) {
+              ctx.fillStyle = `rgba(255,170,70,${(Math.min(w, 1) * 0.07).toFixed(3)})`;
+              ctx.fillRect(x * T, y * T, T, T);
+            }
+          }
+      }
+      render();
+      if (!reduce)
+        setInterval(() => {
+          frame++;
+          if (frame % 2 === 0)
+            for (let i = 0; i < 3; i++)
+              parts.push({
+                x: 23 * T + 1,
+                y: 22 * T + 3 + Math.random() * 4,
+                vx: Math.random() * 1.2 - 0.2,
+                vy: -Math.random() * 1.4,
+                c: Math.random() < 0.5 ? '#D9823B' : '#878E9A',
+                life: 10,
+              });
+          parts = parts.filter((p) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.25;
+            return --p.life > 0;
+          });
+          render();
+        }, 180);
+    })();
+
+    /* ---------- depth gauge highlight ---------- */
+    (function () {
+      const links = [...document.querySelectorAll('.gauge a')];
+      const map = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]));
+      const io = new IntersectionObserver(
+        (es) => {
+          es.forEach((e) => {
+            if (e.isIntersecting) {
+              links.forEach((l) => l.classList.remove('on'));
+              map.get(e.target.id)?.classList.add('on');
+            }
+          });
+        },
+        { rootMargin: '-30% 0px -60% 0px' },
+      );
+      document.querySelectorAll('main section[id]').forEach((s) => io.observe(s));
+      links[0].classList.add('on');
+    })();
+  </script>
+</html>

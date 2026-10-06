@@ -37,6 +37,8 @@ export interface Game {
   offline?: boolean;
   /** Tiles whose water may still move (not saved: rebuilt from the water itself on load). */
   wet: Set<number>;
+  /** Heat by tile index, worked out on demand (not saved; cleared whenever the mine changes). canon §15 */
+  heat: Map<number, number>;
   /** What came up the shaft since the UI last looked (not saved; the UI reads and clears it). */
   hauled: Partial<Record<ResKey, number>>;
 }
@@ -67,9 +69,11 @@ export function attach(g: Game, world: World): void {
   world.objects = g.state.world.objects;
   g.reach = new Uint8Array(world.w * world.h);
   g.reachDirty = true;
+  g.heat = new Map();
   world.onSet = (i, m) => {
     g.state.world.diffs[String(i)] = m;
     g.reachDirty = true;
+    g.heat.clear();
     // an opened or filled tile lets the water around it move again
     wakeWater(g, i);
     if (m !== M.AIR && world.water[i]) setWater(g, i, 0);
@@ -84,6 +88,7 @@ export function bind(state: GameState, world: World): Game {
     reachDirty: true,
     reachMaxY: 0,
     wet: new Set(),
+    heat: new Map(),
     hauled: {},
   } as unknown as Game;
   attach(g, world);

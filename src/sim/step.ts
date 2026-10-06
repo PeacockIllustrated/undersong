@@ -7,6 +7,8 @@ import { stepMiners } from './miners';
 import { stepForge, stepHaul } from './economy';
 import { stepStory } from './story';
 import { stepWater } from './water';
+import { coolCache } from './heat';
+import { stepEndless } from './ending';
 import { stepHelpers } from './helpers';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 
@@ -19,6 +21,8 @@ export function step(g: Game, dtMs: number): void {
   s.t += dtMs;
   s.totalT += dtMs;
   stepWater(g, dt);
+  // water moves and vents come and go: heat is worked out afresh each second
+  if (s.t % 1000 === 0 || dt >= 1) coolCache(g);
   stepForeman(g, dt);
   stepMiners(g, dt);
   stepHaul(g, dt);
@@ -29,6 +33,7 @@ export function step(g: Game, dtMs: number): void {
   stepHelpers(g, dt);
   stepGlints(g);
   stepStory(g);
+  if (s.t % 1000 === 0 || dt >= 1) stepEndless(g);
 }
 
 /** Pell's Hum: the nearest unfound verse glints when the Foreman is close. */

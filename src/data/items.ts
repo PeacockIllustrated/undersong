@@ -39,10 +39,8 @@ export const PICKS: readonly PickDef[] = [
     name: 'Crystal pick',
     sprite: 'pick-crystal',
     power: 18,
-    cost: [
-      { res: 'crystal', n: 40 },
-      { res: 'silverBar', n: 30 },
-    ],
+    // no silver: the Geodes give little of it (ADR-023)
+    cost: [{ res: 'crystal', n: 80 }],
   },
   {
     name: 'Ember pick',
@@ -57,8 +55,9 @@ export const PICKS: readonly PickDef[] = [
     name: 'Heart pick',
     sprite: 'pick-heart',
     power: 40,
+    // made from the Deep, not the Heart: heartstone itself wants this pick (ADR-023)
     cost: [
-      { res: 'heartstone', n: 20 },
+      { res: 'emberOre', n: 60 },
       { res: 'goldBar', n: 50 },
     ],
   },

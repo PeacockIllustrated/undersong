@@ -64,20 +64,20 @@ input (pointer/keys/UI) ──► actions ──► sim.step(state, action|tick,
 - TypeScript `strict`, with `noUncheckedIndexedAccess` turned on. Don't use `any`. When `unknown` is needed, narrow it right away.
 - One module, one job. Files over ~300 lines are a smell; split them by concept, not by size.
 - **Naming:** `camelCase` for functions and values, `PascalCase` for types and components, and `SCREAMING_SNAKE` for constants in `src/data`. Name things after game terms, such as `hireMiner`, `caveIn`, `lumenUpkeep`, `echoGain`, rather than generic ones like `doAction2`.
-- Write comments only for the *why*. Formulas get a comment that names the `canon.md` section they implement, for example `// canon §4.3 Echo gain`.
+- Write comments only for the _why_. Formulas get a comment that names the `canon.md` section they implement, for example `// canon §4.3 Echo gain`.
 - No default exports, except for Preact components when they're the file's single purpose.
 - Errors: the sim never throws during play. An invalid action is a no-op and returns state unchanged. Throw only on programmer errors, such as unknown action types, which are caught in dev builds.
 
 ### Approved dependencies
 
-| Package | Why |
-|---|---|
-| `break_eternity.js` | Big numbers |
-| `preact` | UI overlay |
-| `lz-string` | Save compression |
-| `vite`, `typescript`, `vitest`, `eslint`, `prettier` | Tooling |
-| `@preact/preset-vite`, `typescript-eslint`, `@eslint/js` | Tooling glue for the above |
-| `tsx`, `@types/node` | Running and typing the TypeScript tools (ADR-012) |
+| Package                                                  | Why                                               |
+| -------------------------------------------------------- | ------------------------------------------------- |
+| `break_eternity.js`                                      | Big numbers                                       |
+| `preact`                                                 | UI overlay                                        |
+| `lz-string`                                              | Save compression                                  |
+| `vite`, `typescript`, `vitest`, `eslint`, `prettier`     | Tooling                                           |
+| `@preact/preset-vite`, `typescript-eslint`, `@eslint/js` | Tooling glue for the above                        |
+| `tsx`, `@types/node`                                     | Running and typing the TypeScript tools (ADR-012) |
 
 Anything else needs an ADR in `decisions.md` before it's installed.
 
@@ -142,15 +142,15 @@ frames: 1                  # optional; frames are stacked vertically in the grid
 
 ## 6. Testing
 
-| Layer | What to test | Tool |
-|---|---|---|
-| `src/sim` | Every action and formula, prestige reset rules and offline catch-up within 2% | Vitest |
-| `src/world` | Generator determinism (same seed gives the same chunk), light flood-fill values and water settling | Vitest |
-| `src/save` | Round-trips and every fixture migrating cleanly | Vitest |
-| `src/data` ↔ `canon.md` | Values match | Vitest |
-| Sprites | Palette, size and naming | `lint:sprites` |
-| Balance | Time to each milestone stays within canon §5 targets ±15% | `npm run sim` in CI |
-| UI | Manual check at 1280×800 and 390×844, with screenshots in the PR | Playwright screenshot script |
+| Layer                   | What to test                                                                                       | Tool                         |
+| ----------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `src/sim`               | Every action and formula, prestige reset rules and offline catch-up within 2%                      | Vitest                       |
+| `src/world`             | Generator determinism (same seed gives the same chunk), light flood-fill values and water settling | Vitest                       |
+| `src/save`              | Round-trips and every fixture migrating cleanly                                                    | Vitest                       |
+| `src/data` ↔ `canon.md` | Values match                                                                                       | Vitest                       |
+| Sprites                 | Palette, size and naming                                                                           | `lint:sprites`               |
+| Balance                 | Time to each milestone stays within canon §5 targets ±15%                                          | `npm run sim` in CI          |
+| UI                      | Manual check at 1280×800 and 390×844, with screenshots in the PR                                   | Playwright screenshot script |
 
 A bug fix is only finished when a test reproduces the bug first.
 

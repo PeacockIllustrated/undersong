@@ -1,7 +1,10 @@
 // Draws the world, objects, characters and light. Reads game state; never writes it. dev-bible §1.6
 import { CHUNK, SHAFT_X, SKY_ROWS, TILE_PX } from '../data/constants';
 import { LIGHT } from '../data/light';
-import { M, MATERIALS } from '../data/materials';
+import { M, MATERIALS, isMineable } from '../data/materials';
+import { HEAT } from '../data/heat';
+import { heatAt } from '../sim/heat';
+import { reach } from '../sim/reach';
 import { OBJECTS } from '../data/objects';
 import { biomeAt } from '../data/biomes';
 import type { Game } from '../sim/game';
@@ -241,6 +244,7 @@ export class Renderer {
     this.fx.drawWorld(ctx, now);
 
     this.drawLight(w, tx0, ty0, tx1, ty1, now);
+    this.drawHeat(game, tx0, ty0, tx1, ty1, now);
     this.fx.drawOverlay(ctx, now);
   }
 
@@ -425,6 +429,38 @@ export class Renderer {
       if (Math.floor(now / 90) % 3 === 0)
         this.fx.sparkle(gl.x * T + 4 + ((now / 50) % 8), gl.y * T + 6, '#B9FFF3');
     }
+  }
+
+  /** canon §15: faces too hot to work shimmer; slowed ones glow faintly. Drawn over the dark so heat reads unlit. */
+  private drawHeat(game: Game, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
+    const w = game.world;
+    if (w.depth(ty1) < HEAT.fromD - HEAT.hotR) return;
+    const ctx = this.ctx;
+    const r = reach(game);
+    for (let y = Math.max(ty0, SKY_ROWS + HEAT.fromD - HEAT.hotR); y <= ty1; y++)
+      for (let x = tx0; x <= tx1; x++) {
+        const i = y * w.w + x;
+        if (!isMineable(w.mat[i]!) || !(r[i - 1] || r[i + 1] || r[i - w.w] || r[i + w.w])) continue;
+        const h = heatAt(game, x, y);
+        if (h < HEAT.slowAt) continue;
+        const hot = h >= HEAT.stopAt;
+        // a glowing rim on each side that faces the open mine
+        ctx.fillStyle = hot ? '#E0532F' : '#FF9A3C';
+        ctx.globalAlpha = hot ? 0.75 : 0.45;
+        if (r[i - 1]) ctx.fillRect(x * T, y * T, 2, T);
+        if (r[i + 1]) ctx.fillRect(x * T + T - 2, y * T, 2, T);
+        if (r[i - w.w]) ctx.fillRect(x * T, y * T, T, 2);
+        if (r[i + w.w]) ctx.fillRect(x * T, y * T + T - 2, T, 2);
+        if (hot) {
+          // rising haze: two pixels climbing the face
+          ctx.globalAlpha = 0.8;
+          ctx.fillStyle = '#FF9A3C';
+          const k = Math.floor(now / 120 + x * 3 + y * 5) % T;
+          ctx.fillRect(x * T + ((x + y) % 4) + 1, y * T + T - 1 - k, 1, 1);
+          ctx.fillRect(x * T + ((x * 7 + y) % 4) + 4, y * T + T - 1 - ((k + 4) % T), 1, 1);
+        }
+      }
+    ctx.globalAlpha = 1;
   }
 
   /** Foreman position eases toward the sim position, so steps read as walking. */
