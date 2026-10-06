@@ -4,7 +4,7 @@ import { MATERIALS, canDig, isMineable } from '../data/materials';
 import { PESTS } from '../data/economy';
 import { EELS } from '../data/water';
 import { besideWater } from './water';
-import { SHAFT_X } from '../data/constants';
+import { COARSE_STEP_S, SHAFT_X } from '../data/constants';
 import { NEIGH4 } from '../world/world';
 import { hardnessAt } from './formulas';
 import type { Game } from './game';
@@ -24,39 +24,68 @@ function taken(g: Game, x: number, y: number, self: Miner): boolean {
   return g.state.miners.some((m) => m !== self && m.target && m.target.x === x && m.target.y === y);
 }
 
+/** Every tile the Foreman or another miner has already claimed, as tile indices. */
+function claimed(g: Game, self: Miner): Set<number> {
+  const w = g.world.w;
+  const f = g.state.foreman;
+  const out = new Set<number>();
+  if (f.target) out.add(f.target.y * w + f.target.x);
+  for (const t of f.queue) out.add(t.y * w + t.x);
+  for (const m of g.state.miners) if (m !== self && m.target) out.add(m.target.y * w + m.target.x);
+  return out;
+}
+
+/** Faces worth a miner's time for this pick: ore and spores, the shaft column, and rock with ore behind it. */
+function faces(g: Game): number[] {
+  reach(g); // also rebuilds the frontier and clears this cache
+  const tier = g.state.pickTier;
+  if (g.faces?.tier === tier) return g.faces.list;
+  const w = g.world;
+  const y0 = Math.max(0, w.surf[0]! - 4);
+  const list: number[] = [];
+  for (const i of g.frontier) {
+    const x = i % w.w;
+    const y = (i - x) / w.w;
+    if (y < y0 || x < 1 || x >= w.w - 1) continue;
+    const mat = w.mat[i]!;
+    if (!canDig(mat, tier) || y <= w.surf[x]!) continue;
+    const def = MATERIALS[mat]!;
+    if (def.isOre || def.drop?.res === 'spores' || x === SHAFT_X || (y > w.surf[x]! + 2 && oreNear(g, x, y, tier)))
+      list.push(i);
+  }
+  g.faces = { tier, list };
+  return list;
+}
+
 /** Find a face for a miner: exposed ore anywhere in the mine first (nearest the shaft), else deepen the shaft. */
 export function chooseFace(g: Game, m: Miner): Tile | null {
   const w = g.world;
-  const r = reach(g);
+  const list = faces(g);
   let best: Tile | null = null;
   let bestScore = Infinity;
   const floorY = shaftFloor(g);
-  // only rows the village can touch: nothing below the deepest reachable row + 1
-  const yEnd = Math.min(w.h, g.reachMaxY + 2);
-  for (let y = Math.max(0, w.surf[0]! - 4); y < yEnd; y++) {
-    for (let x = 1; x < w.w - 1; x++) {
-      const i = y * w.w + x;
-      const mat = w.mat[i]!;
-      if (!canDig(mat, g.state.pickTier) || y <= w.surf[x]!) continue;
-      if (!(r[i - 1] || r[i + 1] || r[i - w.w] || r[i + w.w])) continue;
-      if (taken(g, x, y, m)) continue;
-      const def = MATERIALS[mat]!;
-      // ore wins by a lot; otherwise the shaft floor; otherwise skip plain rock
-      const dist = Math.abs(x - SHAFT_X) + Math.abs(y - floorY) * 0.5;
-      let score: number;
-      if (def.isOre || def.drop?.res === 'spores') score = dist;
-      else if (x === SHAFT_X && y === floorY) score = 1000;
-      else if (y > w.surf[x]! + 2 && oreNear(g, x, y, g.state.pickTier)) score = 500 + dist;
-      else continue;
-      // canon §15: nobody works a face that is too hot; a vent or water cools it
-      if (score < bestScore && heatAt(g, x, y) >= HEAT.stopAt) {
-        say(g, 'tooHot');
-        continue;
-      }
-      if (score < bestScore) {
-        bestScore = score;
-        best = { x, y };
-      }
+  const busy = claimed(g, m);
+  // in row order, so ties break as a scan of the whole grid would
+  for (const i of list) {
+    if (busy.has(i)) continue;
+    const x = i % w.w;
+    const y = (i - x) / w.w;
+    const def = MATERIALS[w.mat[i]!]!;
+    // ore wins by a lot; otherwise the shaft floor; otherwise skip plain rock
+    const dist = Math.abs(x - SHAFT_X) + Math.abs(y - floorY) * 0.5;
+    let score: number;
+    if (def.isOre || def.drop?.res === 'spores') score = dist;
+    else if (x === SHAFT_X && y === floorY) score = 1000;
+    else if (y > w.surf[x]! + 2 && oreNear(g, x, y, g.state.pickTier)) score = 500 + dist;
+    else continue;
+    // canon §15: nobody works a face that is too hot; a vent or water cools it
+    if (score < bestScore && heatAt(g, x, y) >= HEAT.stopAt) {
+      say(g, 'tooHot');
+      continue;
+    }
+    if (score < bestScore) {
+      bestScore = score;
+      best = { x, y };
     }
   }
   return best;
@@ -106,6 +135,32 @@ export function minerRate(g: Game, m: Miner): number {
   );
 }
 
+/**
+ * Put dt seconds of work into the miner's face. A long catch-up step (offline) keeps going onto the next face with
+ * the time left over, so coarse steps dig as much as real time would.
+ */
+function work(g: Game, m: Miner, dt: number): void {
+  let left = dt;
+  for (let t = m.target; t; ) {
+    const rate = minerRate(g, m);
+    const need = hardnessAt(g.world.hardnessOf(t.x, t.y), g.world.depth(t.y));
+    if (dt < COARSE_STEP_S || rate <= 0 || m.work + rate * left < need) {
+      m.work += rate * left;
+      if (m.work >= need) {
+        mineTile(g, t.x, t.y, 'miner');
+        m.target = null;
+        m.work = 0;
+      }
+      return;
+    }
+    left -= (need - m.work) / rate;
+    mineTile(g, t.x, t.y, 'miner');
+    m.work = 0;
+    m.target = t = chooseFace(g, m);
+    if (t) standBeside(g, m, t);
+  }
+}
+
 export function stepMiners(g: Game, dt: number): void {
   const s = g.state;
   const rng = makeRng(s.rng);
@@ -118,7 +173,7 @@ export function stepMiners(g: Game, dt: number): void {
       m.target = null;
     if (!m.target) {
       // re-plan at most a few times a second per miner, staggered by id
-      if (dt < 0.5 && (Math.floor(s.t / 100) + m.id) % 5 !== 0) continue;
+      if (dt < COARSE_STEP_S && (Math.floor(s.t / 100) + m.id) % 5 !== 0) continue;
       m.target = chooseFace(g, m);
       m.work = 0;
       if (!m.target) continue;
@@ -126,12 +181,7 @@ export function stepMiners(g: Game, dt: number): void {
     }
     const t = m.target;
     const light = g.world.faceLight(t.x, t.y);
-    m.work += dt * minerRate(g, m);
-    if (m.work >= hardnessAt(g.world.hardnessOf(t.x, t.y), g.world.depth(t.y))) {
-      mineTile(g, t.x, t.y, 'miner');
-      m.target = null;
-      m.work = 0;
-    }
+    work(g, m, dt);
     // Burrow beetles nest in the dark (ADR-008)
     if (light < PESTS.darkBelow) {
       say(g, 'darkMiners');

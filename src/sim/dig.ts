@@ -5,7 +5,7 @@ import { UPGRADE_FX } from '../data/upgrades';
 import { charm, deepMult, handsMult, pickPower, rushStep } from './power';
 import { lightFactor } from '../data/light';
 import { BIOMES } from '../data/biomes';
-import { FT_PER_TILE } from '../data/constants';
+import { COARSE_STEP_S, FT_PER_TILE } from '../data/constants';
 import { VERSE_CACHE } from '../data/helpers';
 import { NEIGH4, type Carving } from '../world/world';
 import { D } from './decimal';
@@ -82,8 +82,16 @@ export function stepForeman(g: Game, dt: number): void {
       f.y = ay;
     }
   }
-  f.work += dt * foremanRate(g);
+  const rate = foremanRate(g);
   const need = hardnessAt(world.hardnessOf(t.x, t.y), world.depth(t.y));
+  // a long catch-up step finishes this tile and spends the rest on the next one in the queue
+  if (dt >= COARSE_STEP_S && rate > 0 && f.work + rate * dt > need) {
+    const used = (need - f.work) / rate;
+    mineTile(g, t.x, t.y, 'foreman');
+    stepForeman(g, dt - used);
+    return;
+  }
+  f.work += dt * rate;
   if (f.work >= need) mineTile(g, t.x, t.y, 'foreman');
 }
 

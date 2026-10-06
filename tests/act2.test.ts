@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createGame, type Game } from '../src/sim/game';
+import { createGame, loadGame, type Game } from '../src/sim/game';
+import { fromJSON, toJSON } from '../src/save/codec';
 import { apply } from '../src/sim/actions';
 import { step } from '../src/sim/step';
 import { caveIn } from '../src/sim/cavein';
@@ -151,9 +152,28 @@ describe('Echo carry-overs', () => {
 });
 
 describe('offline progress', () => {
-  it('ignores short absences', () => {
+  it('plays short absences on in full, with no summary (ADR-024)', () => {
     const g = createGame(2);
+    const t0 = g.state.totalT;
     expect(catchUp(g, 30_000)).toBeNull();
+    expect(g.state.totalT - t0).toBe(30_000);
+  });
+
+  it('digs as much in coarse catch-up steps as it would in real time', () => {
+    const g = createGame(2);
+    g.state.res.copperBar = D(2000);
+    for (let i = 0; i < 8; i++) apply(g, { type: 'hireMiner' });
+    apply(g, { type: 'buyPick' });
+    run(g, 120_000);
+    const snap = toJSON(g.state);
+    const coarse = loadGame(fromJSON(snap));
+    const r = catchUp(coarse, 3600_000)!;
+    const fine = loadGame(fromJSON(snap));
+    fine.offline = true;
+    run(fine, r.creditedS * 1000);
+    const tiles = (x: Game): number => x.state.stats.tilesMined;
+    expect(tiles(coarse)).toBeGreaterThan(tiles(fine) * 0.95);
+    expect(tiles(coarse)).toBeLessThan(tiles(fine) * 1.05);
   });
 
   it('credits capped time at the canon efficiency and reports gains', () => {

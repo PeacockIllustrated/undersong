@@ -96,3 +96,23 @@ describe('saves', () => {
     });
   }
 });
+
+describe('miner faces', () => {
+  it('keeps the frontier equal to every solid tile beside the reach, in grid order', async () => {
+    const { reach } = await import('../src/sim/reach');
+    const g = createGame(9);
+    g.state.res.copperBar = new Decimal(500);
+    for (let i = 0; i < 6; i++) apply(g, { type: 'hireMiner' });
+    for (let t = 0; t < 300_000; t += TICK_MS) step(g, TICK_MS);
+    const r = reach(g);
+    const w = g.world;
+    const want: number[] = [];
+    for (let i = 0; i < w.w * w.h; i++) {
+      if (w.mat[i] === M.AIR) continue;
+      const x = i % w.w;
+      const near = [x > 0 ? i - 1 : -1, x < w.w - 1 ? i + 1 : -1, i - w.w, i + w.w];
+      if (near.some((j) => j >= 0 && j < r.length && r[j])) want.push(i);
+    }
+    expect(g.frontier).toEqual(want);
+  });
+});
