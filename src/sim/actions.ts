@@ -1,4 +1,5 @@
 // Everything the player can ask for. The UI dispatches these; only the sim applies them. dev-bible §1.2
+import { tally } from './tally';
 import { CHEST_LOOT, TORCH_CRAFT, type BuildingId, type CraftId, type Recipe } from '../data/economy';
 import { DIG_QUEUE_MAX } from '../data/constants';
 import { MIN_PICK, canDig, isMineable } from '../data/materials';
@@ -164,6 +165,7 @@ function openChest(g: Game, x: number, y: number, key: string): void {
   delete s.world.objects[key];
   s.res[loot.res] = s.res[loot.res].add(n);
   s.stats.chests++;
+  tally(g, 'chests', n);
   s.story.events.push({ kind: 'chest', res: loot.res, n: String(n) });
   g.events.push({ kind: 'chest', x, y });
   g.world.touch(x, y);

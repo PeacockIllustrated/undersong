@@ -1,5 +1,6 @@
 // Holloway above (M6): Tansy's fields and cookhouse, and Rook's woodlot. canon §17
-import { FEAST, FIELDS, MEALS, WOODLOT, WOOD_BUYS, PIT_PROP } from '../data/surface';
+import { CAIRN, FEAST, FIELDS, MEALS, WOODLOT, WOOD_BUYS, PIT_PROP } from '../data/surface';
+import { TALLY_SOURCES, tallyRates, type TallySource } from '../sim/tally';
 import { canPay } from '../sim/economy';
 import {
   feastNeed,
@@ -12,6 +13,7 @@ import {
   treeStage,
   woodCost,
 } from '../sim/surface';
+import { D } from '../sim/decimal';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { Cost } from './Village';
@@ -228,5 +230,75 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
         is the cheaper.
       </p>
     </>
+  );
+}
+
+const SOURCE: Record<TallySource, string> = {
+  foreman: 'Your pick',
+  miners: 'The miners, up the shaft',
+  chests: 'Chests',
+  fields: 'Tansy’s fields',
+  woodlot: 'Rook’s woodlot',
+};
+
+/** M6-06: the cairn's stones (one per recent Cave-in) and the tally board of goods per second by source. */
+export function CairnAndTally({ ui }: { ui: UiBridge }) {
+  const s = ui.game.state;
+  const runs = s.survey.filter((e) => e.hand === 'yours');
+  const stones = runs.slice(-CAIRN.stones).map((e, i, a) => {
+    const before = i > 0 ? a[i - 1] : runs[runs.length - a.length - 1];
+    return { depth: e.depthFt, change: before ? e.depthFt - before.depthFt : null };
+  });
+  const rates = tallyRates(ui.game);
+  const shown = TALLY_SOURCES.filter((k) => (rates?.[k] ?? 0) > 0);
+  return (
+    <section class="card">
+      <img
+        class="prop"
+        src={spriteURL('cairn', Math.max(0, Math.min(runs.length, CAIRN.stones) - 1))}
+        alt=""
+      />
+      <div class="grow">
+        <h3>The tally board</h3>
+        {!rates ? (
+          <p class="small">Counting…</p>
+        ) : shown.length ? (
+          <table class="tally">
+            <tbody>
+              {shown.map((k) => (
+                <tr key={k}>
+                  <td>{SOURCE[k]}</td>
+                  <td>{fmt(D(rates[k]))}/s</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p class="small">Nothing has come in this last minute.</p>
+        )}
+        {stones.length > 0 && (
+          <>
+            <h3>The cairn</h3>
+            <p class="small">One stone for each Cave-in, marked with how deep that dig went.</p>
+            <table class="tally">
+              <tbody>
+                {stones.map((st, i) => (
+                  <tr key={i}>
+                    <td>{fmt(D(st.depth))} ft</td>
+                    <td>
+                      {st.change === null
+                        ? 'the first'
+                        : st.change === 0
+                          ? 'as deep as the last'
+                          : `${st.change > 0 ? '+' : '−'}${fmt(D(Math.abs(st.change)))} ft on the last`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </div>
+    </section>
   );
 }

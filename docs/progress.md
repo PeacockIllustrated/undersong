@@ -12,6 +12,15 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M6-06 The cairn and the tally board
+
+Done: a tally board card at the foot of the Village Build tab: goods per second from your pick, the miners (as ore comes up the shaft), chests, the fields and the woodlot, over the last one to two minutes. Under it, the cairn's stones: each recent Cave-in's depth and the change from the run before, read from the Survey Book. No save change: the tally lives on the running game and refills within a minute. canon §17.5.
+State: `npm run check` green (89 tests). Checked at 1280×800 and 390×844, no overflow.
+Next: M6-07 act crops.
+Questions for Tom: none.
+
+---
+
 ## 2026-10-06 · M6 Holloway Above
 
 Done: Tansy's fields, the cookhouse and feast bell, Rook's woodlot, trees that stand through the Cave-in, elders and their roots, the cairn, the Look up button, ripe and feast chips, Fields and Woodlot tabs, save v6 with a migration and fixture, canon §17, ADR-029. The sim bot now tends the surface.

@@ -1401,3 +1401,16 @@ label.check {
   gap: 4px;
   cursor: pointer;
 }
+
+/* M6-06: the tally board and the cairn's stones */
+table.tally {
+  border-collapse: collapse;
+  font-size: 0.85em;
+  margin: 2px 0 6px;
+}
+table.tally td {
+  padding: 1px 12px 1px 0;
+}
+table.tally td + td {
+  opacity: 0.8;
+}

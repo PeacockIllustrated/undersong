@@ -1,4 +1,5 @@
 // Costs, purchases, the forge and haulage. canon §4.1, §4.9, §9.
+import { tally } from './tally';
 import {
   COST_GROWTH,
   FORGE,
@@ -141,6 +142,7 @@ export function stepHaul(g: Game, dt: number): void {
     s.underground[k] = have.sub(n);
     add(s, k, n);
     g.hauled[k] = (g.hauled[k] ?? 0) + n.toNumber();
+    tally(g, 'miners', n.toNumber());
     budget -= n.toNumber();
   }
   // carry over only a fraction so an empty shaft does not bank capacity

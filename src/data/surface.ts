@@ -115,3 +115,13 @@ export const ROOTS = {
   /** Ore within this many tiles of a root glints. */
   glintRange: 3,
 } as const;
+
+/** M6-06: the cairn by the headframe and the tally board. canon §17 */
+export const CAIRN = {
+  /** The cairn holds a stone for each of the last this-many Cave-ins. */
+  stones: 5,
+};
+export const TALLY = {
+  /** The tally board averages over the last one to two windows of this many seconds. */
+  windowS: 60,
+};

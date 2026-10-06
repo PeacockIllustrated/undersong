@@ -5,7 +5,8 @@ import { apply } from '../src/sim/actions';
 import { step } from '../src/sim/step';
 import { resetRun } from '../src/sim/cavein';
 import { TICK_MS } from '../src/data/constants';
-import { FEAST, FIELDS, MEALS, PIT_PROP, ROOTS, WOODLOT } from '../src/data/surface';
+import { FEAST, FIELDS, MEALS, PIT_PROP, ROOTS, TALLY, WOODLOT } from '../src/data/surface';
+import { tally, tallyRates } from '../src/sim/tally';
 import { craftCost } from '../src/sim/village';
 import { minerMult, villageMult, handsMult } from '../src/sim/power';
 import {
@@ -260,5 +261,26 @@ describe('surface in coarse offline steps', () => {
     for (let t = 0; t < 600_000; t += 5000) step(g, 5000);
     expect(g.state.surface.harvestsEver).toBeGreaterThan(4);
     expect(g.state.res.timber.toNumber()).toBeGreaterThan(15);
+  });
+});
+
+describe('The tally board (M6-06)', () => {
+  it('counts each source per second, rolls its window, and starts over after a Cave-in', () => {
+    const g = withTansy();
+    expect(tallyRates(g)).toBeNull();
+    ripen(g);
+    harvest(g, 0, true);
+    g.state.t += 10_000;
+    const r = tallyRates(g)!;
+    expect(r.fields).toBeGreaterThan(0);
+    expect(r.miners).toBe(0);
+    // a whole window later the count still shows, then fades out the window after
+    g.state.t += TALLY.windowS * 1000;
+    tally(g, 'chests', 0);
+    expect(tallyRates(g)!.fields).toBeGreaterThan(0);
+    g.state.t += TALLY.windowS * 1000;
+    expect(tallyRates(g)!.fields).toBe(0);
+    g.state.t = 0;
+    expect(tallyRates(g)).toBeNull();
   });
 });

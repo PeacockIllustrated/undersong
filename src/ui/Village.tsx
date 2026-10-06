@@ -30,7 +30,7 @@ import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
 import { fmt } from './format';
-import { Fields, Woodlot, fieldsReady, woodReady } from './Surface';
+import { CairnAndTally, Fields, Woodlot, fieldsReady, woodReady } from './Surface';
 
 export function Cost({
   costs,
@@ -488,6 +488,7 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                 </div>
               </div>
             </section>
+            <CairnAndTally ui={ui} />
           </>
         )}
         {tab === 'fields' && <Fields ui={ui} />}
