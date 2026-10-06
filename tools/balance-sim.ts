@@ -17,6 +17,8 @@ import { NEIGH4 } from '../src/world/world';
 import type { ResKey } from '../src/data/resources';
 import type { Decimal } from '../src/sim/decimal';
 import { line4 } from '../src/sim/geom';
+import { writeFileSync } from 'node:fs';
+import { pack } from '../src/save/codec';
 import { CHARMS } from '../src/data/charms';
 import { PUMP } from '../src/data/water';
 import { canWeave, weaveCost } from '../src/sim/charms';
@@ -101,7 +103,15 @@ function verseTunnel(g: Game): { x: number; y: number }[] | null {
     if (s.verses.run[c.verse] || c.verse > lastVerse(s)) continue;
     // the Geode verses sit in crystal: no use tunnelling to them without an aquamarine pick
     if (c.verse >= 8 && s.pickTier < 5) return null;
-    if (c.y >= floor) return null;
+    if (c.y >= floor) {
+      // below the shaft: in Act III the mine is deeper than the shaft, so cut across from where the foreman stands
+      if (!inAct3(s) || c.y > g.reachMaxY + 2) return null;
+      const f = s.foreman;
+      const tiles = line4({ x: f.x, y: f.y }, { x: c.x + Math.sign(f.x - c.x || 1), y: c.y }).filter((t) =>
+        canDig(g.world.get(t.x, t.y), s.pickTier),
+      );
+      return tiles.length ? tiles : null;
+    }
     const dir = Math.sign(c.x - SHAFT_X);
     const path: { x: number; y: number }[] = [];
     for (let x = SHAFT_X + dir; x !== c.x; x += dir)
@@ -285,7 +295,7 @@ function act2Foreman(g: Game): void {
   }
   // Act III: below 400 ft the water decides. Without a pump to set, go get silver for one
   if (inAct3(s) && s.stats.maxDepthD >= GLOWROOT.d1) {
-    const needSilver = s.res.pump.lt(1) || s.pickTier < 4 || (s.pickTier < 5 && s.res.aquamarine.lt(30));
+    const needSilver = s.res.pump.lt(1) || s.pickTier < 4 || (s.pickTier < 5 && s.res.aquamarine.lt(20));
     if (needSilver && dig(nearestOre(g, 14))) return;
   }
   if (s.stats.maxDepthD < goalD(s)) {
@@ -339,11 +349,12 @@ function shopA2(g: Game): void {
     () => miner(12),
     ...(ACT3
       ? [
+          // the Geode verses are what Act III is for: the picks that open them come first
           () => pick(4),
+          () => pick(5),
+          () => building('songloom', 1),
           () => haul(3),
           () => miner(16),
-          () => building('songloom', 1),
-          () => pick(5),
           () => building('lampworks', 3),
           () => miner(20),
           () => building('songloom', 2),
@@ -483,7 +494,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
         console.log(
-          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
+          `${t / 60000} min · cycle ${s.cycle} · depth ${s.stats.maxDepthD} · shaft ${shaftFloor(g) - g.world.surf[SHAFT_X]!} · haul ${s.haulTier} · ugCu ${s.underground.copperOre} ugSn ${s.underground.tinOre} · CuOre ${s.res.copperOre} · Sn ${s.res.tinBar} · torches placed ${Object.values(s.world.objects).filter((o) => o === 'torch').length} · faces ${s.miners.map((m) => (m.target ? g.world.get(m.target.x, m.target.y) + '@' + g.world.depth(m.target.y) : '-')).join('/')} · miners ${s.miners.length} · pick ${s.pickTier} · Cu ${s.res.copperBar} · Fe ${s.res.ironBar} · spores ${s.res.spores} · Lumen ${s.res.lumen.toFixed(1)} · lanterns ${s.res.lantern}${ACT3 ? ` · Ag ore ${s.res.silverOre}+${s.underground.silverOre} bars ${s.res.silverBar}· aq ${s.res.aquamarine}+${s.underground.aquamarine ?? 0} loom ${s.buildings.songloom} cry ${s.res.crystal} · pumps ${s.res.pump}/${Object.values(s.world.objects).filter((o) => o === 'pump').length} · F ${s.foreman.x},${g.world.depth(s.foreman.y)} q${s.foreman.queue.length} · reachMax ${g.world.depth(g.reachMaxY)}` : ''}`,
         );
       if (canCaveIn(s) && args.until === 'first-cavein') break;
       if (ACT2) {
@@ -520,6 +531,8 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         }
       }
     }
+    // --save-at=<min> --save=<path>: write the game as it stands, for screenshots
+    if (args.save && s.totalT === Number(args['save-at']) * 60_000) writeFileSync(args.save, pack(s));
     step(g, TICK_MS);
     g.events.length = 0;
   }

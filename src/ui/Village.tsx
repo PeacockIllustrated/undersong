@@ -276,7 +276,7 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             <p>
               {s.miners.length === 0
                 ? 'Miners work the nearest ore on their own and send it up the shaft. They dig slowly in the dark.'
-                : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by beetles` : ''}. About ${rate.toFixed(1)} hardness a second.`}
+                : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by pests` : ''}. About ${rate.toFixed(1)} hardness a second.`}
             </p>
             <div class="row">
               <button

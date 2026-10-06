@@ -115,7 +115,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: SLATE_R,
     host: M.SLATE,
     overlay: 'ore-aqua',
-    drop: { res: 'aquamarine', n: 1 },
+    drop: { res: 'aquamarine', n: 2 },
     isOre: true,
   },
   [M.CRYSTAL]: {
@@ -170,7 +170,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.SINGING]: {
     id: M.SINGING,
     name: 'Singing stone',
-    hardness: 8,
+    hardness: 14,
     ramp: ['#373A52', '#2A5E86', '#262940'],
     drop: { res: 'rubble', n: 1 },
   },

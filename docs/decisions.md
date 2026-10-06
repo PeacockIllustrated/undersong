@@ -107,6 +107,16 @@ Decision:
 - Pacing targets move to match the faster game: 150 ft 17 min, first Cave-in 30 min, Glowroot cleared 2 h 50 min.
 Consequences: Act I 9-seed sim: first Cave-in 32.9 min, 8 Echoes, the longest wait with nothing to buy in the first 15 minutes is a median 185 s. Act II median 2 h 50 min (was 3 h 54). Save v4. Acts III onward will add a helper for each new chore (pumps, eels and golems) when they are built.
 
+**ADR-021 · Act III economy** · 2026-10-06 · Accepted
+Context: the balance bot stalled at 700 ft in every run. Iron comes from the Glowroot, and by the Halls it had all gone on pumps and rails, so the silver pick (then 40 silver + 20 iron) never came.
+Decision:
+- The Halls' tools are priced in silver, which the Halls have plenty of: silver pick 40 silver bars; aquamarine pick 20 aquamarine + 35 silver; pump 4 silver + 2 iron. Aquamarine drops 2.
+- Rails are charged for at most 10 lots of 10 tiles (80 iron), so a village deep in the Halls can still lay them.
+- Singing stone has hardness 14, between iron ore and basalt, so the Geodes are a real climb.
+- Act III end is 1000 ft reached with Verses VI–X known. Its target moves from 9 h to 6 h 30, in line with the faster game after ADR-020.
+- Bram's pump crew (canon §14) takes the pump chore off the player, like the other helpers.
+Consequences: 7 of 9 sim seeds reach Act III end inside 10 h, median 448 min against 390. Two seeds stall at the crystal rings; the tail is an open item (M3-09).
+
 ---
 
 ## Open questions for Tom

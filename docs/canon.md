@@ -89,7 +89,7 @@ These are for an engaged player mixing active and idle play. The balance sim mus
 | First Cave-in available | 30 min (was 45; see ADR-020) |
 | Echoes from a typical first Cave-in | 6–10 |
 | Glowroot cleared (Act II end): 400 ft reached and Verses III–V known | 2 h 50 min (was 4 h; see ADR-020) |
-| Act III end | 9 h |
+| Act III end: 1000 ft reached and Verses VI–X known | 6 h 30 min (was 9 h; see ADR-021) |
 | Ending reached | 14 h |
 
 ## §6 Art
@@ -171,7 +171,7 @@ The sim uses the light value **without flicker**. Flicker is applied in render o
 | Gold ore | 28 | 1 Gold ore | 5 |
 | Heartstone | 60 | 1 Heartstone | 6 |
 | Old brick | 10 | 1 Brick | shrines, drowned town |
-| Singing stone | 8 | — | the Geodes' own rock (M3) |
+| Singing stone | 14 | — | the Geodes' own rock (M3) |
 
 ### 8.1 Pick gates (ADR-017)
 
@@ -271,7 +271,7 @@ Three branches of six. Each needs the one above it in its branch.
 
 | Thing | Value |
 |---|---|
-| Singing stone | The Geodes' base rock. Hardness 8, needs the silver pick |
+| Singing stone | The Geodes' base rock. Hardness 14, needs the silver pick |
 | Resonant crystal | Rings around Verses IX and X |
 | Shard golem | 20% chance when resonant crystal is mined. Stops miners within 4 until tapped 3 times |
 | Song-loom | 25 Resonant crystal + 20 Silver bars × 1.15ⁿ; offered from 700 ft. Weaves charms |

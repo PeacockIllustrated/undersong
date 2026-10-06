@@ -12,6 +12,12 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M3 Drowned
+Done: Act III. Water that settles and floods, pumps, the drowned town (Holloway under the water, four houses, Verses VI–VIII), the Singing Geodes with singing stone and crystal-ringed Verses IX–X, the Song-loom and ten charms, cave eels and shard golems, and Act III lines. In the spirit of ADR-020, Bram's pump crew moves pumps for you and Pell's rounds handle eels and golems. Save v5. ADR-021 moves the Halls' tools onto silver.
+State: `npm run check` green (46 tests). Act III sim, 9 seeds, 10 h cap: 7 of 9 reach Act III end (282, 332, 351, 378, 448, 532, 590 min); 2 find Verses VI–VIII but never open the crystal around IX–X in time. Median 448 min against a 390 target, at the edge of ±15%. M3-09 stays open for that tail.
+Next: Tom's polish request (cancelling queued blocks, popups, indicators, UI tidy), then M4.
+Questions for Tom: none.
+
 ## 2026-10-06 · Juice pass (ADR-020)
 Done: Tom said the game is good but does not cultivate dopamine, so the DangerouslyFunny findings went into Acts I and II. Helpers take over lighting, pests and supports for good. Homecoming makes the regain after a Cave-in fast. Verses pay bars and a permanent 5%. A whetstone means there is nearly always something to buy. Every purchase shows a toast with its jump, beating your best depth shakes the screen, and a "Held back by" chip names the bottleneck. Save v4.
 State: `npm run check` green. Act I sim: first Cave-in 32.9 min (new target 30), 8 Echoes, longest wait with nothing to buy a median 185 s in the first 15 min. Act II median 2 h 50 min (was 3 h 54).

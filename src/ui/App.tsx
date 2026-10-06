@@ -115,6 +115,7 @@ export function App({ ui }: { ui: UiBridge }) {
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
   const eels = s.pests.filter((p) => p.kind === 'eel');
   const golems = s.pests.filter((p) => p.kind === 'golem');
+  const golemStopped = s.miners.filter((m) => golems.some((p) => p.id === m.stalledBy)).length;
   const tools: { id: Tool; sprite: string; label: string; stock?: ResKey; show: boolean; title: string }[] = [
     {
       id: 'torch',
@@ -191,7 +192,7 @@ export function App({ ui }: { ui: UiBridge }) {
               }}
             >
               {golems.length > 0
-                ? `Shard golem · ${s.miners.filter((m) => golems.some((p) => p.id === m.stalledBy)).length} miners stopped. Tap it ${golems[0]!.hp ?? 1} more time${(golems[0]!.hp ?? 1) > 1 ? 's' : ''}.`
+                ? `Shard golem · ${golemStopped} miner${golemStopped === 1 ? '' : 's'} stopped. Tap it ${golems[0]!.hp ?? 1} more time${(golems[0]!.hp ?? 1) > 1 ? 's' : ''}.`
                 : eels.length > 0
                   ? `Eels · ${eels.length} miner${eels.length > 1 ? 's' : ''} bitten.`
                   : beetles.length > 0
