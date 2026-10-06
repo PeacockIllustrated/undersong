@@ -873,3 +873,154 @@ body.atlas #ui > * {
   align-items: flex-start;
   gap: 8px;
 }
+/* Clear queue chip, just above the tool tray */
+.qchip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 74px);
+  font-family: var(--display);
+  font-size: 12px;
+  color: var(--ink);
+  padding: 6px 12px;
+  border-color: var(--gold);
+  cursor: pointer;
+  pointer-events: auto;
+}
+@media (max-width: 600px) {
+  .qchip {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 112px);
+  }
+}
+/* Village tabs */
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.tabs button {
+  flex: 1;
+  font-family: var(--display);
+  font-size: 12px;
+  color: var(--ink-dim);
+  background: var(--slate-0);
+  border: 2px solid var(--slate-2);
+  padding: 8px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tabs button.on {
+  color: var(--night);
+  background: var(--gold);
+  border-color: var(--gold-pale);
+}
+.tabs .count {
+  font-size: 10px;
+  min-width: 16px;
+  padding: 1px 4px;
+  background: var(--glow);
+  color: var(--night);
+}
+/* Resource chips: rate, flash on gain, the +N tray */
+.chip .rate {
+  font-size: 10px;
+  color: var(--glow);
+  margin-left: 2px;
+}
+.chip.up {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 2px var(--night),
+    0 0 10px 2px rgba(255, 214, 90, 0.55);
+}
+.chip.more {
+  font-family: var(--display);
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 3px 8px;
+}
+.tray {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+  max-width: 320px;
+  margin-left: auto;
+}
+.tray-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.tray-label {
+  font-family: var(--display);
+  font-size: 10px;
+  color: var(--ink-dim);
+  width: 40px;
+}
+.tray .chip {
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip.up {
+    box-shadow: 0 0 0 2px var(--night);
+  }
+}
+/* Polish item 10: on phones the tools fold into one button, so tools and nav share a single row. */
+@media (max-width: 600px) {
+  .hud-bottom {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .tool.current {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px 4px 4px;
+    font-family: var(--display);
+    font-size: 12px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .tool.current img {
+    width: 28px;
+    height: 28px;
+  }
+  .tool.current .caret {
+    font-size: 10px;
+    color: var(--gold);
+  }
+  .tools.pop {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 4px;
+    gap: 4px;
+  }
+  .tools.pop .tool {
+    justify-content: flex-start;
+    padding: 4px 10px 4px 4px;
+  }
+  .tools.pop .tool .tl {
+    display: inline;
+  }
+  .nav {
+    flex: 1;
+  }
+  .qchip {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  }
+  .speech {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
+  }
+}

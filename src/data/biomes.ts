@@ -1,4 +1,5 @@
 // Biome bands. canon §2 (depths in ft; 1 tile = 4 ft).
+import type { ResKey } from './resources';
 export interface BiomeDef {
   id: number;
   name: string;
@@ -18,6 +19,17 @@ export const BIOMES: readonly BiomeDef[] = [
   { id: 5, name: 'Ember Deep', act: 'IV', d0: 250, d1: 350 },
   { id: 6, name: 'The Hollow Heart', act: 'IV', d0: 350, d1: 99999 },
 ];
+
+/** The resources each biome is about: the HUD shows these first (polish item 8). Holloway shares Topsoil's. */
+export const BIOME_RES: Record<number, readonly ResKey[]> = {
+  0: ['copperBar', 'tinBar'],
+  1: ['copperBar', 'tinBar'],
+  2: ['ironBar', 'lumen'],
+  3: ['silverBar', 'aquamarine'],
+  4: ['crystal', 'silverBar'],
+  5: ['goldBar', 'emberOre'],
+  6: ['heartstone', 'goldBar'],
+};
 
 export function biomeAt(d: number): BiomeDef {
   for (let i = BIOMES.length - 1; i >= 0; i--) {

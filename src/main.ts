@@ -2,14 +2,14 @@
 import { render, h } from 'preact';
 import { AUTOSAVE_MS, MAX_TICKS_PER_FRAME, SHAFT_X, SKY_ROWS, TICK_MS, TILE_PX } from './data/constants';
 import { MATERIALS, isMineable } from './data/materials';
-import { apply, type Action } from './sim/actions';
+import { apply, queued, type Action } from './sim/actions';
 import { createGame, loadGame, type Game } from './sim/game';
 import { step } from './sim/step';
 import { loadSprites } from './render/sprites';
 import { buildTileTextures } from './render/tiles';
 import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
-import { Input } from './render/input';
+import { HOLD_MS, Input } from './render/input';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
 import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
@@ -63,11 +63,20 @@ function boot(): void {
     },
     onPath: (tiles) => {
       following = true;
-      dispatch({ type: 'digPath', tiles });
+      // a drag that starts on a queued tile cancels the queued tiles it crosses
+      const t0 = tiles[0]!;
+      if (queued(game.g, t0.x, t0.y)) dispatch({ type: 'unqueue', tiles });
+      else dispatch({ type: 'digPath', tiles });
     },
     onPan: () => {
       following = false;
     },
+  });
+
+  // Esc clears the Foreman's dig queue
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]'))
+      dispatch({ type: 'cancelDig' });
   });
 
   const save = (): void => saveLocal(game.g.state, Date.now());
@@ -150,6 +159,10 @@ function boot(): void {
     }
     cam.clamp(game.g.world.w, game.g.world.h, renderer.viewW, renderer.viewH);
     renderer.preview = input.mode === 'dig' ? input.path : [];
+    const p0 = input.path[0];
+    const h = input.hold;
+    renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
+    renderer.previewCancel = input.mode === 'dig' && !!p0 && queued(game.g, p0.x, p0.y);
     const t0 = performance.now();
     renderer.draw(game.g, cam, now);
     perf.draw = perf.draw * 0.95 + (performance.now() - t0) * 0.05;

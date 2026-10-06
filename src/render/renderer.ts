@@ -68,6 +68,10 @@ export class Renderer {
   readonly fx = new Fx();
   /** Dig path being drawn by the player. */
   preview: readonly { x: number; y: number }[] = [];
+  /** The drag being drawn will cancel queued tiles rather than queue new ones. */
+  previewCancel = false;
+  /** A touch hold filling toward dig mode (0–1). */
+  hold: { x: number; y: number; p: number } | null = null;
   /** A tile the foreman refused, flashed briefly. */
   refused: { x: number; y: number; until: number } | null = null;
   /** Device pixels per art pixel (whole number). */
@@ -328,11 +332,53 @@ export class Renderer {
       ctx.strokeStyle = frame % 4 < 2 ? 'rgba(255,214,90,0.9)' : 'rgba(255,242,168,0.9)';
       ctx.lineWidth = 1;
       ctx.strokeRect(x + 0.5, y + 0.5, T - 1, T - 1);
+      // a progress bar along the bottom of the tile being dug
+      ctx.fillStyle = 'rgba(20,26,51,0.85)';
+      ctx.fillRect(x + 2, y + T - 4, T - 4, 2);
+      ctx.fillStyle = '#FFD65A';
+      ctx.fillRect(x + 2, y + T - 4, Math.round((T - 4) * p), 2);
     }
-    ctx.strokeStyle = 'rgba(255,214,90,0.45)';
-    for (const q of f.queue) ctx.strokeRect(q.x * T + 2.5, q.y * T + 2.5, T - 5, T - 5);
-    ctx.strokeStyle = 'rgba(95,240,216,0.8)';
-    for (const q of this.preview) ctx.strokeRect(q.x * T + 1.5, q.y * T + 1.5, T - 3, T - 3);
+    // dig order: a dotted thread from tile to tile, and each queued tile numbered
+    if (f.queue.length) {
+      ctx.fillStyle = 'rgba(255,214,90,0.5)';
+      let prev = f.target ?? null;
+      for (const q of f.queue) {
+        if (prev) {
+          const steps = Math.max(Math.abs(q.x - prev.x), Math.abs(q.y - prev.y)) * 4;
+          for (let k = 1; k < steps; k += 2) {
+            const ax = (prev.x + ((q.x - prev.x) * k) / steps) * T + T / 2;
+            const ay = (prev.y + ((q.y - prev.y) * k) / steps) * T + T / 2;
+            ctx.fillRect(Math.round(ax), Math.round(ay), 1, 1);
+          }
+        }
+        prev = q;
+      }
+    }
+    ctx.strokeStyle = 'rgba(255,214,90,0.55)';
+    f.queue.forEach((q, i) => {
+      ctx.strokeRect(q.x * T + 2.5, q.y * T + 2.5, T - 5, T - 5);
+      if (i < 99) drawNumber(ctx, i + 1, q.x * T + T / 2, q.y * T + 5);
+    });
+    ctx.strokeStyle = this.previewCancel ? 'rgba(224,83,47,0.9)' : 'rgba(95,240,216,0.8)';
+    for (const q of this.preview) {
+      ctx.strokeRect(q.x * T + 1.5, q.y * T + 1.5, T - 3, T - 3);
+      if (this.previewCancel) {
+        ctx.beginPath();
+        ctx.moveTo(q.x * T + 4, q.y * T + 4);
+        ctx.lineTo(q.x * T + T - 4, q.y * T + T - 4);
+        ctx.stroke();
+      }
+    }
+    const h = this.hold;
+    if (h && h.p > 0.1) {
+      // a ring that fills during the hold before a drag digs
+      ctx.strokeStyle = 'rgba(95,240,216,0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(h.x * T + T / 2, h.y * T + T / 2, T * 0.75, -Math.PI / 2, -Math.PI / 2 + h.p * Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = 1;
+    }
     const r = this.refused;
     if (r && now < r.until) {
       const dx = Math.round(Math.sin(now / 20) * 2);
@@ -347,6 +393,31 @@ export class Renderer {
       const working = m.target && m.stalledBy === null;
       const f = working ? 2 + (Math.floor(now / 120 + m.id) % 3) : Math.floor(now / 700 + m.id) % 2;
       drawSprite(this.ctx, 'miner', f, m.x * T + T / 2, m.y * T + T - 1, !!m.target && m.target.x < m.x);
+      const ctx = this.ctx;
+      if (working && m.target) {
+        // teal corner brackets on the face a miner is working
+        const x = m.target.x * T;
+        const y = m.target.y * T;
+        ctx.fillStyle = 'rgba(95,240,216,0.7)';
+        for (const [cx, cy, dx, dy] of [
+          [0, 0, 1, 1],
+          [T - 1, 0, -1, 1],
+          [0, T - 1, 1, -1],
+          [T - 1, T - 1, -1, -1],
+        ] as const) {
+          ctx.fillRect(x + cx + (dx < 0 ? -2 : 0), y + cy, 3, 1);
+          ctx.fillRect(x + cx, y + cy + (dy < 0 ? -2 : 0), 1, 3);
+        }
+      } else if (m.stalledBy !== null && Math.floor(now / 300) % 2 === 0) {
+        // a stopped miner shows an orange "!" over their head
+        const x = m.x * T + T / 2 - 1;
+        const y = m.y * T - 12;
+        ctx.fillStyle = '#141A33';
+        ctx.fillRect(x - 1, y - 1, 4, 9);
+        ctx.fillStyle = '#E0532F';
+        ctx.fillRect(x, y, 2, 4);
+        ctx.fillRect(x, y + 5, 2, 2);
+      }
     }
     for (const p of s.pests)
       drawSprite(this.ctx, p.kind, Math.floor(now / 160 + p.id), p.x * T + T / 2, p.y * T + T - 1);
@@ -495,5 +566,34 @@ export class Renderer {
     this.lctx.putImageData(img, 0, 0);
     this.ctx.imageSmoothingEnabled = false;
     this.ctx.drawImage(this.light, tx0 * T, ty0 * T, cw * T, ch * T);
+  }
+}
+
+/** 3×5 pixel digits, so queue numbers stay crisp at any zoom. */
+const DIGITS = [
+  '111101101101111',
+  '010110010010111',
+  '111001111100111',
+  '111001111001111',
+  '101101111001001',
+  '111100111001111',
+  '111100111101111',
+  '111001001001001',
+  '111101111101111',
+  '111101111001111',
+];
+
+/** Draw n centred at (cx, top) in pale gold on a dark backing. */
+function drawNumber(ctx: CanvasRenderingContext2D, n: number, cx: number, top: number): void {
+  const str = String(n);
+  const w = str.length * 4 - 1;
+  const x0 = Math.round(cx - w / 2);
+  ctx.fillStyle = 'rgba(20,26,51,0.8)';
+  ctx.fillRect(x0 - 1, top - 1, w + 2, 7);
+  ctx.fillStyle = '#FFF2A8';
+  for (let c = 0; c < str.length; c++) {
+    const g = DIGITS[Number(str[c])]!;
+    for (let i = 0; i < 15; i++)
+      if (g[i] === '1') ctx.fillRect(x0 + c * 4 + (i % 3), top + Math.floor(i / 3), 1, 1);
   }
 }

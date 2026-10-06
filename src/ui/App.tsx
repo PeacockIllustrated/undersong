@@ -2,13 +2,12 @@
 import { useEffect, useState } from 'preact/hooks';
 import { biomeAt } from '../data/biomes';
 import { ftFromDepthTiles } from '../data/constants';
-import { RES_KEYS, RES_NAMES, type ResKey } from '../data/resources';
+import { RES_KEYS, type ResKey } from '../data/resources';
 import type { Action, Tool } from '../sim/actions';
 import type { Game } from '../sim/game';
 import type { GameState } from '../sim/state';
 import type { AwaySummary } from '../save/offline';
 import { spriteURL } from '../render/sprites';
-import { RES_ICON } from './icons';
 import { fmt } from './format';
 import { VillageSheet } from './Village';
 import { SurveyBook } from './SurveyBook';
@@ -17,6 +16,7 @@ import { StoryLayer } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
 import { homecoming, homeUntilD } from '../sim/power';
+import { ResChips } from './ResChips';
 import { bottleneck, echoAffordable, villageAffordable } from './feedback';
 
 export interface UiBridge {
@@ -77,40 +77,20 @@ function useTick(ms: number): void {
 }
 
 /** Resources shown on the HUD, in this order, when the player has any. */
-const HUD_ORDER: readonly ResKey[] = [
-  'copperBar',
-  'tinBar',
-  'bronzeBar',
-  'ironBar',
-  'silverBar',
-  'goldBar',
-  'copperOre',
-  'tinOre',
-  'ironOre',
-  'silverOre',
-  'aquamarine',
-  'crystal',
-  'emberOre',
-  'goldOre',
-  'heartstone',
-  'spores',
-  'lumen',
-  'rubble',
-  'brick',
-];
 
 export function App({ ui }: { ui: UiBridge }) {
   useTick(200);
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const g = ui.game;
   const s = g.state;
   const d = g.world.depth(s.foreman.y);
   const biome = biomeAt(d);
+  const wide = window.innerWidth > 600;
   const home = homecoming(s);
   const neck = bottleneck(g);
   const newInVillage = villageAffordable(g);
   const newInSurvey = echoAffordable(g) || s.stats.firsts.caveInReady !== undefined;
-  const held = HUD_ORDER.filter((k) => s.res[k].gt(0) && (k !== 'rubble' || s.buildings.kiln > 0));
   const moths = s.pests.filter((p) => p.kind === 'moth');
   const beetles = s.pests.filter((p) => p.kind === 'beetle');
   const eels = s.pests.filter((p) => p.kind === 'eel');
@@ -159,6 +139,24 @@ export function App({ ui }: { ui: UiBridge }) {
     return () => window.removeEventListener('undersong:cavein-done', onCave);
   }, []);
 
+  const pickSprite =
+    [
+      'pick-wood',
+      'pick-copper',
+      'pick-bronze',
+      'pick-iron',
+      'pick-silver',
+      'pick-aqua',
+      'pick-crystal',
+      'pick-ember',
+      'pick-heart',
+    ][s.pickTier] ?? 'pick-wood';
+  const toolList: { id: Tool; sprite: string; label: string; stock?: ResKey; title: string }[] = [
+    { id: 'dig', sprite: pickSprite, label: 'Dig', title: 'Dig' },
+    ...tools.filter((t) => t.show),
+  ];
+  const cur = toolList.find((t) => t.id === ui.tool) ?? toolList[0]!;
+
   return (
     <>
       <div class="hud-top">
@@ -203,64 +201,52 @@ export function App({ ui }: { ui: UiBridge }) {
           )}
           {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
         </div>
-        <div class="res">
-          {s.echoes.gt(0) && (
-            <div class="panel chip echo" title="Echoes">
-              <img src={spriteURL('echo')} alt="" />
-              {fmt(s.echoes)}
-            </div>
-          )}
-          {held.map((k) => (
-            <div class="panel chip" key={k} title={RES_NAMES[k]}>
-              <img src={spriteURL(RES_ICON[k])} alt="" />
-              {fmt(s.res[k])}
-            </div>
-          ))}
-        </div>
+        <ResChips s={s} biome={biome.id} wide={wide} />
       </div>
       {ui.away && <AwaySheet ui={ui} />}
       <StoryLayer ui={ui} />
       <Toasts />
+      {(s.foreman.queue.length > 0 || s.foreman.target) && (
+        <button
+          class="panel qchip"
+          title="Stop digging (Esc). Tap a queued tile, or drag across several, to cancel just those."
+          onClick={() => ui.dispatch({ type: 'cancelDig' })}
+        >
+          Clear queue · {s.foreman.queue.length + (s.foreman.target ? 1 : 0)}
+        </button>
+      )}
       <div class="hud-bottom">
-        <div class="tools panel" role="group" aria-label="Tool">
-          <button
-            class={`tool ${ui.tool === 'dig' ? 'on' : ''}`}
-            aria-pressed={ui.tool === 'dig'}
-            onClick={() => ui.setTool('dig')}
-          >
-            <img
-              src={spriteURL(
-                [
-                  'pick-wood',
-                  'pick-copper',
-                  'pick-bronze',
-                  'pick-iron',
-                  'pick-silver',
-                  'pick-aqua',
-                  'pick-crystal',
-                  'pick-ember',
-                  'pick-heart',
-                ][s.pickTier] ?? 'pick-wood',
-              )}
-              alt=""
-            />
-            <span class="tl">Dig</span>
-          </button>
-          {tools
-            .filter((t) => t.show)
-            .map((t) => (
+        {wide || toolsOpen ? (
+          <div class={`tools panel ${wide ? '' : 'pop'}`} role="group" aria-label="Tool">
+            {toolList.map((t) => (
               <button
                 key={t.id}
                 class={`tool ${ui.tool === t.id ? 'on' : ''}`}
                 aria-pressed={ui.tool === t.id}
-                onClick={() => ui.setTool(ui.tool === t.id ? 'dig' : t.id)}
+                onClick={() => {
+                  ui.setTool(t.id !== 'dig' && ui.tool === t.id ? 'dig' : t.id);
+                  setToolsOpen(false);
+                }}
                 title={t.title}
               >
                 <img src={spriteURL(t.sprite)} alt="" />
                 <span class="tl">{t.label}</span> {t.stock ? fmt(s.res[t.stock]) : ''}
               </button>
             ))}
-        </div>
+          </div>
+        ) : null}
+        {!wide && (
+          <button
+            class="panel tool current on"
+            aria-expanded={toolsOpen}
+            aria-label={`Tool: ${cur.label}. Change tool`}
+            onClick={() => setToolsOpen(!toolsOpen)}
+          >
+            <img src={spriteURL(cur.sprite)} alt="" />
+            {cur.stock ? fmt(s.res[cur.stock]) : ''}
+            {toolList.length > 1 && <span class="caret">{toolsOpen ? '▾' : '▴'}</span>}
+          </button>
+        )}
         <div class="row nav">
           <button class="btn" onClick={() => ui.recenter()} aria-label="Follow the Foreman">
             ⌖

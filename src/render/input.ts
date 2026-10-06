@@ -15,7 +15,7 @@ export interface InputHooks {
   onPan(): void;
 }
 
-const HOLD_MS = 280;
+export const HOLD_MS = 280;
 const SLOP_PX = 8;
 
 type Mode = 'idle' | 'pending' | 'pan' | 'dig';
@@ -24,6 +24,8 @@ export class Input {
   mode: Mode = 'idle';
   /** Path being drawn, shown by the renderer. */
   path: Tile[] = [];
+  /** A touch held on a diggable tile: where, and when it started (polish item 10: a ring fills until dig mode). */
+  hold: { x: number; y: number; t0: number } | null = null;
   private sx = 0;
   private sy = 0;
   private lx = 0;
@@ -85,8 +87,10 @@ export class Input {
     // touch and pen: a quick drag pans, a press-and-hold then drag digs
     this.mode = 'pending';
     this.path = [t];
+    this.hold = this.hooks.isDiggable(t.x, t.y) ? { x: t.x, y: t.y, t0: performance.now() } : null;
     window.clearTimeout(this.holdTimer);
     this.holdTimer = window.setTimeout(() => {
+      this.hold = null;
       if (this.mode === 'pending' && this.hooks.isDiggable(t.x, t.y)) {
         this.mode = 'dig';
         navigator.vibrate?.(12);
@@ -99,6 +103,7 @@ export class Input {
     const moved = Math.hypot(e.clientX - this.sx, e.clientY - this.sy);
     if (this.mode === 'pending' && moved > SLOP_PX) {
       window.clearTimeout(this.holdTimer);
+      this.hold = null;
       this.mode = 'pan';
     }
     if (this.mode === 'pan') {
@@ -138,6 +143,7 @@ export class Input {
   private cancel = (e: PointerEvent): void => {
     if (e.pointerId !== this.id) return;
     window.clearTimeout(this.holdTimer);
+    this.hold = null;
     this.id = -1;
     this.mode = 'idle';
     this.path = [];

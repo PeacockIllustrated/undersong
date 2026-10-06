@@ -28,6 +28,8 @@ export type Action =
   | { type: 'dig'; x: number; y: number }
   | { type: 'digPath'; tiles: Tile[] }
   | { type: 'cancelDig' }
+  /** Take tiles back out of the Foreman's dig queue (tap or drag over queued tiles). */
+  | { type: 'unqueue'; tiles: Tile[] }
   /** A tap on the world: clears a pest, opens a chest, places or picks up a torch, or digs. */
   | { type: 'tap'; x: number; y: number; tool: Tool }
   | { type: 'hireMiner' }
@@ -46,7 +48,7 @@ export type Action =
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' };
 
-function queued(g: Game, x: number, y: number): boolean {
+export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
   return (f.target?.x === x && f.target.y === y) || f.queue.some((t) => t.x === x && t.y === y);
 }
@@ -89,7 +91,22 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
     place(g, x, y, key, tool, obj);
     return;
   }
+  // tapping a tile that is already queued takes it back out
+  if (queued(g, x, y)) {
+    unqueue(g, [{ x, y }]);
+    return;
+  }
   enqueue(g, x, y, true);
+}
+
+function unqueue(g: Game, tiles: readonly Tile[]): void {
+  const f = g.state.foreman;
+  const hit = (t: Tile): boolean => tiles.some((q) => q.x === t.x && q.y === t.y);
+  f.queue = f.queue.filter((t) => !hit(t));
+  if (f.target && hit(f.target)) {
+    f.target = null;
+    f.work = 0;
+  }
 }
 
 /** Place an object from stock on open ground, or pick up one of the same kind. */
@@ -150,6 +167,9 @@ export function apply(g: Game, a: Action): void {
       }
       return;
     }
+    case 'unqueue':
+      unqueue(g, a.tiles);
+      return;
     case 'cancelDig':
       s.foreman.queue = [];
       s.foreman.target = null;

@@ -24,6 +24,7 @@ import { pumpRate } from '../sim/water';
 import { HELPERS, HELPER_FX } from '../data/helpers';
 import { helperCost, helperOffered } from '../sim/helpers';
 import { bottleneck } from './feedback';
+import { useState } from 'preact/hooks';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
@@ -206,6 +207,10 @@ function Helpers({ ui }: { ui: UiBridge }) {
   );
 }
 
+type VillageTab = 'build' | 'hands' | 'loom';
+/** The last tab used, kept for the session. */
+let lastTab: VillageTab = 'build';
+
 export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const s = ui.game.state;
   const mc = minerCost(s);
@@ -222,6 +227,33 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
   const nextP = PICKS[s.pickTier + 1];
   const nextH = HAULS[s.haulTier + 1];
   const x = (a: number, b: number): string => `×${(a / b).toFixed(2).replace(/\.?0+$/, '')}`;
+  const hands = HELPERS.filter((h) => helperOffered(s, h.id));
+  const tabs: { id: VillageTab; label: string; n: number }[] = [
+    {
+      id: 'build',
+      label: 'Build',
+      n: [minerC, pickC, haulC, whetC].filter((c) => c && canPay(s, c)).length,
+    },
+  ];
+  if (hands.length)
+    tabs.push({
+      id: 'hands',
+      label: 'Hands',
+      n: hands.filter((h) => {
+        const c = helperCost(s, h.id);
+        return !!c && canPay(s, c);
+      }).length,
+    });
+  if (buildingOffered(s, 'songloom'))
+    tabs.push({
+      id: 'loom',
+      label: 'Loom',
+      n:
+        (canPay(s, buildingCost(s, 'songloom')) ? 1 : 0) +
+        CHARMS.filter((c) => canWeave(s, c.id) && canPay(s, weaveCost(s))).length,
+    });
+  const [picked, setTab] = useState<VillageTab>(lastTab);
+  const tab = tabs.some((t) => t.id === picked) ? picked : 'build';
 
   return (
     <div class="sheet-wrap side" onClick={(e) => e.target === e.currentTarget && close()}>
@@ -240,6 +272,26 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
               <p>{neck.hint}</p>
             </div>
           </section>
+        )}
+
+        {tabs.length > 1 && (
+          <div class="tabs" role="tablist" aria-label="Village">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={tab === t.id}
+                class={tab === t.id ? 'on' : ''}
+                onClick={() => {
+                  lastTab = t.id;
+                  setTab(t.id);
+                }}
+              >
+                {t.label}
+                {t.n > 0 && <span class="count">{t.n}</span>}
+              </button>
+            ))}
+          </div>
         )}
 
         <section class="card">
@@ -291,123 +343,129 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
           </div>
         </section>
 
-        <Helpers ui={ui} />
-
-        <section class="card">
-          <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
-          <div class="grow">
-            <h3>{PICKS[s.pickTier]!.name}</h3>
-            <p>
-              Pick power {PICKS[s.pickTier]!.power}. Everyone in the village digs with the best pick you own.
-            </p>
-            <div class="row">
-              <button
-                class={`btn ${canPay(s, whetC) ? 'can' : ''}`}
-                disabled={!canPay(s, whetC)}
-                onClick={() => ui.dispatch({ type: 'whetstone' })}
-              >
-                Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
-              </button>
-              <Cost costs={whetC} have={s.res} />
-              {s.whetstone > 0 && <span class="small">level {s.whetstone}</span>}
-            </div>
-            {pickC ? (
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, pickC) ? 'can' : ''}`}
-                  disabled={!canPay(s, pickC)}
-                  onClick={() => ui.dispatch({ type: 'buyPick' })}
-                >
-                  Forge the {nextP!.name.toLowerCase()}{' '}
-                  <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
-                </button>
-                <Cost costs={pickC} have={s.res} />
+        {tab === 'build' && (
+          <>
+            <section class="card">
+              <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
+              <div class="grow">
+                <h3>{PICKS[s.pickTier]!.name}</h3>
+                <p>
+                  Pick power {PICKS[s.pickTier]!.power}. Everyone in the village digs with the best pick you
+                  own.
+                </p>
+                <div class="row">
+                  <button
+                    class={`btn ${canPay(s, whetC) ? 'can' : ''}`}
+                    disabled={!canPay(s, whetC)}
+                    onClick={() => ui.dispatch({ type: 'whetstone' })}
+                  >
+                    Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
+                  </button>
+                  <Cost costs={whetC} have={s.res} />
+                  {s.whetstone > 0 && <span class="small">level {s.whetstone}</span>}
+                </div>
+                {pickC ? (
+                  <div class="row">
+                    <button
+                      class={`btn ${canPay(s, pickC) ? 'can' : ''}`}
+                      disabled={!canPay(s, pickC)}
+                      onClick={() => ui.dispatch({ type: 'buyPick' })}
+                    >
+                      Forge the {nextP!.name.toLowerCase()}{' '}
+                      <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
+                    </button>
+                    <Cost costs={pickC} have={s.res} />
+                  </div>
+                ) : (
+                  <p class="small">The best pick Holloway knows how to make, for now.</p>
+                )}
               </div>
-            ) : (
-              <p class="small">The best pick Holloway knows how to make, for now.</p>
-            )}
-          </div>
-        </section>
+            </section>
 
-        <section class="card">
-          <img class="prop" src={spriteURL('headframe', 1)} alt="" />
-          <div class="grow">
-            <h3>{haul.name}</h3>
-            <p>
-              Hauls up to {haulRate(ui.game).toFixed(2)} ore a second from this depth ({haul.speed} tile/s,{' '}
-              {haul.capacity} a load).{' '}
-              {Object.values(s.underground).some((v) => v.gt(0)) ? 'Ore is waiting at the bottom.' : ''}
-            </p>
-            {haulC && (
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, haulC) ? 'can' : ''}`}
-                  disabled={!canPay(s, haulC)}
-                  onClick={() => ui.dispatch({ type: 'buyHaul' })}
-                >
-                  Build the {nextH!.name.toLowerCase()}{' '}
-                  <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
-                </button>
-                <Cost costs={haulC} have={s.res} />
+            <section class="card">
+              <img class="prop" src={spriteURL('headframe', 1)} alt="" />
+              <div class="grow">
+                <h3>{haul.name}</h3>
+                <p>
+                  Hauls up to {haulRate(ui.game).toFixed(2)} ore a second from this depth ({haul.speed}{' '}
+                  tile/s, {haul.capacity} a load).{' '}
+                  {Object.values(s.underground).some((v) => v.gt(0)) ? 'Ore is waiting at the bottom.' : ''}
+                </p>
+                {haulC && (
+                  <div class="row">
+                    <button
+                      class={`btn ${canPay(s, haulC) ? 'can' : ''}`}
+                      disabled={!canPay(s, haulC)}
+                      onClick={() => ui.dispatch({ type: 'buyHaul' })}
+                    >
+                      Build the {nextH!.name.toLowerCase()}{' '}
+                      <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
+                    </button>
+                    <Cost costs={haulC} have={s.res} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </section>
+            </section>
 
-        <Building ui={ui} id="lampworks">
-          <p class="small">
-            {s.res.spores.gt(0)
-              ? `Turning ${s.buildings.lampworks} spore${s.buildings.lampworks > 1 ? 's' : ''} a second into ${LAMPWORKS.lumen * lumenMult(s) * s.buildings.lampworks} Lumen.`
-              : 'Waiting on glowcap spores. Miners pick them from the cavern walls.'}{' '}
-            {lanterns(ui.game).length > 0 &&
-              `${lanterns(ui.game).length} lantern${lanterns(ui.game).length > 1 ? 's' : ''} burn ${lumenUpkeep(ui.game).toFixed(2)} Lumen a second${ui.game.world.lanternsLit ? '.' : ', but they are dark: no Lumen.'}`}
-          </p>
-          <Craft ui={ui} id="lantern" label={`Make a lantern`} s={s} />
-        </Building>
-
-        <Building ui={ui} id="kiln">
-          <p class="small">
-            Bakes {KILN.rubble} rubble into a brick every {KILN.seconds / s.buildings.kiln} s. Rubble comes
-            from the stone you dig by hand.
-          </p>
-          <Craft ui={ui} id="support" label={`Make a support`} s={s} />
-        </Building>
-
-        {(s.stats.firsts.halls !== undefined || s.res.pump.gt(0)) && (
-          <section class="card">
-            <img class="icon" src={spriteURL('obj-pump')} alt="" />
-            <div class="grow">
-              <h3>Pumps · {fmt(s.res.pump)} in hand</h3>
-              <p>
-                Each pump drains {pumpRate(ui.game).toFixed(0)} water a second within {PUMP.radius} tiles,
-                from the top down. Nobody can dig standing in a flooded tunnel. Use the Pump tool to set one.
+            <Building ui={ui} id="lampworks">
+              <p class="small">
+                {s.res.spores.gt(0)
+                  ? `Turning ${s.buildings.lampworks} spore${s.buildings.lampworks > 1 ? 's' : ''} a second into ${LAMPWORKS.lumen * lumenMult(s) * s.buildings.lampworks} Lumen.`
+                  : 'Waiting on glowcap spores. Miners pick them from the cavern walls.'}{' '}
+                {lanterns(ui.game).length > 0 &&
+                  `${lanterns(ui.game).length} lantern${lanterns(ui.game).length > 1 ? 's' : ''} burn ${lumenUpkeep(ui.game).toFixed(2)} Lumen a second${ui.game.world.lanternsLit ? '.' : ', but they are dark: no Lumen.'}`}
               </p>
-              <Craft ui={ui} id="pump" label="Make a pump" s={s} />
-            </div>
-          </section>
+              <Craft ui={ui} id="lantern" label={`Make a lantern`} s={s} />
+            </Building>
+
+            <Building ui={ui} id="kiln">
+              <p class="small">
+                Bakes {KILN.rubble} rubble into a brick every {KILN.seconds / s.buildings.kiln} s. Rubble
+                comes from the stone you dig by hand.
+              </p>
+              <Craft ui={ui} id="support" label={`Make a support`} s={s} />
+            </Building>
+
+            {(s.stats.firsts.halls !== undefined || s.res.pump.gt(0)) && (
+              <section class="card">
+                <img class="icon" src={spriteURL('obj-pump')} alt="" />
+                <div class="grow">
+                  <h3>Pumps · {fmt(s.res.pump)} in hand</h3>
+                  <p>
+                    Each pump drains {pumpRate(ui.game).toFixed(0)} water a second within {PUMP.radius} tiles,
+                    from the top down. Nobody can dig standing in a flooded tunnel. Use the Pump tool to set
+                    one.
+                  </p>
+                  <Craft ui={ui} id="pump" label="Make a pump" s={s} />
+                </div>
+              </section>
+            )}
+
+            <section class="card">
+              <img class="icon" src={spriteURL('obj-torch')} alt="" />
+              <div class="grow">
+                <h3>Torches · {fmt(s.res.torch)} in hand</h3>
+                <p>Light a face and the miners there work at full pace. Use the Torch tool to place one.</p>
+                <div class="row">
+                  <button
+                    class="btn"
+                    disabled={!canPay(s, torchC)}
+                    onClick={() => ui.dispatch({ type: 'craftTorches' })}
+                  >
+                    Make {TORCH_CRAFT.makes}
+                  </button>
+                  <Cost costs={torchC} have={s.res} />
+                </div>
+              </div>
+            </section>
+          </>
         )}
-
-        <Building ui={ui} id="songloom">
-          <Charms ui={ui} />
-        </Building>
-
-        <section class="card">
-          <img class="icon" src={spriteURL('obj-torch')} alt="" />
-          <div class="grow">
-            <h3>Torches · {fmt(s.res.torch)} in hand</h3>
-            <p>Light a face and the miners there work at full pace. Use the Torch tool to place one.</p>
-            <div class="row">
-              <button
-                class="btn"
-                disabled={!canPay(s, torchC)}
-                onClick={() => ui.dispatch({ type: 'craftTorches' })}
-              >
-                Make {TORCH_CRAFT.makes}
-              </button>
-              <Cost costs={torchC} have={s.res} />
-            </div>
-          </div>
-        </section>
+        {tab === 'hands' && <Helpers ui={ui} />}
+        {tab === 'loom' && (
+          <Building ui={ui} id="songloom">
+            <Charms ui={ui} />
+          </Building>
+        )}
       </div>
     </div>
   );
