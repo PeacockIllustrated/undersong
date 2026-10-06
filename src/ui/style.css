@@ -1,4 +1,6 @@
 :root {
+  /* text scale from Settings (ADR-024) */
+  --ts: 1;
   --night: #141a33;
   --slate-0: #262940;
   --slate-1: #373a52;
@@ -72,12 +74,12 @@ body {
 }
 .depth .ft {
   font-family: var(--display);
-  font-size: 22px;
+  font-size: calc(22px * var(--ts));
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .depth .biome {
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
   color: var(--ink-dim);
   margin-top: 4px;
 }
@@ -93,7 +95,7 @@ body {
   align-items: center;
   gap: 4px;
   padding: 3px 8px 3px 4px;
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
   font-variant-numeric: tabular-nums;
 }
 .chip img {
@@ -103,7 +105,7 @@ body {
 }
 .btn {
   font-family: var(--display);
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
   color: var(--ink);
   background: var(--slate-1);
   border: 2px solid var(--slate-3);
@@ -136,7 +138,7 @@ body {
   align-items: flex-end;
 }
 .hint {
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   padding: 6px 10px;
   color: var(--ink);
   max-width: 340px;
@@ -158,7 +160,7 @@ body {
 }
 .sheet h2 {
   font-family: var(--display);
-  font-size: 20px;
+  font-size: calc(20px * var(--ts));
   margin: 0 0 12px;
   color: var(--gold);
 }
@@ -170,7 +172,7 @@ body {
   width: 100%;
   min-height: 96px;
   font-family: monospace;
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   background: var(--night);
   color: var(--ink);
   border: 2px solid var(--slate-3);
@@ -186,18 +188,18 @@ body {
 }
 .err {
   color: #ff9a3c;
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
 }
 .ok {
   color: var(--glow);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
 }
 @media (max-width: 600px) {
   .depth .ft {
-    font-size: 18px;
+    font-size: calc(18px * var(--ts));
   }
   .chip {
-    font-size: 13px;
+    font-size: calc(13px * var(--ts));
   }
   .chip img {
     width: 16px;
@@ -231,7 +233,7 @@ body.atlas #ui > * {
   display: grid;
   gap: 6px;
   justify-items: center;
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink-dim);
 }
 .atlas-item img {
@@ -242,7 +244,7 @@ body.atlas #ui > * {
 .rush {
   margin-top: 4px;
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--glow);
 }
 .chip.echo {
@@ -258,7 +260,7 @@ body.atlas #ui > * {
   align-items: center;
   gap: 6px;
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink);
   background: transparent;
   border: 2px solid transparent;
@@ -309,7 +311,7 @@ body.atlas #ui > * {
 }
 .sheet h3 {
   font-family: var(--display);
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
   margin: 0 0 6px;
 }
 .card {
@@ -319,7 +321,7 @@ body.atlas #ui > * {
   border-top: 2px solid rgba(141, 162, 232, 0.35);
 }
 .card p {
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
   margin: 0 0 8px;
 }
 .grow {
@@ -365,7 +367,7 @@ body.atlas #ui > * {
 }
 .seg button {
   font-family: var(--body);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   color: var(--ink);
   background: var(--slate-0);
   border: 2px solid var(--slate-2);
@@ -387,7 +389,7 @@ body.atlas #ui > * {
   background: #ff9a3c;
 }
 .small {
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
 }
 .muted {
   color: var(--ink-dim);
@@ -408,7 +410,7 @@ body.atlas #ui > * {
   padding: 10px 14px 10px 8px;
   color: var(--ink);
   font-family: var(--body);
-  font-size: 16px;
+  font-size: calc(16px * var(--ts));
   line-height: 1.35;
   text-align: left;
   cursor: pointer;
@@ -423,7 +425,7 @@ body.atlas #ui > * {
 .speech b {
   display: block;
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--gold);
   font-weight: 400;
 }
@@ -452,19 +454,19 @@ body.atlas #ui > * {
 .verse-n {
   font-family: var(--display);
   color: var(--gold);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   letter-spacing: 0.1em;
 }
 .verse-text {
   font-family: Georgia, 'Times New Roman', serif;
   font-style: italic;
-  font-size: clamp(19px, 4.4vw, 24px);
+  font-size: calc(clamp(19px, 4.4vw, 24px) * var(--ts));
   line-height: 1.5;
   color: var(--gold-pale);
   margin: 16px 0;
 }
 .verse-sub {
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   color: var(--ink-dim);
   margin-bottom: 18px;
 }
@@ -484,7 +486,7 @@ body.atlas #ui > * {
   border-top: 2px dashed rgba(107, 67, 41, 0.35);
 }
 .book p {
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
 }
 .book .muted {
   color: #5f6487;
@@ -514,7 +516,7 @@ body.atlas #ui > * {
 }
 .branch h4 {
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   margin: 0 0 6px;
   color: #6b4329;
 }
@@ -532,11 +534,11 @@ body.atlas #ui > * {
   cursor: pointer;
 }
 .upg span {
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
 }
 .upg em {
   font-style: normal;
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: #1e6b66;
 }
 .upg.owned {
@@ -553,7 +555,7 @@ body.atlas #ui > * {
   margin: 0;
   display: grid;
   gap: 6px;
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
 }
 .verses li {
   display: flex;
@@ -565,20 +567,20 @@ body.atlas #ui > * {
 }
 .vn {
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   min-width: 36px;
   color: #6b4329;
 }
 .pages {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   font-variant-numeric: tabular-nums;
 }
 .pages th {
   text-align: left;
   font-family: var(--display);
-  font-size: 11px;
+  font-size: calc(11px * var(--ts));
   color: #6b4329;
 }
 .pages td {
@@ -609,25 +611,23 @@ body.atlas #ui > * {
 }
 .collapse p {
   font-family: var(--display);
-  font-size: clamp(16px, 3vw, 24px);
+  font-size: calc(clamp(16px, 3vw, 24px) * var(--ts));
   color: var(--ink);
   text-align: center;
   padding: 16px;
   animation: rise 1s ease-out;
 }
-@media (prefers-reduced-motion: reduce) {
-  .speech,
-  .verse-card,
-  .collapse p {
-    animation: none;
-  }
-  .collapse {
-    transition: none;
-  }
+:root[data-motion='reduced'] .speech,
+:root[data-motion='reduced'] .verse-card,
+:root[data-motion='reduced'] .collapse p {
+  animation: none;
+}
+:root[data-motion='reduced'] .collapse {
+  transition: none;
 }
 .alert {
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink);
   border-color: var(--ember);
   padding: 6px 10px;
@@ -636,7 +636,7 @@ body.atlas #ui > * {
 @media (max-width: 600px) {
   .tool {
     padding: 2px 6px 2px 2px;
-    font-size: 11px;
+    font-size: calc(11px * var(--ts));
   }
   .tool img {
     width: 24px;
@@ -644,7 +644,7 @@ body.atlas #ui > * {
   }
   .nav .btn {
     padding: 8px 8px;
-    font-size: 11px;
+    font-size: calc(11px * var(--ts));
   }
   .hud-bottom {
     flex-wrap: nowrap;
@@ -655,7 +655,7 @@ body.atlas #ui > * {
   }
   .speech {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
-    font-size: 14px;
+    font-size: calc(14px * var(--ts));
   }
 }
 
@@ -686,7 +686,7 @@ body.atlas #ui > * {
   align-items: center;
   gap: 6px;
   font-family: var(--display);
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
 }
 .gains li span {
   font-family: var(--body);
@@ -746,13 +746,13 @@ body.atlas #ui > * {
 }
 .bigtoast .big {
   font-family: var(--display);
-  font-size: 22px;
+  font-size: calc(22px * var(--ts));
   color: var(--gold);
   letter-spacing: 0.04em;
 }
 .bigtoast .sub {
   margin-top: 4px;
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
   color: var(--ink);
 }
 @keyframes toast-pop {
@@ -778,12 +778,12 @@ body.atlas #ui > * {
 .home {
   margin-top: 4px;
   font-family: var(--display);
-  font-size: 11px;
+  font-size: calc(11px * var(--ts));
   color: var(--gold);
 }
 .neck {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink-dim);
 }
 .neck-card {
@@ -840,7 +840,7 @@ body.atlas #ui > * {
   padding: 0;
   margin: 10px 0 4px;
   font-family: var(--display);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   color: var(--glow);
 }
 .loot li {
@@ -860,12 +860,10 @@ body.atlas #ui > * {
   color: var(--gold);
   font-family: var(--display);
 }
-@media (prefers-reduced-motion: reduce) {
-  .bigtoast,
-  .btn.can,
-  .btn.new::after {
-    animation: none;
-  }
+:root[data-motion='reduced'] .bigtoast,
+:root[data-motion='reduced'] .btn.can,
+:root[data-motion='reduced'] .btn.new::after {
+  animation: none;
 }
 .hud-left {
   display: flex;
@@ -880,7 +878,7 @@ body.atlas #ui > * {
   transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 74px);
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink);
   padding: 6px 12px;
   border-color: var(--gold);
@@ -901,7 +899,7 @@ body.atlas #ui > * {
 .tabs button {
   flex: 1;
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink-dim);
   background: var(--slate-0);
   border: 2px solid var(--slate-2);
@@ -918,7 +916,7 @@ body.atlas #ui > * {
   border-color: var(--gold-pale);
 }
 .tabs .count {
-  font-size: 10px;
+  font-size: calc(10px * var(--ts));
   min-width: 16px;
   padding: 1px 4px;
   background: var(--glow);
@@ -926,7 +924,7 @@ body.atlas #ui > * {
 }
 /* Resource chips: rate, flash on gain, the +N tray */
 .chip .rate {
-  font-size: 10px;
+  font-size: calc(10px * var(--ts));
   color: var(--glow);
   margin-left: 2px;
 }
@@ -938,7 +936,7 @@ body.atlas #ui > * {
 }
 .chip.more {
   font-family: var(--display);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   color: var(--ink);
   cursor: pointer;
   padding: 3px 8px;
@@ -960,17 +958,15 @@ body.atlas #ui > * {
 }
 .tray-label {
   font-family: var(--display);
-  font-size: 10px;
+  font-size: calc(10px * var(--ts));
   color: var(--ink-dim);
   width: 40px;
 }
 .tray .chip {
   box-shadow: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .chip.up {
-    box-shadow: 0 0 0 2px var(--night);
-  }
+:root[data-motion='reduced'] .chip.up {
+  box-shadow: 0 0 0 2px var(--night);
 }
 /* Polish item 10: on phones the tools fold into one button, so tools and nav share a single row. */
 @media (max-width: 600px) {
@@ -986,7 +982,7 @@ body.atlas #ui > * {
     gap: 4px;
     padding: 4px 8px 4px 4px;
     font-family: var(--display);
-    font-size: 12px;
+    font-size: calc(12px * var(--ts));
     color: var(--ink);
     cursor: pointer;
   }
@@ -995,7 +991,7 @@ body.atlas #ui > * {
     height: 28px;
   }
   .tool.current .caret {
-    font-size: 10px;
+    font-size: calc(10px * var(--ts));
     color: var(--gold);
   }
   .tools.pop {
@@ -1041,19 +1037,19 @@ body.atlas #ui > * {
 }
 .biome-banner .act {
   font-family: var(--display);
-  font-size: 11px;
+  font-size: calc(11px * var(--ts));
   letter-spacing: 0.1em;
   color: var(--glow);
 }
 .biome-banner .name {
   font-family: var(--display);
-  font-size: 26px;
+  font-size: calc(26px * var(--ts));
   color: var(--gold);
   margin: 4px 0;
 }
 .biome-banner .line {
   font-family: var(--body);
-  font-size: 15px;
+  font-size: calc(15px * var(--ts));
   color: var(--ink);
 }
 @keyframes banner-drop {
@@ -1066,10 +1062,8 @@ body.atlas #ui > * {
     opacity: 1;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .biome-banner {
-    animation: none;
-  }
+:root[data-motion='reduced'] .biome-banner {
+  animation: none;
 }
 /* Polish item 6: edge markers */
 .edge {
@@ -1084,7 +1078,7 @@ body.atlas #ui > * {
   border: 2px solid var(--ember);
   box-shadow: 0 0 0 2px var(--night);
   color: var(--ember);
-  font-size: 12px;
+  font-size: calc(12px * var(--ts));
   cursor: pointer;
   pointer-events: auto;
   z-index: 5;
@@ -1098,7 +1092,7 @@ body.atlas #ui > * {
   right: -6px;
   top: -8px;
   font-family: var(--display);
-  font-size: 10px;
+  font-size: calc(10px * var(--ts));
   background: var(--night);
   color: var(--ink);
   padding: 0 3px;
@@ -1119,10 +1113,8 @@ body.atlas #ui > * {
       0 0 10px 2px rgba(255, 214, 90, 0.6);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .edge-verse {
-    animation: none;
-  }
+:root[data-motion='reduced'] .edge-verse {
+  animation: none;
 }
 /* Polish item 7: depth ruler */
 .ruler {
@@ -1198,11 +1190,11 @@ body.atlas #ui > * {
 .tip b {
   font-family: var(--display);
   color: var(--glow);
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
 }
 .tip span {
   color: var(--ink);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   line-height: 1.35;
 }
 .tip .row {
@@ -1220,7 +1212,7 @@ body.atlas #ui > * {
   margin-left: 4px;
   padding: 0 3px;
   font-family: var(--display);
-  font-size: 9px;
+  font-size: calc(9px * var(--ts));
   line-height: 13px;
   color: var(--night);
   background: var(--glow);
@@ -1262,13 +1254,13 @@ body.atlas #ui > * {
 .ending-card h2 {
   font-family: var(--display);
   color: var(--gold);
-  font-size: 22px;
+  font-size: calc(22px * var(--ts));
   margin: 0 0 16px;
 }
 .ending-card p {
   font-family: var(--body);
   color: var(--ink);
-  font-size: 16px;
+  font-size: calc(16px * var(--ts));
   line-height: 1.5;
   margin: 0 0 12px;
   animation: fade-in 1.2s ease-out both;
@@ -1302,7 +1294,7 @@ body.atlas #ui > * {
   border: 2px solid var(--slate-2);
   color: var(--ink);
   font-family: var(--body);
-  font-size: 14px;
+  font-size: calc(14px * var(--ts));
   cursor: pointer;
 }
 .choice:hover,
@@ -1311,7 +1303,7 @@ body.atlas #ui > * {
 }
 .choice b {
   font-family: var(--display);
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
   color: var(--gold);
 }
 .choice.seal b {
@@ -1320,7 +1312,7 @@ body.atlas #ui > * {
 .choice i {
   font-style: normal;
   color: var(--glow);
-  font-size: 13px;
+  font-size: calc(13px * var(--ts));
 }
 @media (max-width: 600px) {
   .choices {
@@ -1330,4 +1322,30 @@ body.atlas #ui > * {
 .ending-note {
   color: var(--glow);
   margin: 0 0 8px;
+}
+/* M5-02: reduced motion from Settings (or the system, on Auto) cuts every animation to its end state. */
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+/* M5-01: Settings */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 8px 0 12px;
+}
+.setting-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }

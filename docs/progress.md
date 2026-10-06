@@ -12,6 +12,12 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M5-01 Settings, M5-02 Accessibility
+Done: a Settings panel in the menu, saved apart from the game (ADR-024). Motion (Auto, Full or Reduced) now governs screen shake and every animation, where before shake ignored the device setting. Text size goes to 1.3×. Dark faces get a moon and rock too hot to work gets a heat badge, so neither is shown by colour alone. Numbers can be scientific.
+State: `npm run check` green. Checked at 1280×800 and 390×844. No save change.
+Next: M5-03 achievements, M5-04 itch.io build. Sound is being built in the code review thread; M5-05 balance pass waits for its offline fixes.
+Questions for Tom: none.
+
 ## 2026-10-06 · M4 The Heart
 
 Done: Act IV and the ending. Heat below 250 ft slows miners and then stops them at faces too hot to work; vents (tool, craft, and Wren's cold lamps helper) and standing water cool. Cinder wisps gather at hot faces and Pell's rounds handle them. Verse XI sits in a ring of ember ore and Verse XII in the Heartstone, which only the Heart pick breaks. Singing all twelve verses offers the choice: seal the shaft (Endless Depth, 64 more rows whenever the village nears the floor) or sing the last verse (New Song+, more Echoes, verses sung back). Hot faces glow on screen; "Held back by: Heat". ADR-023, PR #8.

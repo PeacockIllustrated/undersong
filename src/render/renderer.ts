@@ -15,6 +15,8 @@ import { tileTexture, wallTexture } from './tiles';
 import { drawSprite } from './sprites';
 import type { Camera } from './camera';
 import { Fx } from './fx';
+import { PESTS } from '../data/economy';
+import { settings } from '../settings';
 
 const T = TILE_PX;
 const CPX = CHUNK * T;
@@ -412,6 +414,9 @@ export class Renderer {
           ctx.fillRect(x + cx + (dx < 0 ? -2 : 0), y + cy, 3, 1);
           ctx.fillRect(x + cx, y + cy + (dy < 0 ? -2 : 0), 1, 3);
         }
+        // M5-02: a face too dark to work well also gets a shape, not just a dimmer colour
+        if (settings().marks && game.world.faceLight(m.target.x, m.target.y) < PESTS.darkBelow)
+          this.markDark(x + T / 2 - 2, y - 7);
       } else if (m.stalledBy !== null && Math.floor(now / 300) % 2 === 0) {
         // a stopped miner shows an orange "!" over their head
         const x = m.x * T + T / 2 - 1;
@@ -429,6 +434,22 @@ export class Renderer {
       if (Math.floor(now / 90) % 3 === 0)
         this.fx.sparkle(gl.x * T + 4 + ((now / 50) % 8), gl.y * T + 6, '#B9FFF3');
     }
+  }
+
+  /** A small crescent moon on a dark outline: this face is too dark for full speed. */
+  private markDark(x: number, y: number): void {
+    const ctx = this.ctx;
+    ctx.fillStyle = '#141A33';
+    ctx.fillRect(x - 1, y - 1, 6, 7);
+    ctx.fillStyle = '#B9FFF3';
+    for (const [dx, dy, w] of [
+      [1, 0, 3],
+      [0, 1, 2],
+      [0, 2, 1],
+      [0, 3, 2],
+      [1, 4, 3],
+    ] as const)
+      ctx.fillRect(x + dx, y + dy, w, 1);
   }
 
   /** canon §15: faces too hot to work shimmer; slowed ones glow faintly. Drawn over the dark so heat reads unlit. */
@@ -451,6 +472,17 @@ export class Renderer {
         if (r[i + 1]) ctx.fillRect(x * T + T - 2, y * T, 2, T);
         if (r[i - w.w]) ctx.fillRect(x * T, y * T, T, 2);
         if (r[i + w.w]) ctx.fillRect(x * T, y * T + T - 2, T, 2);
+        if (hot && settings().marks) {
+          // M5-02: too hot to work also reads by shape: a dark badge with three heat waves
+          ctx.globalAlpha = 1;
+          const bx = x * T + T / 2 - 4;
+          const by = y * T + T / 2 - 4;
+          ctx.fillStyle = '#141A33';
+          ctx.fillRect(bx, by, 9, 8);
+          ctx.fillStyle = '#FF9A3C';
+          for (let k = 0; k < 3; k++)
+            for (let j = 0; j < 6; j++) ctx.fillRect(bx + 1 + k * 3 + (j % 2), by + 1 + j, 1, 1);
+        }
         if (hot) {
           // rising haze: two pixels climbing the face
           ctx.globalAlpha = 0.8;

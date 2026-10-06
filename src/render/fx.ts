@@ -1,5 +1,6 @@
 // Small cosmetic effects: debris, sparkles, floating text, screen shake. Render-only, never the sim.
 import { drawSprite } from './sprites';
+import { reducedMotion } from '../settings';
 interface Particle {
   x: number;
   y: number;
@@ -65,6 +66,7 @@ export class Fx {
   }
 
   shake(amp: number, ms: number, now: number): void {
+    if (reducedMotion()) return; // M5-02: no screen shake when motion is reduced
     this.shakeAmp = amp;
     this.shakeUntil = now + ms;
   }
