@@ -1,6 +1,6 @@
 # Undersong roadmap
 
-**Current milestone: M0 Bedrock** (PR #1; M1 starts on a stacked branch per ADR-009)
+**Current milestone: M2 Glowroot** (M0 in PR #1, M1 in PR #2, stacked per ADR-009)
 
 Work on the first unchecked ticket in the current milestone. M0 and M1 are broken into full tickets. Later milestones are listed as epics, and they're split into tickets (using the template below) **as the first task of that milestone**. They aren't split earlier, because what we learn in each milestone changes the next one.
 
@@ -126,23 +126,45 @@ PR: https://github.com/PeacockIllustrated/undersong/pull/1
 
 **Exit:** a new player plays for about 45 minutes, finds Verses I and II, triggers a Cave-in and wants to dig again. Balance sim lands within ±15% of the canon §5 targets up to the first Cave-in.
 
-### [ ] M1-00 · Ticket M1 · S
-Goal: split this milestone into final tickets, using M0's lessons.
-Acceptance: the epics below are rewritten as tickets in the template format, with acceptance criteria and out-of-scope lists. Tom has seen the list.
+### [x] M1-00 · Ticket M1 · S
+Done: the epics became the tickets below. Tom sees them through the Dig Log rather than a review stop, since he asked for an unattended build.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
 
-Epics (draft):
-- **Resources and inventory.** Ore drops, `Decimal` amounts and the HUD counters.
-- **Forge.** Smelting and recipes from canon §9, plus pick upgrades.
-- **Bunkhouse and miners.** Hiring, assigning faces, the light factor and miner sprites.
-- **Haulage.** The rope and the winch, with throughput from canon §4.9.
-- **Vein Rush.** The chain multiplier, with a light feedback effect.
-- **Verses I–II.** Placement rules, the discovery moment, the verse card and Pell's and Bram's first lines.
-- **Cave-in.** Unlock conditions, the collapse sequence, the Survey Book, and the reset and keep rules. Saves migrate to v2.
-- **Echo upgrades.** The five from canon §10.
-- **Balance sim v1.** A headless player bot that reports time to each milestone.
-- **Burrow beetles.** A simple pest: it stalls a miner in the dark, and a tap removes it.
+### [x] M1-01 · Resources, drops and HUD · S
+Acceptance: ore drops land in the pack (Foreman) or wait at the shaft bottom (miners); HUD chips show held resources with sprite icons; numbers format with suffixes.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
 
----
+### [x] M1-02 · Forge and picks · S
+Acceptance: canon §9 smelting with a recipe picker (any ore, copper, tin, bronze); copper and bronze picks; changing recipe never loses progress unless it actually changes.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-03 · Bunkhouse and miners · M
+Acceptance: hire at canon §9 cost × 1.15ⁿ; miners pick faces by the ADR-016 reach rule and canon §9.1 priority; rate is pickPower × lightFactor against H(d); miner sprites animate at their faces.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-04 · Haulage and torches · S
+Acceptance: canon §4.9 throughput from the shaft depth; rope and winch; torches crafted 3 per copper bar and placed or picked up with the Torch tool.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-05 · Vein Rush · S
+Acceptance: canon §4.7 chain with a HUD readout and a floating multiplier.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-06 · Verses I–II and village lines · M
+Acceptance: verses are found by opening rock beside their carving; a verse card shows canon text; Pell's and Bram's lines fire on their triggers once per run; old chests give canon §9.1 loot.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-07 · Cave-in, Survey Book, Echo upgrades · M
+Acceptance: unlock per canon §4.10; Echo gain per §4.3; the run resets and the world reseeds; the Survey Book shows the run, the five §10 upgrades, verses and pages (three pages already in the Foreman's hand); save v2 with a migration and fixture.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-08 · Balance sim v1 · S
+Acceptance: `npm run sim -- --until=first-cavein` runs a bot over several seeds and checks canon §5 targets.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
+
+### [x] M1-09 · Burrow beetles · S
+Acceptance: per canon §9.1; a HUD alert jumps the camera to the stopped miner.
+PR: https://github.com/PeacockIllustrated/undersong/pull/2
 
 ## M2 · Glowroot: core systems for Act II
 Epics: the Lamp-works and Lumen budget, lantern placement, glowcap light, rails and lifts and supports, lantern moths, the full three-branch Echo tree, offline progress with the "While you were away" summary, a polished phone layout with the bottom tray, Old Wren, and Verses III–V.
@@ -168,3 +190,5 @@ Good ideas that are out of scope right now. Add to this list instead of building
 
 - Foreman 4-frame walk cycle, rope-coil and winch item sprites (finishes M0-07; do with M1 haulage).
 - Render-only lamp glow passes through rock; consider occluding it by solid tiles.
+- Sound (M5 epic), but a dig thunk and a smelt clink would help feel sooner.
+- Miners walk between faces instantly; animate the walk.

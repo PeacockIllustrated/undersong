@@ -224,6 +224,7 @@ export class Renderer {
 
     this.drawCarvings(game, tx0, ty0, tx1, ty1, frame);
     this.drawObjects(w, tx0, ty0, tx1, ty1, frame);
+    this.drawVillagers(game, now);
     this.drawDigging(game, frame, now);
     this.drawForeman(game, now);
     this.fx.drawWorld(ctx, now);
@@ -330,6 +331,21 @@ export class Renderer {
       const dx = Math.round(Math.sin(now / 20) * 2);
       ctx.strokeStyle = 'rgba(224,83,47,0.9)';
       ctx.strokeRect(r.x * T + 0.5 + dx, r.y * T + 0.5, T - 1, T - 1);
+    }
+  }
+
+  private drawVillagers(game: Game, now: number): void {
+    const s = game.state;
+    for (const m of s.miners) {
+      const working = m.target && m.stalledBy === null;
+      const f = working ? 2 + (Math.floor(now / 120 + m.id) % 3) : Math.floor(now / 700 + m.id) % 2;
+      drawSprite(this.ctx, 'miner', f, m.x * T + T / 2, m.y * T + T - 1, !!m.target && m.target.x < m.x);
+    }
+    for (const p of s.pests)
+      drawSprite(this.ctx, p.kind, Math.floor(now / 160 + p.id), p.x * T + T / 2, p.y * T + T - 1);
+    for (const gl of s.glints) {
+      if (Math.floor(now / 90) % 3 === 0)
+        this.fx.sparkle(gl.x * T + 4 + ((now / 50) % 8), gl.y * T + 6, '#B9FFF3');
     }
   }
 

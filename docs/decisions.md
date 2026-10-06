@@ -66,10 +66,20 @@ Consequences: Act II's Lumen economy has a reason to exist. Canon §7 updated.
 Decision: a tap queues one tile. With a mouse, dragging from a diggable tile queues a 4-connected path and dragging from air pans. On touch, a quick drag pans and press-and-hold then drag draws a dig path. The wheel and WASD/arrow keys scroll.
 Consequences: digging a long tunnel is one gesture on every device.
 
+**ADR-015 · Act I pacing retune** · 2026-10-06 · Accepted (Tom may override)
+Context: canon §5 asked for the first miner (15 copper bars) at 2 min but the first bar at 5 min, which can't both be true. The first sim runs also had the Cave-in at 14 min.
+Decision: hand-mining constant 2.5 → 1.15, stone hardness 3 → 4, copper and tin ore drop 2 each, Verse I placed a little shallower and closer to the shaft. Targets for the first bar, first miner and 150 ft are revised to what feels right in play (1, 8 and 20 min). Verse I at 10 min and the Cave-in at 45 min stay.
+Consequences: `npm run sim -- --until=first-cavein` lands Verse I, the Cave-in and Echoes within ±15% (see progress.md). The first-miner time still swings by seed (4–15 min) because ore near the shaft varies.
+
+**ADR-016 · Reach** · 2026-10-06 · Accepted
+Decision: the village can only work rock that touches air connected to the sky (a flood fill, cached until a tile changes). Sealed caves stay sealed until you dig into them, and chests in them stay out of reach.
+Consequences: the Foreman can't dig from inside the rock, and miners can't teleport into a cave.
+
 ---
 
 ## Open questions for Tom
 
 - Business model: free on the web, premium, or a demo plus a paid version.
 - How deep combat goes (see ADR-008).
+- Act I pacing targets (ADR-015): are 1, 8 and 20 min right for the first bar, first miner and 150 ft?
 - The final name.

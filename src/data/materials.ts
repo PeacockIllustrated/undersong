@@ -54,7 +54,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.AIR]: { id: M.AIR, name: 'Air', hardness: 0, ramp: ['#000000', '#000000', '#000000'] },
   [M.DIRT]: { id: M.DIRT, name: 'Dirt', hardness: 1, ramp: EARTH },
   [M.GRASS]: { id: M.GRASS, name: 'Grass', hardness: 1, ramp: EARTH },
-  [M.STONE]: { id: M.STONE, name: 'Stone', hardness: 3, ramp: STONE_R, drop: { res: 'rubble', n: 1 } },
+  [M.STONE]: { id: M.STONE, name: 'Stone', hardness: 4, ramp: STONE_R, drop: { res: 'rubble', n: 1 } },
   [M.COPPER]: {
     id: M.COPPER,
     name: 'Copper ore',
@@ -62,7 +62,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: STONE_R,
     host: M.STONE,
     overlay: 'ore-copper',
-    drop: { res: 'copperOre', n: 1 },
+    drop: { res: 'copperOre', n: 2 },
     isOre: true,
   },
   [M.TIN]: {
@@ -72,7 +72,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: STONE_R,
     host: M.STONE,
     overlay: 'ore-tin',
-    drop: { res: 'tinOre', n: 1 },
+    drop: { res: 'tinOre', n: 2 },
     isOre: true,
   },
   [M.SLATE]: { id: M.SLATE, name: 'Slate', hardness: 6, ramp: SLATE_R, drop: { res: 'rubble', n: 1 } },
