@@ -6,6 +6,8 @@ import { PICKS } from '../data/items';
 import { UPGRADES } from '../data/upgrades';
 import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
+import type { CharmId } from '../data/charms';
+import { equip, weave } from './charms';
 import { D } from './decimal';
 import { minerCost, nextHaul, nextPick, pay, torchCost } from './economy';
 import { syncWorld, type Game } from './game';
@@ -15,10 +17,10 @@ import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
 
-export type Tool = 'dig' | 'torch' | 'lantern' | 'support';
+export type Tool = 'dig' | 'torch' | 'lantern' | 'support' | 'pump';
 
 /** Tools that place an object from stock. */
-export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support'];
+export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support', 'pump'];
 
 export type Action =
   | { type: 'dig'; x: number; y: number }
@@ -34,6 +36,8 @@ export type Action =
   | { type: 'buyBuilding'; id: BuildingId }
   | { type: 'setRecipe'; recipe: Recipe }
   | { type: 'buyUpgrade'; id: string }
+  | { type: 'weave'; id: CharmId }
+  | { type: 'equip'; id: CharmId }
   | { type: 'caveIn' }
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' };
@@ -68,6 +72,12 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
   const s = g.state;
   const pest = s.pests.find((p) => p.x === x && p.y === y);
   if (pest) {
+    // shard golems take a few taps
+    if (pest.hp !== undefined && pest.hp > 1) {
+      pest.hp--;
+      g.events.push({ kind: 'pest', x, y, cleared: false });
+      return;
+    }
     s.pests = s.pests.filter((p) => p !== pest);
     for (const m of s.miners) if (m.stalledBy === pest.id) m.stalledBy = null;
     if (pest.kind === 'moth') {
@@ -100,7 +110,7 @@ function place(
   obj: ObjKind | undefined,
 ): void {
   const s = g.state;
-  const stock = kind as 'torch' | 'lantern' | 'support';
+  const stock = kind as 'torch' | 'lantern' | 'support' | 'pump';
   if (obj === kind) {
     delete s.world.objects[key];
     s.res[stock] = s.res[stock].add(1);
@@ -205,6 +215,12 @@ export function apply(g: Game, a: Action): void {
       if (u.id === 'lamplit' || u.id === 'steadyFlame') syncWorld(s, g.world);
       return;
     }
+    case 'weave':
+      weave(g, a.id);
+      return;
+    case 'equip':
+      equip(g, a.id);
+      return;
     case 'caveIn':
       caveIn(g);
       return;

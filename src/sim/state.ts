@@ -5,7 +5,7 @@ import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
 import type { Recipe } from '../data/economy';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface Tile {
   x: number;
@@ -49,6 +49,8 @@ export interface Pest {
   born: number;
   /** Miner it is bothering, if any. */
   minerId: number | null;
+  /** Taps still needed to clear it (shard golems take several). */
+  hp?: number;
 }
 
 export interface Glint {
@@ -97,6 +99,8 @@ export interface GameState {
   haulAcc: number;
   kilnProgress: number;
   lampProgress: number;
+  /** Fraction of a water unit the pumps have banked toward their next unit. */
+  pumpAcc: number;
   miners: Miner[];
   pests: Pest[];
   glints: Glint[];
@@ -105,8 +109,8 @@ export interface GameState {
   world: {
     diffs: Record<string, number>;
     objects: Record<string, ObjKind>;
-    /** Water levels, run-length encoded, or null when untouched. */
-    water: string | null;
+    /** Water levels (0–8) of every tile whose water has changed since the mountain was made. */
+    water: Record<string, number>;
     endlessRows: number;
     oldShaftD: number;
   };
@@ -168,6 +172,7 @@ export function newGame(seed: number): GameState {
     haulAcc: 0,
     kilnProgress: 0,
     lampProgress: 0,
+    pumpAcc: 0,
     miners: [],
     pests: [],
     glints: [],
@@ -182,7 +187,7 @@ export function newGame(seed: number): GameState {
       idleMs: 0,
       lastOre: null,
     },
-    world: { diffs: {}, objects: {}, water: null, endlessRows: 0, oldShaftD: 0 },
+    world: { diffs: {}, objects: {}, water: {}, endlessRows: 0, oldShaftD: 0 },
     echoes: ZERO(),
     echoesEver: ZERO(),
     upgrades: {},

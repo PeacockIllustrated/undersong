@@ -92,10 +92,11 @@ export const CRAFTS = {
     makes: 1,
   },
   support: { cost: [{ res: 'brick', n: 4 }] as Cost[], makes: 1 },
+  // mostly iron: the first pump has to be affordable from the silver above the waterline
   pump: {
     cost: [
-      { res: 'silverBar', n: 6 },
-      { res: 'ironBar', n: 4 },
+      { res: 'silverBar', n: 2 },
+      { res: 'ironBar', n: 6 },
     ] as Cost[],
     makes: 1,
   },

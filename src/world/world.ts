@@ -110,6 +110,12 @@ export class World {
       }
   }
 
+  /** Mark only the render cache of a tile's chunk as stale (water level changes that don't move light). */
+  redraw(x: number, y: number): void {
+    const c = Math.floor(y / CHUNK) * this.chunksX + Math.floor(x / CHUNK);
+    if (c >= 0 && c < this.version.length) this.version[c] = this.version[c]! + 1;
+  }
+
   touchAll(): void {
     this.lightDirty.fill(1);
     for (let i = 0; i < this.version.length; i++) this.version[i] = this.version[i]! + 1;

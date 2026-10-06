@@ -6,6 +6,8 @@ import { attach, freshWorld, type Game } from './game';
 import { hash3 } from './rng';
 import { emptyRes, type GameState } from './state';
 import { UPGRADE_FX } from '../data/upgrades';
+import { charm } from './power';
+import { CHARM } from '../data/charms';
 import type { ResKey } from '../data/resources';
 
 export function maxFt(s: GameState): number {
@@ -23,7 +25,8 @@ export function canCaveIn(s: GameState): boolean {
 /** canon §4.3 floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × verses found this run) ) */
 export function echoGain(s: GameState): Decimal {
   const base = Math.floor(Math.sqrt(maxFt(s) / ECHO.divisor) * (1 + ECHO.perVerse * versesThisRun(s)));
-  return D(s.upgrades.surveyInstinct ? Math.floor(base * UPGRADE_FX.surveyInstinct) : base);
+  const mult = (s.upgrades.surveyInstinct ? UPGRADE_FX.surveyInstinct : 1) * charm(s, 'hollow');
+  return D(mult === 1 ? base : Math.floor(base * mult));
 }
 
 /** Seed for the mountain of a given cycle: the same village, a different dig. */
@@ -68,6 +71,8 @@ export function resetRun(s: GameState): void {
   s.forge = { progress: 0, recipe: 'auto', next: 0 };
   s.haulAcc = 0;
   s.kilnProgress = 0;
+  s.lampProgress = 0;
+  s.pumpAcc = 0;
   s.miners = [];
   s.pests = [];
   s.glints = [];
@@ -84,12 +89,14 @@ export function resetRun(s: GameState): void {
   s.world = {
     diffs: {},
     objects: {},
-    water: null,
+    water: {},
     endlessRows: s.world.endlessRows,
     oldShaftD,
   };
   if (s.upgrades.bramsLedger)
     for (const [k, n] of Object.entries(UPGRADE_FX.bramsLedger)) s.res[k as ResKey] = D(n);
+  // only the slots that need no Song-loom carry over
+  s.charms.equipped = s.charms.equipped.slice(0, CHARM.slotsBase);
   s.verses.run = new Array(12).fill(false);
   s.stats.maxDepthD = 0;
   s.stats.tilesMined = 0;

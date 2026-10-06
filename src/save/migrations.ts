@@ -32,6 +32,14 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 3;
     return o as Raw;
   },
+  // v3 → v4 (M3): water levels kept as per-tile diffs, the pumps' banked fraction.
+  3: (s) => {
+    const o = s as Record<string, any>;
+    if (o.world) o.world.water = {};
+    o.pumpAcc = 0;
+    o.v = 4;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

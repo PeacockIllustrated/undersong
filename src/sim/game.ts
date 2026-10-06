@@ -1,7 +1,10 @@
 // A running game: the serialisable state plus the world rebuilt from it. dev-bible §1.1
 import { generateWorld } from '../world/generator';
 import type { World } from '../world/world';
-import { UPGRADE_FX } from '../data/upgrades';
+import { torchMult } from './power';
+import { M } from '../data/materials';
+import { wetTiles } from '../world/water';
+import { setWater, wakeWater } from './water';
 import { newGame, type GameState } from './state';
 
 /** Something the renderer, audio or UI may want to react to. Never saved. */
@@ -29,6 +32,8 @@ export interface Game {
   reachMaxY: number;
   /** True while catching up on time away: pests and collapses wait for the player. */
   offline?: boolean;
+  /** Tiles whose water may still move (not saved: rebuilt from the water itself on load). */
+  wet: Set<number>;
 }
 
 export function worldFor(state: GameState): World {
@@ -37,13 +42,14 @@ export function worldFor(state: GameState): World {
     endlessRows: state.world.endlessRows,
   });
   for (const [k, m] of Object.entries(state.world.diffs)) world.mat[Number(k)] = m;
+  for (const [k, v] of Object.entries(state.world.water)) world.water[Number(k)] = v;
   syncWorld(state, world);
   return world;
 }
 
 /** Copy the state's light-affecting facts onto the world: upgrades, Lumen, moth-dimmed lanterns. */
 export function syncWorld(state: GameState, world: World): void {
-  world.torchMult = state.upgrades.lamplit ? UPGRADE_FX.lamplit : 1;
+  world.torchMult = torchMult(state);
   world.torchSteady = state.upgrades.steadyFlame === 1;
   world.lanternsLit = state.res.lumen.gt(0);
   world.dimmed = new Set(state.pests.filter((p) => p.kind === 'moth').map((p) => p.y * world.w + p.x));
@@ -59,11 +65,15 @@ export function attach(g: Game, world: World): void {
   world.onSet = (i, m) => {
     g.state.world.diffs[String(i)] = m;
     g.reachDirty = true;
+    // an opened or filled tile lets the water around it move again
+    wakeWater(g, i);
+    if (m !== M.AIR && world.water[i]) setWater(g, i, 0);
   };
+  g.wet = new Set(wetTiles(world));
 }
 
 export function bind(state: GameState, world: World): Game {
-  const g = { state, events: [], reachDirty: true, reachMaxY: 0 } as unknown as Game;
+  const g = { state, events: [], reachDirty: true, reachMaxY: 0, wet: new Set() } as unknown as Game;
   attach(g, world);
   return g;
 }

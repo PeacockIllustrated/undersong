@@ -8,6 +8,7 @@ import { SHAFT_X } from '../data/constants';
 import { D, Decimal } from './decimal';
 import type { Game } from './game';
 import type { GameState } from './state';
+import { charm } from './power';
 
 export function scaled(c: Cost, owned: number, mult = 1): Decimal {
   return D(c.n).mul(D(COST_GROWTH).pow(owned)).mul(mult).ceil();
@@ -111,7 +112,7 @@ export function shaftDepth(g: Game): number {
 /** canon §4.9: ore_per_s_max = speed × capacity / shaftDepth. */
 export function haulRate(g: Game): number {
   const h = HAULS[g.state.haulTier] ?? HAULS[0]!;
-  return (h.speed * h.capacity) / shaftDepth(g);
+  return (h.speed * h.capacity * charm(g.state, 'river')) / shaftDepth(g);
 }
 
 export function stepHaul(g: Game, dt: number): void {

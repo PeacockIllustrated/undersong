@@ -35,10 +35,13 @@ export const VERSE_BANDS: readonly { d0: number; d1: number }[] = [
 ];
 
 /** fbm thresholds for ore veins (higher = rarer). Tuned with the balance sim (ADR-017). */
-const ORE = { copper: 0.7, tin: 0.76, iron: 0.7, deepCopper: 0.72, deepTin: 0.78 };
+const ORE = { copper: 0.7, tin: 0.76, iron: 0.7, deepCopper: 0.72, deepTin: 0.78, hallsCave: 0.62 };
 
 /** Verses (0-based, inclusive) carved inside old brick shrines. */
 export const SHRINE_VERSES = [2, 4] as const;
+
+/** Verses (0-based, inclusive) sealed in a ring of resonant crystal: the Geode verses need an aquamarine pick. */
+export const GEODE_VERSES = [8, 9] as const;
 
 /** Drowned town street row (depth tiles). canon §2 Flooded Halls */
 export const TOWN_STREET_D = 138;
@@ -102,7 +105,8 @@ function baseTile(w: World, x: number, y: number, S: number, opts: GenOptions): 
       return M.SLATE;
     }
     case 3: {
-      if (cave > 0.7) return M.AIR;
+      // the Flooded Halls are wide: long drowned galleries the shaft can't avoid
+      if (cave > ORE.hallsCave || fbm(x * 0.05, y * 0.2, S + 53) > ORE.hallsCave + 0.04) return M.AIR;
       if (n1 > 0.76) return M.SILVER;
       if (n2 > 0.84) return M.AQUA;
       return M.SLATE;
@@ -111,7 +115,7 @@ function baseTile(w: World, x: number, y: number, S: number, opts: GenOptions): 
       if (cave > 0.78) return M.AIR;
       if (n1 > 0.8) return M.CRYSTAL;
       if (n2 > 0.8) return M.SILVER;
-      return M.SLATE;
+      return M.SINGING;
     }
     case 5: {
       if (cave > 0.74) return M.AIR;
@@ -134,7 +138,7 @@ function endlessTile(x: number, y: number, d: number, S: number): number {
   if (cave > 0.74) return M.AIR;
   if (look === 2) return n1 > 0.72 ? M.IRON : n1 < 0.12 ? M.GLOWCAP : M.SLATE;
   if (look === 3) return n1 > 0.75 ? M.SILVER : n1 < 0.1 ? M.AQUA : M.SLATE;
-  if (look === 4) return n1 > 0.78 ? M.CRYSTAL : M.SLATE;
+  if (look === 4) return n1 > 0.78 ? M.CRYSTAL : M.SINGING;
   return n1 > 0.72 ? M.EMBER : n1 < 0.1 ? M.GOLD : M.BASALT;
 }
 
@@ -196,6 +200,8 @@ function carveFeatures(w: World, S: number, opts: GenOptions): void {
     for (let r = 0; r < 4; r++) setRect(w, hx - 4 + r, street - 8 - r, hx + 4 - r, street - 8 - r, M.BRICK);
     // doorway onto the street
     setRect(w, hx - 1, street - 1, hx + 1, street - 1, M.AIR);
+    // a lamp still burning in every window (canon §12, Verse VI)
+    w.objects[String((street - 6) * w.w + hx)] = 'oldlamp';
   }
 
   // Singing Geodes: hollow crystal-lined ellipses.
@@ -255,6 +261,10 @@ function placeCarvings(w: World, S: number): void {
       if (v >= SHRINE_VERSES[0] && v <= SHRINE_VERSES[1])
         for (let dy = -1; dy <= 1; dy++)
           for (let dx = -1; dx <= 1; dx++) w.mat[(y + dy) * w.w + x + dx] = M.BRICK;
+      // the Geode verses ring with crystal: an aquamarine pick is needed to reach them
+      if (v >= GEODE_VERSES[0] && v <= GEODE_VERSES[1])
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) w.mat[(y + dy) * w.w + x + dx] = M.CRYSTAL;
     }
     w.mat[y * w.w + x] = M.CARVING;
     w.carvings.push({ verse: v, x, y });

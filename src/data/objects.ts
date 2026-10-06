@@ -1,5 +1,5 @@
 // Objects placed in air tiles. canon §9–§12.
-export type ObjKind = 'torch' | 'lantern' | 'support' | 'pump' | 'vent' | 'chest' | 'rope';
+export type ObjKind = 'torch' | 'lantern' | 'support' | 'pump' | 'vent' | 'chest' | 'rope' | 'oldlamp';
 
 export interface ObjDef {
   kind: ObjKind;
@@ -19,4 +19,6 @@ export const OBJECTS: Record<ObjKind, ObjDef> = {
   vent: { kind: 'vent', name: 'Cooling vent', sprite: 'obj-vent', stock: 'vent', radius: 5 },
   chest: { kind: 'chest', name: 'Old chest', sprite: 'obj-chest' },
   rope: { kind: 'rope', name: 'Old rope', sprite: 'obj-rope' },
+  // the drowned town's lamps: nobody lit them, and they never went out (canon §12)
+  oldlamp: { kind: 'oldlamp', name: 'Old lamp', sprite: 'obj-lantern' },
 };

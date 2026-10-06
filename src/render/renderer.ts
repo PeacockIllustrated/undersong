@@ -42,7 +42,8 @@ export const VILLAGE: readonly {
 function wallMaterial(d: number): number {
   const b = biomeAt(d).id;
   if (b <= 1) return d < 6 ? M.DIRT : M.STONE;
-  if (b <= 4) return M.SLATE;
+  if (b <= 3) return M.SLATE;
+  if (b === 4) return M.SINGING;
   if (b === 5) return M.BASALT;
   return M.HEARTWALL;
 }

@@ -6,6 +6,7 @@ import { stepForeman } from './dig';
 import { stepMiners } from './miners';
 import { stepForge, stepHaul } from './economy';
 import { stepStory } from './story';
+import { stepWater } from './water';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 
 export { mineTile } from './dig';
@@ -16,6 +17,7 @@ export function step(g: Game, dtMs: number): void {
   const dt = dtMs / 1000;
   s.t += dtMs;
   s.totalT += dtMs;
+  stepWater(g, dt);
   stepForeman(g, dt);
   stepMiners(g, dt);
   stepHaul(g, dt);

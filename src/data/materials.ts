@@ -23,6 +23,7 @@ export const M = {
   BASALT: 18,
   RUBBLE: 19,
   HEARTWALL: 20,
+  SINGING: 21,
 } as const;
 export type M = (typeof M)[keyof typeof M];
 
@@ -104,7 +105,7 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: SLATE_R,
     host: M.SLATE,
     overlay: 'ore-silver',
-    drop: { res: 'silverOre', n: 1 },
+    drop: { res: 'silverOre', n: 2 },
     isOre: true,
   },
   [M.AQUA]: {
@@ -165,6 +166,14 @@ export const MATERIALS: Record<number, MaterialDef> = {
   [M.CARVING]: { id: M.CARVING, name: 'Verse carving', hardness: 0, ramp: STONE_R },
   [M.BASALT]: { id: M.BASALT, name: 'Basalt', hardness: 20, ramp: BASALT_R, drop: { res: 'rubble', n: 1 } },
   [M.RUBBLE]: { id: M.RUBBLE, name: 'Rubble', hardness: 2, ramp: STONE_R, drop: { res: 'rubble', n: 1 } },
+  // canon §8: the Geodes' own rock rings faintly when struck; it wants a silver pick
+  [M.SINGING]: {
+    id: M.SINGING,
+    name: 'Singing stone',
+    hardness: 8,
+    ramp: ['#373A52', '#2A5E86', '#262940'],
+    drop: { res: 'rubble', n: 1 },
+  },
   [M.HEARTWALL]: {
     id: M.HEARTWALL,
     name: 'Heartrock',
@@ -187,6 +196,7 @@ export const MIN_PICK: Partial<Record<number, number>> = {
   [M.SILVER]: 3,
   [M.BRICK]: 3,
   [M.AQUA]: 4,
+  [M.SINGING]: 4,
   [M.CRYSTAL]: 5,
   [M.BASALT]: 6,
   [M.EMBER]: 6,

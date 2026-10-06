@@ -1,18 +1,19 @@
 // Digging: the Foreman's hand-mining with Vein Rush, and the shared tile-removal that pays out drops. canon §4.6, §4.7
 import { MATERIALS, M, canDig, isMineable } from '../data/materials';
-import { PICKS } from '../data/items';
 import { VEIN_RUSH } from '../data/economy';
 import { UPGRADE_FX } from '../data/upgrades';
-import { deepMult, handsMult, rushStep } from './power';
+import { charm, deepMult, handsMult, pickPower, rushStep } from './power';
 import { lightFactor } from '../data/light';
 import { BIOMES } from '../data/biomes';
-import { NEIGH4 } from '../world/world';
+import { NEIGH4, type Carving } from '../world/world';
 import { D } from './decimal';
 import { FOREMAN_RATE, hardnessAt } from './formulas';
 import type { Game } from './game';
 import { reach, workable } from './reach';
 import { first, say } from './story';
 import { maybeCollapse } from './village';
+import { GOLEMS } from '../data/water';
+import { makeRng } from './rng';
 
 /** Depth (tiles) from which the Foreman's own digging depends on light: the Glowroot. */
 const DARK_FROM_D = BIOMES[2]!.d0;
@@ -23,7 +24,7 @@ export function rushMult(chain: number, step: number = VEIN_RUSH.step): number {
 
 export function foremanRate(g: Game): number {
   const s = g.state;
-  const power = PICKS[s.pickTier]?.power ?? 1;
+  const power = pickPower(s);
   const t = s.foreman.target;
   const d = t ? g.world.depth(t.y) : 0;
   // ADR-017: below Topsoil the Foreman digs by whatever light reaches the face, like the miners
@@ -115,20 +116,42 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
   }
   discoverVerses(g, x, y);
   maybeCollapse(g, x, y);
+  if (m === M.CRYSTAL) maybeGolem(g, x, y);
+}
+
+/** canon §12: mining resonant crystal can wake a shard golem, which stops every miner near it until tapped down. */
+function maybeGolem(g: Game, x: number, y: number): void {
+  const s = g.state;
+  if (g.offline) return;
+  const rng = makeRng(s.rng);
+  const roll = rng.next();
+  s.rng = rng.state();
+  if (roll >= GOLEMS.chance * charm(s, 'crystal')) return;
+  const id = s.nextId++;
+  s.pests.push({ id, kind: 'golem', x, y, born: s.t, minerId: null, hp: GOLEMS.hp });
+  for (const mn of s.miners)
+    if (mn.stalledBy === null && Math.abs(mn.x - x) + Math.abs(mn.y - y) <= GOLEMS.radius) mn.stalledBy = id;
+  g.events.push({ kind: 'pest', x, y, cleared: false });
+  say(g, 'golem');
 }
 
 /** A verse is found the moment the rock beside its carving is opened. */
 function discoverVerses(g: Game, x: number, y: number): void {
-  const s = g.state;
   for (const c of g.world.carvings) {
     if (Math.abs(c.x - x) + Math.abs(c.y - y) !== 1) continue;
-    if (s.verses.run[c.verse]) continue;
-    const again = s.verses.known[c.verse] === true;
-    s.verses.run[c.verse] = true;
-    s.verses.known[c.verse] = true;
-    s.story.events.push({ kind: 'verse', verse: c.verse, again });
-    g.events.push({ kind: 'verse', verse: c.verse, x: c.x, y: c.y });
-    first(g, `verse${c.verse}`);
-    say(g, `verse${c.verse}`);
+    readVerse(g, c);
   }
+}
+
+/** Find a verse this run: it goes in the Survey Book and the village reacts. */
+export function readVerse(g: Game, c: Carving): void {
+  const s = g.state;
+  if (s.verses.run[c.verse]) return;
+  const again = s.verses.known[c.verse] === true;
+  s.verses.run[c.verse] = true;
+  s.verses.known[c.verse] = true;
+  s.story.events.push({ kind: 'verse', verse: c.verse, again });
+  g.events.push({ kind: 'verse', verse: c.verse, x: c.x, y: c.y });
+  first(g, `verse${c.verse}`);
+  say(g, `verse${c.verse}`);
 }
