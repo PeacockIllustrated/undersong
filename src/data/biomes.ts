@@ -31,6 +31,16 @@ export const BIOME_RES: Record<number, readonly ResKey[]> = {
   6: ['heartstone', 'goldBar'],
 };
 
+/** Band colour for each biome on the depth ruler (polish item 7), from the master palette. */
+export const BIOME_BAND: Record<number, string> = {
+  1: '#8A5A3B',
+  2: '#1E6B66',
+  3: '#2A5E86',
+  4: '#7FD6FF',
+  5: '#E0532F',
+  6: '#FFD65A',
+};
+
 export function biomeAt(d: number): BiomeDef {
   for (let i = BIOMES.length - 1; i >= 0; i--) {
     const b = BIOMES[i]!;

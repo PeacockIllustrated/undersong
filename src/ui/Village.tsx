@@ -207,9 +207,13 @@ function Helpers({ ui }: { ui: UiBridge }) {
   );
 }
 
-type VillageTab = 'build' | 'hands' | 'loom';
+export type VillageTab = 'build' | 'hands' | 'loom';
 /** The last tab used, kept for the session. */
 let lastTab: VillageTab = 'build';
+/** Open the Village on a given tab next time (a tip's "Show me"). */
+export function villageTab(t: VillageTab): void {
+  lastTab = t;
+}
 
 export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const s = ui.game.state;
@@ -285,9 +289,11 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                 onClick={() => {
                   lastTab = t.id;
                   setTab(t.id);
+                  if (t.id !== 'build') ui.dispatch({ type: 'note', key: `tab:${t.id}` });
                 }}
               >
                 {t.label}
+                {t.id !== 'build' && !s.story.ever.includes(`tab:${t.id}`) && <span class="pip">NEW</span>}
                 {t.n > 0 && <span class="count">{t.n}</span>}
               </button>
             ))}

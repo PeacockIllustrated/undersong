@@ -6,6 +6,7 @@ import { M } from '../data/materials';
 import { wetTiles } from '../world/water';
 import { setWater, wakeWater } from './water';
 import { newGame, type GameState } from './state';
+import type { ResKey } from '../data/resources';
 
 /** Something the renderer, audio or UI may want to react to. Never saved. */
 export type SimEvent =
@@ -36,6 +37,8 @@ export interface Game {
   offline?: boolean;
   /** Tiles whose water may still move (not saved: rebuilt from the water itself on load). */
   wet: Set<number>;
+  /** What came up the shaft since the UI last looked (not saved; the UI reads and clears it). */
+  hauled: Partial<Record<ResKey, number>>;
 }
 
 export function worldFor(state: GameState): World {
@@ -75,7 +78,14 @@ export function attach(g: Game, world: World): void {
 }
 
 export function bind(state: GameState, world: World): Game {
-  const g = { state, events: [], reachDirty: true, reachMaxY: 0, wet: new Set() } as unknown as Game;
+  const g = {
+    state,
+    events: [],
+    reachDirty: true,
+    reachMaxY: 0,
+    wet: new Set(),
+    hauled: {},
+  } as unknown as Game;
   attach(g, world);
   return g;
 }

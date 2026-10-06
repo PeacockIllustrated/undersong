@@ -26,3 +26,6 @@ export const ftFromDepthTiles = (d: number): number => Math.max(0, d) * FT_PER_T
 
 /** Most tiles the foreman will queue from taps and drags. */
 export const DIG_QUEUE_MAX = 64;
+
+/** Polish item 6: an unfound verse this close to the Foreman (tiles) gets an edge marker. A hint, not a map. */
+export const EDGE_VERSE_RANGE = 24;

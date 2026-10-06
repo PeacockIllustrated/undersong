@@ -12,6 +12,12 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · UI polish (ADR-022)
+Done: all ten items of the approved polish proposal. Cancel queued blocks by tapping or dragging over them, Esc or Clear queue; numbered queue with an order thread; ore floats at the shaft head; one-time tip cards and NEW pips; a banner for each new biome; edge arrows to pests, stalled miners and nearby verses; a depth ruler with biome bands; miner face brackets and stall marks; Village tabs; biome resource chips with rates and a tray; a one-button tool picker and hold ring on phones.
+State: `npm run check` green (50 tests). Checked at 1280×800 and 390×844. No save change.
+Next: M3-09 (Act III tail), then M4.
+Questions for Tom: tip and banner wording is mine; edit freely.
+
 ## 2026-10-06 · M3 Drowned
 Done: Act III. Water that settles and floods, pumps, the drowned town (Holloway under the water, four houses, Verses VI–VIII), the Singing Geodes with singing stone and crystal-ringed Verses IX–X, the Song-loom and ten charms, cave eels and shard golems, and Act III lines. In the spirit of ADR-020, Bram's pump crew moves pumps for you and Pell's rounds handle eels and golems. Save v5. ADR-021 moves the Halls' tools onto silver.
 State: `npm run check` green (46 tests). Act III sim, 9 seeds, 10 h cap: 7 of 9 reach Act III end (282, 332, 351, 378, 448, 532, 590 min); 2 find Verses VI–VIII but never open the crystal around IX–X in time. Median 448 min against a 390 target, at the edge of ±15%. M3-09 stays open for that tail.

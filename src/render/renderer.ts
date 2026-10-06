@@ -414,7 +414,7 @@ export class Renderer {
         const y = m.y * T - 12;
         ctx.fillStyle = '#141A33';
         ctx.fillRect(x - 1, y - 1, 4, 9);
-        ctx.fillStyle = '#E0532F';
+        ctx.fillStyle = '#FF9A3C';
         ctx.fillRect(x, y, 2, 4);
         ctx.fillRect(x, y + 5, 2, 2);
       }

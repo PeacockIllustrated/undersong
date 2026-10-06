@@ -1,6 +1,7 @@
 // The HUD and menus. Reads the game, dispatches actions; never mutates state directly.
 import { useEffect, useState } from 'preact/hooks';
-import { biomeAt } from '../data/biomes';
+import { BIOMES, biomeAt } from '../data/biomes';
+import { BIOME_LINES } from '../story/biomes';
 import { ftFromDepthTiles } from '../data/constants';
 import { RES_KEYS, type ResKey } from '../data/resources';
 import type { Action, Tool } from '../sim/actions';
@@ -9,7 +10,7 @@ import type { GameState } from '../sim/state';
 import type { AwaySummary } from '../save/offline';
 import { spriteURL } from '../render/sprites';
 import { fmt } from './format';
-import { VillageSheet } from './Village';
+import { VillageSheet, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
 import { StoryLayer } from './Story';
@@ -17,6 +18,8 @@ import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
 import { homecoming, homeUntilD } from '../sim/power';
 import { ResChips } from './ResChips';
+import { EdgeMarkers } from './EdgeMarkers';
+import { DepthRuler } from './DepthRuler';
 import { bottleneck, echoAffordable, villageAffordable } from './feedback';
 
 export interface UiBridge {
@@ -28,6 +31,8 @@ export interface UiBridge {
   recenter(): void;
   /** Move the camera to a tile and stop following the Foreman. */
   lookAt(x: number, y: number): void;
+  /** A tile's centre in CSS px, and the view's CSS size, for markers drawn over the canvas. */
+  toScreen(x: number, y: number): { x: number; y: number; w: number; h: number };
   tool: Tool;
   setTool(t: Tool): void;
   /** What the village did while the player was away, until they close the summary. */
@@ -59,6 +64,33 @@ function Toasts() {
       <div class="big">{t.big}</div>
       {t.sub && <div class="sub">{t.sub}</div>}
     </div>
+  );
+}
+
+/** Polish item 5: a wide banner the first time a run reaches each biome; a plain toast on later visits. */
+function BiomeBanner() {
+  const [b, setB] = useState<{ id: number; key: number } | null>(null);
+  useEffect(() => {
+    let n = 0;
+    const on = (e: Event): void => setB({ id: (e as CustomEvent<number>).detail, key: ++n });
+    window.addEventListener('undersong:biome', on);
+    return () => window.removeEventListener('undersong:biome', on);
+  }, []);
+  useEffect(() => {
+    if (!b) return;
+    const id = window.setTimeout(() => setB(null), 3500);
+    return () => window.clearTimeout(id);
+  }, [b?.key]);
+  if (!b) return null;
+  const def = BIOMES[b.id]!;
+  return (
+    <button class="panel biome-banner" key={b.key} onClick={() => setB(null)} aria-live="polite">
+      <div class="act">
+        Act {def.act} · {ftFromDepthTiles(def.d0)} ft
+      </div>
+      <div class="name">{def.name}</div>
+      {BIOME_LINES[b.id] && <div class="line">{BIOME_LINES[b.id]}</div>}
+    </button>
   );
 }
 
@@ -132,6 +164,16 @@ export function App({ ui }: { ui: UiBridge }) {
   ];
   void RES_KEYS;
 
+  // a tip's "Show me" opens the Village on its tab
+  useEffect(() => {
+    const onV = (e: Event): void => {
+      villageTab((e as CustomEvent<VillageTab>).detail);
+      setSheet('village');
+    };
+    window.addEventListener('undersong:village', onV);
+    return () => window.removeEventListener('undersong:village', onV);
+  }, []);
+
   // the Cave-in opens the Survey Book once its collapse has played
   useEffect(() => {
     const onCave = (): void => setSheet('survey');
@@ -155,6 +197,9 @@ export function App({ ui }: { ui: UiBridge }) {
     { id: 'dig', sprite: pickSprite, label: 'Dig', title: 'Dig' },
     ...tools.filter((t) => t.show),
   ];
+  // NEW until first placed (this run's firsts covers saves from before the flag existed)
+  const usedTool = (id: Tool): boolean =>
+    s.story.ever.includes(`used:${id}`) || s.stats.firsts[id] !== undefined;
   const cur = toolList.find((t) => t.id === ui.tool) ?? toolList[0]!;
 
   return (
@@ -204,8 +249,11 @@ export function App({ ui }: { ui: UiBridge }) {
         <ResChips s={s} biome={biome.id} wide={wide} />
       </div>
       {ui.away && <AwaySheet ui={ui} />}
-      <StoryLayer ui={ui} />
+      <StoryLayer ui={ui} tips={!sheet} />
       <Toasts />
+      <BiomeBanner />
+      {!sheet && <EdgeMarkers ui={ui} />}
+      {!sheet && <DepthRuler ui={ui} />}
       {(s.foreman.queue.length > 0 || s.foreman.target) && (
         <button
           class="panel qchip"
@@ -231,6 +279,7 @@ export function App({ ui }: { ui: UiBridge }) {
               >
                 <img src={spriteURL(t.sprite)} alt="" />
                 <span class="tl">{t.label}</span> {t.stock ? fmt(s.res[t.stock]) : ''}
+                {t.id !== 'dig' && !usedTool(t.id) && <span class="pip">NEW</span>}
               </button>
             ))}
           </div>
@@ -245,6 +294,9 @@ export function App({ ui }: { ui: UiBridge }) {
             <img src={spriteURL(cur.sprite)} alt="" />
             {cur.stock ? fmt(s.res[cur.stock]) : ''}
             {toolList.length > 1 && <span class="caret">{toolsOpen ? '▾' : '▴'}</span>}
+            {!toolsOpen && toolList.some((t) => t.id !== 'dig' && !usedTool(t.id)) && (
+              <span class="pip">NEW</span>
+            )}
           </button>
         )}
         <div class="row nav">

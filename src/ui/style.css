@@ -1024,3 +1024,214 @@ body.atlas #ui > * {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
   }
 }
+/* Polish item 5: biome arrival banner */
+.biome-banner {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 12%);
+  transform: translateX(-50%);
+  z-index: 41;
+  width: min(560px, calc(100vw - 32px));
+  padding: 14px 18px 16px;
+  text-align: center;
+  border-color: var(--gold);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: banner-drop 0.45s steps(6) both;
+}
+.biome-banner .act {
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--glow);
+}
+.biome-banner .name {
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--gold);
+  margin: 4px 0;
+}
+.biome-banner .line {
+  font-family: var(--body);
+  font-size: 15px;
+  color: var(--ink);
+}
+@keyframes banner-drop {
+  from {
+    transform: translate(-50%, -40px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .biome-banner {
+    animation: none;
+  }
+}
+/* Polish item 6: edge markers */
+.edge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border: 2px solid var(--ember);
+  box-shadow: 0 0 0 2px var(--night);
+  color: var(--ember);
+  font-size: 12px;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 5;
+}
+.edge i {
+  font-style: normal;
+  display: block;
+}
+.edge span {
+  position: absolute;
+  right: -6px;
+  top: -8px;
+  font-family: var(--display);
+  font-size: 10px;
+  background: var(--night);
+  color: var(--ink);
+  padding: 0 3px;
+}
+.edge-miner {
+  border-color: #ff9a3c;
+  color: #ff9a3c;
+}
+.edge-verse {
+  border-color: var(--gold);
+  color: var(--gold);
+  animation: edge-pulse 1.2s steps(2) infinite;
+}
+@keyframes edge-pulse {
+  50% {
+    box-shadow:
+      0 0 0 2px var(--night),
+      0 0 10px 2px rgba(255, 214, 90, 0.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .edge-verse {
+    animation: none;
+  }
+}
+/* Polish item 7: depth ruler */
+.ruler {
+  position: absolute;
+  right: 4px;
+  top: calc(env(safe-area-inset-top, 0px) + 120px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 140px);
+  width: 14px;
+  background: var(--night);
+  border: 2px solid var(--slate-2);
+  pointer-events: auto;
+  z-index: 3;
+}
+.ruler .band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.ruler .band.unknown {
+  cursor: default;
+  background: repeating-linear-gradient(45deg, var(--slate-1) 0 2px, var(--night) 2px 5px);
+}
+.ruler .mark {
+  position: absolute;
+  height: 2px;
+  pointer-events: none;
+}
+.ruler .you-mark {
+  left: -6px;
+  right: -2px;
+  height: 4px;
+  margin-top: -2px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px var(--night);
+}
+.ruler .best-mark {
+  left: -2px;
+  right: -2px;
+  background: var(--gold);
+}
+.ruler .home-mark {
+  left: -2px;
+  right: -2px;
+  background: var(--glow);
+}
+@media (max-width: 600px) {
+  .ruler {
+    width: 10px;
+    top: calc(env(safe-area-inset-top, 0px) + 150px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  }
+}
+/* Polish item 4: tip cards and NEW pips */
+.tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 118px);
+  transform: translateX(-50%);
+  width: min(360px, calc(100vw - 56px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  pointer-events: auto;
+  border-color: var(--glow);
+  z-index: 6;
+  animation: tip-in 0.25s steps(4) both;
+}
+.tip b {
+  font-family: var(--display);
+  color: var(--glow);
+  font-size: 13px;
+}
+.tip span {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.35;
+}
+.tip .row {
+  justify-content: flex-end;
+  gap: 8px;
+}
+@keyframes tip-in {
+  from {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+}
+.pip {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 3px;
+  font-family: var(--display);
+  font-size: 9px;
+  line-height: 13px;
+  color: var(--night);
+  background: var(--glow);
+  vertical-align: middle;
+}
+.tool.current {
+  position: relative;
+}
+.tool.current .pip {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  margin: 0;
+}

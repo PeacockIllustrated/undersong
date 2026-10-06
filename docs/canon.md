@@ -309,4 +309,6 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 - Passing your best depth after a Cave-in shakes the screen; again every 25 tiles.
 - "Held back by" names the one thing slowing the village most: pests, haulage, light or nothing left to dig.
 - The Village button shows a dot when something there is affordable; the Survey button glows when an Echo upgrade is affordable or a Cave-in is ready.
+- Polish (ADR-022): a touch must be held 280 ms on a diggable tile before a drag digs. Edge arrows point at the nearest unfound verse within 24 tiles. Biome banners show for 3.5 s.
+- Depth ruler bands (master palette): Topsoil & Stone #8A5A3B, Glowroot Caverns #1E6B66, The Flooded Halls #2A5E86, Singing Geodes #7FD6FF, Ember Deep #E0532F, The Hollow Heart #FFD65A.
 

@@ -46,7 +46,9 @@ export type Action =
   | { type: 'hireHelper'; id: HelperId }
   | { type: 'caveIn' }
   /** The UI has shown the oldest story event. */
-  | { type: 'ackStory' };
+  | { type: 'ackStory' }
+  /** Remember, for good, that the player has seen something: a tip (`tip:<id>`) or a Village tab (`tab:<id>`). */
+  | { type: 'note'; key: string };
 
 export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
@@ -131,6 +133,7 @@ function place(
     s.world.objects[key] = kind;
     g.world.touch(x, y);
     first(g, kind);
+    if (!s.story.ever.includes(`used:${kind}`)) s.story.ever.push(`used:${kind}`);
   }
 }
 
@@ -246,6 +249,9 @@ export function apply(g: Game, a: Action): void {
       return;
     case 'ackStory':
       s.story.events.shift();
+      return;
+    case 'note':
+      if (/^(tip|tab):[a-z]+$/.test(a.key) && !s.story.ever.includes(a.key)) s.story.ever.push(a.key);
       return;
   }
 }
