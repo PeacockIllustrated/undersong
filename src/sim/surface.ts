@@ -1,5 +1,6 @@
 // Holloway above: Tansy's fields, the cookhouse, the feast bell and Rook's woodlot. canon §17 (ADR-029)
 // Everything up here only adds: nothing on the surface can slow the mine.
+import { tally } from './tally';
 import {
   FEAST,
   FIELDS,
@@ -54,6 +55,7 @@ export function harvest(g: Game, i: number, byHand: boolean): boolean {
   s.res.barley = s.res.barley.add(n);
   s.surface.feast += p.golden ? FEAST.golden : 1;
   s.surface.harvestsEver++;
+  tally(g, 'fields', n);
   g.events.push({ kind: 'harvest', x: plotX(i), n, golden: p.golden });
   first(g, 'harvest');
   if (p.golden) say(g, 'goldenEar');
@@ -158,6 +160,7 @@ export function chop(g: Game, i: number, byHand: boolean): boolean {
   if (n <= 0) return false;
   s.res.timber = s.res.timber.add(n);
   s.surface.chopsEver++;
+  tally(g, 'woodlot', n);
   g.events.push({ kind: 'chop', x: WOODLOT.slots[t.slot]!, n });
   first(g, 'chop');
   t.age = 0;

@@ -414,3 +414,7 @@ Hearth and cottage levels reset on a Cave-in. Trees do not.
 
 A tree that stands through 3 Cave-ins is an elder: never felled, it drops 2 timber a minute. Its roots grow 6 rows (25 ft) per Cave-in it has stood through from the third on, leaning toward the shaft. Rock a root passes through takes 0.6 of its hardness, and copper and tin within 3 tiles of a root glint.
 
+### 17.5 The cairn and the tally board
+
+The cairn by the headframe holds a stone for each of the last 5 Cave-ins. Each stone is marked with how deep that run went and the change from the run before. The tally board shows goods per second from each source (your pick, the miners' ore as it comes up the shaft, chests, Tansy's fields, Rook's woodlot), averaged over the last 60 to 120 s. Rubble does not count. The tally is a reading and is not saved.
+

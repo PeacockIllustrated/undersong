@@ -298,7 +298,7 @@ Tom approved this on 2026-10-06 from the proposal at https://claude.ai/artifact/
 - [x] **M6-03 The cookhouse.** Miner's bread and Foreman's porridge, the feast bell and its setting; a toast for every purchase.
 - [x] **M6-04 Rook and the woodlot.** Rook at 80 ft, saplings, four stages, felling, Rook's axe, the charcoal hearth, pit props and cottages (drawn in a back row).
 - [x] **M6-05 Trees through the Cave-in.** Trees stand through a Cave-in; elders after 3 drop timber; their roots grow 25 ft per Cave-in, soften the rock and make copper and tin glint.
-- [ ] **M6-06 The cairn and the tally board.** Done: the cairn by the headframe gains a stone per Cave-in (up to 5). Not done: each stone showing that run's depth and the change from the last, and the tally board of ore per second by source.
+- [x] **M6-06 The cairn and the tally board.** The cairn by the headframe gains a stone per Cave-in (up to 5); the Village tab lists each stone's depth and the change from the run before, under a tally board of goods per second by source. (PR #16)
 - [ ] **M6-07 Act crops.** Glowcap beds in a root cellar, cress paddies watered by pumps with cress soup (haul +20% a level), firepepper hot-beds warmed by ember ore with pepper broth (heat tolerance +0.1 a level, up to 3).
 - [x] **M6-08 Balance.** The sim bot tends the surface every 30 s (reaps and fells by hand until the helpers take over, rings the bell, eats, spends spare copper on plots and saplings, and timber on the hearth and cottages). `--surface=off` turns it off for comparison.
 

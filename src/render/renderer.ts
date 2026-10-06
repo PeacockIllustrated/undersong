@@ -17,7 +17,7 @@ import type { Camera } from './camera';
 import { Fx } from './fx';
 import { PESTS } from '../data/economy';
 import { settings } from '../settings';
-import { FIELDS, ROOTS, WOODLOT } from '../data/surface';
+import { CAIRN, FIELDS, ROOTS, WOODLOT } from '../data/surface';
 import { feasting, isElder, treeStage } from '../sim/surface';
 
 const T = TILE_PX;
@@ -358,7 +358,13 @@ export class Renderer {
       drawSprite(ctx, 'rook', Math.floor(now / 760) % 2, rx * T + T / 2, surfY(rx) - 1, true);
     }
     if (s.stats.caveIns > 0)
-      drawSprite(ctx, 'cairn', Math.min(s.stats.caveIns, 5) - 1, CAIRN_X * T + T / 2, surfY(CAIRN_X));
+      drawSprite(
+        ctx,
+        'cairn',
+        Math.min(s.stats.caveIns, CAIRN.stones) - 1,
+        CAIRN_X * T + T / 2,
+        surfY(CAIRN_X),
+      );
   }
 
   /** A small white tick over an old tree: it is ready to fell. */

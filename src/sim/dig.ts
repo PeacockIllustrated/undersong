@@ -1,4 +1,5 @@
 // Digging: the Foreman's hand-mining with Vein Rush, and the shared tile-removal that pays out drops. canon §4.6, §4.7
+import { tally } from './tally';
 import { MATERIALS, M, canDig, isMineable } from '../data/materials';
 import { VEIN_RUSH } from '../data/economy';
 import { UPGRADE_FX } from '../data/upgrades';
@@ -118,6 +119,7 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
     if (by === 'foreman') {
       state.res[res] = state.res[res].add(D(n));
       g.events.push({ kind: 'drop', x, y, res, n });
+      if (res !== 'rubble') tally(g, 'foreman', n);
     } else if (res !== 'rubble') {
       state.underground[res] = state.underground[res].add(D(n));
     }

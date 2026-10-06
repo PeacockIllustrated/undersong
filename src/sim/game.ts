@@ -8,6 +8,7 @@ import { wetTiles } from '../world/water';
 import { setWater, wakeWater } from './water';
 import { newGame, type GameState } from './state';
 import type { ResKey } from '../data/resources';
+import { newTally, type Tally } from './tally';
 
 /** Something the renderer, audio or UI may want to react to. Never saved. */
 export type SimEvent =
@@ -49,6 +50,8 @@ export interface Game {
   heat: Map<number, number>;
   /** What came up the shaft since the UI last looked (not saved; the UI reads and clears it). */
   hauled: Partial<Record<ResKey, number>>;
+  /** The tally board's running counts (not saved). */
+  tally?: Tally;
 }
 
 export function worldFor(state: GameState): World {
@@ -99,6 +102,7 @@ export function bind(state: GameState, world: World): Game {
     wet: new Set(),
     heat: new Map(),
     hauled: {},
+    tally: newTally(state.t),
   } as unknown as Game;
   attach(g, world);
   return g;
