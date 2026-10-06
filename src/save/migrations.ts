@@ -58,6 +58,16 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 6;
     return o as Raw;
   },
+  // v6 → v7 (M6-07, ADR-030): act crops. Cress and pepper are filled in below; plots without a crop stay barley.
+  6: (s) => {
+    const o = s as Record<string, any>;
+    const sf = o.surface ?? (o.surface = newSurface());
+    sf.meals = { soup: 0, broth: 0, ...sf.meals };
+    sf.cellar = 0;
+    sf.cellarAcc = 0;
+    o.v = 7;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

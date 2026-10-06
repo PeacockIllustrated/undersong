@@ -271,6 +271,22 @@ export const LINES: Record<string, Line> = {
     who: 'rook',
     text: 'That one’s stood through three Cave-ins. I won’t fell it. Its roots are down in the rock now, and the rock is softer for it.',
   },
+  // Act crops (ADR-030)
+  cellarSeed: {
+    id: 'cellarSeed',
+    who: 'tansy',
+    text: 'Glowcaps like the dark and the damp. Down there they’ll give Wren a spore every few breaths.',
+  },
+  paddy: {
+    id: 'paddy',
+    who: 'tansy',
+    text: 'Pump water up the shaft and I’ll grow cress in it. A bowl of cress soup and the haulers carry more up the rope.',
+  },
+  hotbed: {
+    id: 'hotbed',
+    who: 'tansy',
+    text: 'Firepeppers want a coal under them. Send me ember ore and the broth will keep your miners going where the rock is hot.',
+  },
   helper_tansy: {
     id: 'helper_tansy',
     who: 'tansy',

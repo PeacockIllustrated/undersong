@@ -15,6 +15,7 @@ import { say } from './story';
 import { mineTile } from './dig';
 import { deepMult, minerMult, pestMult, pickPower } from './power';
 import { heatAt, heatFactor } from './heat';
+import { brothCool } from './surface';
 import { HEAT, WISPS } from '../data/heat';
 
 function taken(g: Game, x: number, y: number, self: Miner): boolean {
@@ -84,7 +85,7 @@ export function chooseFace(g: Game, m: Miner): Tile | null {
     else if (y > w.surf[x]! + 2 && oreNear(g, x, y, g.state.pickTier)) score = 500 + dist;
     else continue;
     // canon §15: nobody works a face that is too hot; a vent or water cools it
-    if (score < bestScore && heatAt(g, x, y) >= HEAT.stopAt) {
+    if (score < bestScore && heatAt(g, x, y) - brothCool(g.state) >= HEAT.stopAt) {
       say(g, 'tooHot');
       continue;
     }
@@ -136,7 +137,7 @@ export function minerRate(g: Game, m: Miner): number {
     lightFactor(g.world.faceLight(t.x, t.y)) *
     minerMult(s) *
     deepMult(s, g.world.depth(t.y)) *
-    heatFactor(heatAt(g, t.x, t.y))
+    heatFactor(heatAt(g, t.x, t.y) - brothCool(s))
   );
 }
 

@@ -4,15 +4,23 @@ import { createGame, syncWorld } from '../src/sim/game';
 import { apply } from '../src/sim/actions';
 import { step } from '../src/sim/step';
 import { resetRun } from '../src/sim/cavein';
-import { TICK_MS } from '../src/data/constants';
-import { FEAST, FIELDS, MEALS, PIT_PROP, ROOTS, TALLY, WOODLOT } from '../src/data/surface';
+import { SHAFT_X, TICK_MS } from '../src/data/constants';
+import { ACT_CROPS, FEAST, FIELDS, MEALS, PIT_PROP, ROOTS, TALLY, WOODLOT } from '../src/data/surface';
+import { HEAT } from '../src/data/heat';
+import { haulRate } from '../src/sim/economy';
 import { tally, tallyRates } from '../src/sim/tally';
 import { craftCost } from '../src/sim/village';
 import { minerMult, villageMult, handsMult } from '../src/sim/power';
 import {
+  brothCool,
+  cellarCost,
   feastNeed,
   feasting,
+  growing,
   harvest,
+  hotbedCost,
+  mealCost,
+  paddyCost,
   isElder,
   plotX,
   rootTiles,
@@ -131,7 +139,7 @@ describe('the cookhouse and the feast bell (M6-03)', () => {
     expect(handsMult(g.state) / h0).toBeCloseTo(1 + porridge.per);
     expect(g.state.res.barley.toNumber()).toBe(1000 - bread.base - porridge.base);
     resetRun(g.state);
-    expect(g.state.surface.meals).toEqual({ bread: 0, porridge: 0 });
+    expect(g.state.surface.meals).toEqual({ bread: 0, porridge: 0, soup: 0, broth: 0 });
   });
 
   it('the bell fills from harvests, doubles every worker for 45 s, and asks more next time', () => {
@@ -282,5 +290,87 @@ describe('The tally board (M6-06)', () => {
     expect(tallyRates(g)!.fields).toBe(0);
     g.state.t = 0;
     expect(tallyRates(g)).toBeNull();
+  });
+});
+
+describe('Act crops (M6-07)', () => {
+  it('digs and seeds the root cellar once the Lamp-works stands, then gives a spore every few seconds', () => {
+    const g = withTansy();
+    const s = g.state;
+    expect(cellarCost(s)).toBeNull();
+    s.buildings.lampworks = 1;
+    s.res.ironBar = new Decimal(10);
+    s.res.brick = new Decimal(10);
+    s.res.spores = new Decimal(ACT_CROPS.cellarSeed.n);
+    apply(g, { type: 'workCellar' });
+    apply(g, { type: 'workCellar' });
+    expect(s.surface.cellar).toBe(2);
+    expect(s.res.spores.toNumber()).toBe(0);
+    stepSurface(g, ACT_CROPS.cellarEveryS * 3);
+    expect(s.res.spores.toNumber()).toBe(3);
+    expect(cellarCost(s)).toBeNull();
+  });
+
+  it('floods paddies only as far as the pumps can water them, and dry paddies do not grow', () => {
+    const g = withTansy();
+    const s = g.state;
+    s.res.silverBar = new Decimal(1000);
+    s.surface.plots.push({ t: 0, golden: false }, { t: 0, golden: false }, { t: 0, golden: false });
+    expect(paddyCost(s)).toBeNull();
+    s.world.objects[String(g.world.idx(SHAFT_X, 30))] = 'pump';
+    apply(g, { type: 'plantCrop', crop: 'cress' });
+    apply(g, { type: 'plantCrop', crop: 'cress' });
+    apply(g, { type: 'plantCrop', crop: 'cress' });
+    expect(s.surface.plots.filter((p) => p.crop === 'cress').length).toBe(ACT_CROPS.paddiesPerPump);
+    stepSurface(g, FIELDS.ripenS);
+    const i = s.surface.plots.findIndex((p) => p.crop === 'cress');
+    expect(s.surface.plots[i]!.t).toBe(1);
+    harvest(g, i, false);
+    expect(s.res.cress.toNumber()).toBe(FIELDS.yield);
+    // take the pump away: the paddies stand dry
+    delete s.world.objects[String(g.world.idx(SHAFT_X, 30))];
+    stepSurface(g, FIELDS.ripenS);
+    expect(s.surface.plots[i]!.t).toBe(0);
+    expect(growing(s, i)).toBe(false);
+  });
+
+  it('cress soup raises the haul and pepper broth lets miners work hotter faces', () => {
+    const g = withTansy();
+    const s = g.state;
+    const before = haulRate(g);
+    s.surface.meals.soup = 2;
+    expect(haulRate(g) / before).toBeCloseTo(1 + 2 * MEALS.find((m) => m.id === 'soup')!.per);
+    s.surface.meals.broth = 3;
+    expect(brothCool(s)).toBeCloseTo(0.3);
+    s.res.cress = new Decimal(1000);
+    s.surface.meals.soup = 3;
+    expect(mealCost(s, 'soup')).toBeNull();
+  });
+
+  it('hot-beds come in the Ember Deep and burn one ember ore a harvest; with none they go cold', () => {
+    const g = withTansy();
+    const s = g.state;
+    s.res.goldBar = new Decimal(100);
+    expect(hotbedCost(s)).toBeNull();
+    s.stats.maxDepthD = HEAT.fromD;
+    apply(g, { type: 'plantCrop', crop: 'pepper' });
+    expect(s.surface.plots[0]!.crop).toBe('pepper');
+    stepSurface(g, FIELDS.ripenS);
+    expect(s.surface.plots[0]!.t).toBe(0);
+    s.res.emberOre = new Decimal(1);
+    stepSurface(g, FIELDS.ripenS);
+    harvest(g, 0, true);
+    expect(s.res.pepper.toNumber()).toBe(FIELDS.yield * FIELDS.handMult);
+    expect(s.res.emberOre.toNumber()).toBe(0);
+    expect(s.surface.plots[0]!.golden).toBe(false);
+  });
+
+  it('the Cave-in forgets the cellar and the soup', () => {
+    const g = withTansy();
+    g.state.surface.cellar = 2;
+    g.state.surface.meals.broth = 2;
+    resetRun(g.state);
+    expect(g.state.surface.cellar).toBe(0);
+    expect(g.state.surface.meals.broth).toBe(0);
   });
 });

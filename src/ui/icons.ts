@@ -23,6 +23,8 @@ export const RES_ICON: Record<ResKey, string> = {
   lumen: 'lumen',
   barley: 'barley',
   timber: 'timber',
+  cress: 'cress',
+  pepper: 'pepper',
   torch: 'obj-torch',
   lantern: 'obj-lantern',
   support: 'obj-support',

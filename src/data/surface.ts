@@ -20,29 +20,62 @@ export const FIELDS = {
   handsAfter: 5,
 } as const;
 
-export type MealId = 'bread' | 'porridge';
+export type MealId = 'bread' | 'porridge' | 'soup' | 'broth';
+/** What a plot grows: barley by default, cress in a flooded paddy, firepeppers on a hot-bed. */
+export type CropId = 'barley' | 'cress' | 'pepper';
 export interface MealDef {
   id: MealId;
   name: string;
   text: string;
-  /** Barley for level n is base × growth^n. */
+  /** What the meal is cooked from; level n costs base × growth^n of it. */
+  res: CropId;
   base: number;
   growth: number;
-  /** Bonus per level: miners for bread, hand-mining for porridge. */
+  /** Bonus per level: miners for bread, hand-mining for porridge, haulage for soup, heat (not %) for broth. */
   per: number;
   /** Most levels in one run: the cookhouse only feeds so many. */
   max: number;
 }
 /** canon §17.2 the cookhouse. Levels last the run, like the whetstone. */
 export const MEALS: readonly MealDef[] = [
-  { id: 'bread', name: 'Miner’s bread', text: 'Miners dig faster', base: 10, growth: 1.8, per: 0.05, max: 3 },
+  {
+    id: 'bread',
+    name: 'Miner’s bread',
+    text: 'Miners dig faster',
+    res: 'barley',
+    base: 10,
+    growth: 1.8,
+    per: 0.05,
+    max: 3,
+  },
   {
     id: 'porridge',
     name: 'Foreman’s porridge',
     text: 'You dig faster',
+    res: 'barley',
     base: 8,
     growth: 1.8,
     per: 0.05,
+    max: 3,
+  },
+  {
+    id: 'soup',
+    name: 'Cress soup',
+    text: 'The haul carries more',
+    res: 'cress',
+    base: 10,
+    growth: 1.8,
+    per: 0.2,
+    max: 3,
+  },
+  {
+    id: 'broth',
+    name: 'Pepper broth',
+    text: 'Miners work hotter faces',
+    res: 'pepper',
+    base: 10,
+    growth: 1.8,
+    per: 0.1,
     max: 3,
   },
 ];
@@ -125,3 +158,22 @@ export const TALLY = {
   /** The tally board averages over the last one to two windows of this many seconds. */
   windowS: 60,
 };
+
+/** M6-07 act crops (ADR-030, canon §17.6). Each hangs off a system its act already has. */
+export const ACT_CROPS = {
+  /** Act II: the glowcap root cellar under the cookhouse, offered once the Lamp-works stands. */
+  cellar: [
+    { res: 'ironBar', n: 4 },
+    { res: 'brick', n: 6 },
+  ] as readonly Cost[],
+  cellarSeed: { res: 'spores', n: 10 } as Cost,
+  /** A seeded cellar gives one spore this often (s). */
+  cellarEveryS: 5,
+  /** Act III: flood a barley plot into a cress paddy. Each pump in the mine waters this many; the rest stand dry. */
+  paddyCost: { res: 'silverBar', n: 3 } as Cost,
+  paddiesPerPump: 2,
+  /** Act IV: build a hot-bed on a barley plot, offered in the Ember Deep. Each harvest burns one ember ore. */
+  hotbedCost: { res: 'goldBar', n: 3 } as Cost,
+  maxHotbeds: 4,
+  hotbedEmber: 1,
+} as const;

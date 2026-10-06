@@ -12,6 +12,15 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M6-07 Act crops
+
+Done: the root cellar under the cookhouse (dig with iron and bricks, seed with spores, then a spore every 5 s), cress paddies (a barley plot flooded, 2 watered per pump, cress soup gives haul +20% a level), firepepper hot-beds (from the Ember Deep, each harvest burns an ember ore, pepper broth takes 0.1 off a face's heat for miners a level). Save v7 with a migration and fixture. canon §17.6, ADR-030. Five new sprites. The sim bot uses all three.
+State: `npm run check` green (95 tests). Checked at 1280×800 and 390×844, no overflow.
+Next: run the act3 and ending sims against the new crops and tune if they run fast; then the Parking lot's M7 ideas.
+Questions for Tom: none.
+
+---
+
 ## 2026-10-06 · M6-06 The cairn and the tally board
 
 Done: a tally board card at the foot of the Village Build tab: goods per second from your pick, the miners (as ore comes up the shaft), chests, the fields and the woodlot, over the last one to two minutes. Under it, the cairn's stones: each recent Cave-in's depth and the change from the run before, read from the Survey Book. No save change: the tally lives on the running game and refills within a minute. canon §17.5.

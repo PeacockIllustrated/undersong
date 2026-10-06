@@ -2,6 +2,7 @@
 // Everything up here only adds: nothing on the surface can slow the mine.
 import { tally } from './tally';
 import {
+  ACT_CROPS,
   FEAST,
   FIELDS,
   MEALS,
@@ -17,7 +18,8 @@ import { SHAFT_X } from '../data/constants';
 import type { ResKey } from '../data/resources';
 import type { World } from '../world/world';
 import { D, type Decimal } from './decimal';
-import { pay } from './economy';
+import { flat, pay } from './economy';
+import { HEAT } from '../data/heat';
 import type { Game } from './game';
 import { makeRng, hash3 } from './rng';
 import type { GameState, Tree } from './state';
@@ -46,22 +48,111 @@ export function buyPlot(g: Game): boolean {
 export const plotX = (i: number): number => FIELDS.plotX0 + i;
 export const ripe = (s: GameState): number => s.surface.plots.filter((p) => p.t >= 1).length;
 
-/** Reap one ripe plot and sow it again. By hand it pays double. */
+/** Reap one ripe plot and sow it again. By hand it pays double. A pepper harvest burns its hot-bed's ember ore. */
 export function harvest(g: Game, i: number, byHand: boolean): boolean {
   const s = g.state;
   const p = s.surface.plots[i];
   if (!p || p.t < 1) return false;
+  const res = p.crop ?? 'barley';
   const n = FIELDS.yield * (byHand ? FIELDS.handMult : 1) * (p.golden ? FIELDS.goldenMult : 1);
-  s.res.barley = s.res.barley.add(n);
+  s.res[res] = s.res[res].add(n);
+  if (p.crop === 'pepper') {
+    const left = s.res.emberOre.sub(ACT_CROPS.hotbedEmber);
+    s.res.emberOre = left.lt(0) ? D(0) : left;
+  }
   s.surface.feast += p.golden ? FEAST.golden : 1;
   s.surface.harvestsEver++;
   tally(g, 'fields', n);
   g.events.push({ kind: 'harvest', x: plotX(i), n, golden: p.golden });
-  first(g, 'harvest');
+  first(g, p.crop ? `harvest_${p.crop}` : 'harvest');
   if (p.golden) say(g, 'goldenEar');
   p.t = 0;
   p.golden = false;
   return true;
+}
+
+// ---------- act crops (canon §17.6) ----------
+
+const count = (s: GameState, crop: 'cress' | 'pepper'): number =>
+  s.surface.plots.filter((p) => p.crop === crop).length;
+
+export function pumpsPlaced(s: GameState): number {
+  let n = 0;
+  for (const k in s.world.objects) if (s.world.objects[k] === 'pump') n++;
+  return n;
+}
+
+/** Can plot i grow now? A paddy needs a pump to water it (the first paddies take the water); a hot-bed needs ember ore. */
+export function growing(s: GameState, i: number): boolean {
+  const p = s.surface.plots[i];
+  if (!p?.crop) return true;
+  if (p.crop === 'pepper') return s.res.emberOre.gte(ACT_CROPS.hotbedEmber);
+  let k = 0;
+  for (let j = 0; j < i; j++) if (s.surface.plots[j]!.crop === 'cress') k++;
+  return k < pumpsPlaced(s) * ACT_CROPS.paddiesPerPump;
+}
+
+const barleyPlot = (s: GameState): number => {
+  for (let i = s.surface.plots.length - 1; i >= 0; i--) if (!s.surface.plots[i]!.crop) return i;
+  return -1;
+};
+
+/** Flooding a barley plot into a paddy: offered once a pump stands, and as many as the pumps can water. */
+export function paddyCost(s: GameState): Costs | null {
+  const n = count(s, 'cress');
+  if (n >= pumpsPlaced(s) * ACT_CROPS.paddiesPerPump || barleyPlot(s) < 0) return null;
+  const c = ACT_CROPS.paddyCost;
+  return [{ res: c.res, amount: D(c.n).mul(D(COST_GROWTH).pow(n)).ceil() }];
+}
+
+export const hotbedsOffered = (s: GameState): boolean => s.surface.tansy && s.stats.maxDepthD >= HEAT.fromD;
+
+export function hotbedCost(s: GameState): Costs | null {
+  const n = count(s, 'pepper');
+  if (!hotbedsOffered(s) || n >= ACT_CROPS.maxHotbeds || barleyPlot(s) < 0) return null;
+  const c = ACT_CROPS.hotbedCost;
+  return [{ res: c.res, amount: D(c.n).mul(D(COST_GROWTH).pow(n)).ceil() }];
+}
+
+export function plantCrop(g: Game, crop: 'cress' | 'pepper'): boolean {
+  const s = g.state;
+  const c = crop === 'cress' ? paddyCost(s) : hotbedCost(s);
+  const i = barleyPlot(s);
+  if (!s.surface.tansy || !c || i < 0 || !pay(s, c)) return false;
+  s.surface.plots[i] = { t: 0, golden: false, crop };
+  g.events.push({ kind: 'bought', what: crop === 'cress' ? 'paddy' : 'hotbed' });
+  first(g, crop === 'cress' ? 'paddy' : 'hotbed');
+  say(g, crop === 'cress' ? 'paddy' : 'hotbed');
+  return true;
+}
+
+/** The root cellar is offered once the Lamp-works stands; dug, then seeded with spores. */
+export const cellarOffered = (s: GameState): boolean => s.surface.tansy && s.buildings.lampworks > 0;
+
+export function cellarCost(s: GameState): Costs | null {
+  if (!cellarOffered(s) || s.surface.cellar >= 2) return null;
+  return s.surface.cellar === 0 ? flat(ACT_CROPS.cellar) : flat([ACT_CROPS.cellarSeed]);
+}
+
+export function workCellar(g: Game): boolean {
+  const s = g.state;
+  const c = cellarCost(s);
+  if (!c || !pay(s, c)) return false;
+  s.surface.cellar++;
+  g.events.push({ kind: 'bought', what: s.surface.cellar === 1 ? 'cellar' : 'cellarSeed' });
+  first(g, s.surface.cellar === 1 ? 'cellar' : 'cellarSeed');
+  if (s.surface.cellar === 2) say(g, 'cellarSeed');
+  return true;
+}
+
+/** Haul ×, from cress soup. */
+export function soupMult(s: GameState): number {
+  return 1 + mealDef('soup').per * s.surface.meals.soup;
+}
+
+/** Heat taken off a face for the miners, from pepper broth. */
+export function brothCool(s: GameState): number {
+  return mealDef('broth').per * s.surface.meals.broth;
 }
 
 // ---------- the cookhouse and the feast bell ----------
@@ -71,7 +162,7 @@ const mealDef = (id: MealId): (typeof MEALS)[number] => MEALS.find((m) => m.id =
 export function mealCost(s: GameState, id: MealId): Costs | null {
   const m = mealDef(id);
   if (s.surface.meals[id] >= m.max) return null;
-  return [{ res: 'barley', amount: D(m.base).mul(D(m.growth).pow(s.surface.meals[id])).ceil() }];
+  return [{ res: m.res, amount: D(m.base).mul(D(m.growth).pow(s.surface.meals[id])).ceil() }];
 }
 
 export function eatMeal(g: Game, id: MealId): boolean {
@@ -221,15 +312,26 @@ export function stepSurface(g: Game, dt: number): void {
   // crops ripen; a ripe ear may come up golden
   const grow = (dt * (feasting(s) ? FEAST.grow : 1)) / FIELDS.ripenS;
   let rng: ReturnType<typeof makeRng> | null = null;
-  for (const p of sf.plots) {
-    if (p.t >= 1) continue;
+  for (let i = 0; i < sf.plots.length; i++) {
+    const p = sf.plots[i]!;
+    if (p.t >= 1 || !growing(s, i)) continue;
     p.t = Math.min(1, p.t + grow);
-    if (p.t >= 1) {
+    if (p.t >= 1 && !p.crop) {
       rng ??= makeRng(s.rng);
       p.golden = rng.next() < FIELDS.goldenChance;
     }
   }
   if (rng) s.rng = rng.state();
+  // the seeded root cellar: a spore every few seconds, straight to the Lamp-works' stock
+  if (sf.cellar >= 2) {
+    sf.cellarAcc += dt;
+    const n = Math.floor(sf.cellarAcc / ACT_CROPS.cellarEveryS);
+    if (n > 0) {
+      sf.cellarAcc -= n * ACT_CROPS.cellarEveryS;
+      s.res.spores = s.res.spores.add(n);
+      tally(g, 'fields', n);
+    }
+  }
   // trees grow whatever happens; elders drop timber
   let elders = 0;
   for (const t of sf.trees) {
@@ -283,7 +385,9 @@ export function resetSurface(s: GameState): void {
   sf.tansy = false;
   sf.rook = false;
   sf.plots = [];
-  sf.meals = { bread: 0, porridge: 0 };
+  sf.meals = { bread: 0, porridge: 0, soup: 0, broth: 0 };
+  sf.cellar = 0;
+  sf.cellarAcc = 0;
   sf.wood = { hearth: 0, cottage: 0 };
   sf.feast = 0;
   sf.feasts = 0;
