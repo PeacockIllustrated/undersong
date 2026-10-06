@@ -78,6 +78,7 @@ Consequences: the Foreman can't dig from inside the rock, and miners can't telep
 **ADR-017 · Act II gating and the Echo curve** · 2026-10-06 · Accepted (Tom may override)
 Context: with Act II built, the balance bot cleared the Glowroot in about two hours by hand-digging the shaft with a copper pick, ignoring the Lamp-works, lanterns and iron entirely. Then, with gates added, it could not afford them, because a run's copper and iron are finite.
 Decision:
+
 - Pick gates (canon §8.1): slate needs a copper pick, iron ore bronze, silver and old brick iron, and so on down.
 - Verses III–V sit inside 3×3 old brick shrines, so the Glowroot verses need an iron pick.
 - From 150 ft down the Foreman digs by the light at the face, like the miners (amends ADR-010; his lamp stays render-only). Torches still gutter to 0.6 there (ADR-013), so lanterns are the way to dig at full speed.
@@ -85,7 +86,7 @@ Decision:
 - Act II prices set low enough to reach in a run: Lamp-works 8 iron, iron pick 15 iron, lantern 1 iron + 8 Lumen.
 - Echo power: every Echo ever earned speeds every worker by 3% (canon §4.11). This is what makes each cycle reach further.
 - "Glowroot cleared" means 400 ft reached and Verses III–V known.
-Consequences: Act I is unchanged in the sim (all within ±15%). Act II median is 3.9 h against the 4 h target, over 9 seeds and 2–7 Cave-ins each (`npm run sim -- --until=act2 --minutes=480`). Runs are now shaped by what a run's mountain holds, which makes the Cave-in a real decision.
+  Consequences: Act I is unchanged in the sim (all within ±15%). Act II median is 3.9 h against the 4 h target, over 9 seeds and 2–7 Cave-ins each (`npm run sim -- --until=act2 --minutes=480`). Runs are now shaped by what a run's mountain holds, which makes the Cave-in a real decision.
 
 **ADR-018 · Smooth lighting** · 2026-10-06 · Accepted (Tom asked for it)
 Decision: the renderer eases each tile's displayed light toward the sim's value (about 0.1 s), then samples it bilinearly between tile centres at 4×4 blocks per tile. The Foreman's lamp is also computed per block. The sim's light grid and rules (canon §7) are unchanged.
@@ -98,6 +99,7 @@ Consequences: eight hours away costs about two seconds to catch up on a laptop. 
 **ADR-020 · The juice pass** · 2026-10-06 · Accepted (from Tom’s note that the game is good but does not cultivate dopamine)
 Context: the DangerouslyFunny taste report (`/mnt/project-files/research/dangerouslyfunny-taste-report.md`) found the player wants something to buy at all times, big readable jumps, automation soon after a chore appears, no upkeep chores, no unexplained upgrades and a fast regain after a prestige.
 Decision:
+
 - **Helpers** (canon §14) automate the three chores Act I and II invented: lighting faces, tapping pests and placing supports. Each is bought once and survives the Cave-in.
 - **Homecoming** (canon §4.12): after a Cave-in the village runs ×3 until 60% of your best depth, so the regain takes minutes, not most of a run.
 - **Verses feel like loot** (canon §4.13): each pays a cache of bars and a permanent 5% to all work, shown on the verse card.
@@ -105,42 +107,46 @@ Decision:
 - **Feedback** (canon §14.1): purchase toasts with the multiplier, record-depth shake, a "Held back by" chip, and glowing buttons when something is affordable. The Survey Book shows what a Cave-in pays against last time and what it buys.
 - Pell’s Hum moves to the front of the Memory branch at 2 Echoes, so the first Cave-in buys something useful straight away.
 - Pacing targets move to match the faster game: 150 ft 17 min, first Cave-in 30 min, Glowroot cleared 2 h 50 min.
-Consequences: Act I 9-seed sim: first Cave-in 32.9 min, 8 Echoes, the longest wait with nothing to buy in the first 15 minutes is a median 185 s. Act II median 2 h 50 min (was 3 h 54). Save v4. Acts III onward will add a helper for each new chore (pumps, eels and golems) when they are built.
+  Consequences: Act I 9-seed sim: first Cave-in 32.9 min, 8 Echoes, the longest wait with nothing to buy in the first 15 minutes is a median 185 s. Act II median 2 h 50 min (was 3 h 54). Save v4. Acts III onward will add a helper for each new chore (pumps, eels and golems) when they are built.
 
 **ADR-021 · Act III economy** · 2026-10-06 · Accepted
 Context: the balance bot stalled at 700 ft in every run. Iron comes from the Glowroot, and by the Halls it had all gone on pumps and rails, so the silver pick (then 40 silver + 20 iron) never came.
 Decision:
+
 - The Halls' tools are priced in silver, which the Halls have plenty of: silver pick 40 silver bars; aquamarine pick 20 aquamarine + 35 silver; pump 4 silver + 2 iron. Aquamarine drops 2.
 - Rails are charged for at most 10 lots of 10 tiles (80 iron), so a village deep in the Halls can still lay them.
 - Singing stone has hardness 14, between iron ore and basalt, so the Geodes are a real climb.
 - Act III end is 1000 ft reached with Verses VI–X known. Its target moves from 9 h to 6 h 30, in line with the faster game after ADR-020.
 - Bram's pump crew (canon §14) takes the pump chore off the player, like the other helpers.
-Consequences: 7 of 9 sim seeds reach Act III end inside 10 h, median 448 min against 390. Two seeds stall at the crystal rings; the tail is an open item (M3-09).
-Amended for M3-09: the two stalled seeds sat at 1000 ft with plenty of aquamarine and about 30 silver bars, short of the 35 the aquamarine pick wanted, because the Geodes give little silver. The aquamarine pick is now 30 aquamarine + 20 silver bars. All 9 seeds finish (199 to 382 min), median 333 min against 390, inside ±15%.
+  Consequences: 7 of 9 sim seeds reach Act III end inside 10 h, median 448 min against 390. Two seeds stall at the crystal rings; the tail is an open item (M3-09).
+  Amended for M3-09: the two stalled seeds sat at 1000 ft with plenty of aquamarine and about 30 silver bars, short of the 35 the aquamarine pick wanted, because the Geodes give little silver. The aquamarine pick is now 30 aquamarine + 20 silver bars. All 9 seeds finish (199 to 382 min), median 333 min against 390, inside ±15%.
 
 **ADR-022 · UI polish pass** · 2026-10-06 · Accepted
 Context: Tom asked for polish: cancelling queued blocks, better UI, more popups and indicators. He approved the proposal artifact (roadmap P-01..10).
 Decision:
+
 - Queued tiles can be taken back out (an `unqueue` action; tapping a queued tile with Dig does it too). Esc and a Clear queue chip stop everything.
 - "Seen" marks (tips, opened Village tabs, tools first placed) live in `story.ever` as `tip:`, `tab:` and `used:` keys. That list already survives a Cave-in and is free-form, so there is no save change. A `note` action accepts only `tip:` and `tab:` keys.
 - Tip copy lives in `src/story/tips.ts`; biome banner lines in `src/story/biomes.ts`. Depth-ruler band colours are master palette entries in `src/data/biomes.ts`.
 - Overlays (tips, edge arrows, ruler) hide while a sheet is open, and a tip waits behind any story event, so two cards never stack.
-Consequences: no balance or save change. Tip and banner wording is Claude's and open to Tom's edits.
+  Consequences: no balance or save change. Tip and banner wording is Claude's and open to Tom's edits.
 
 **ADR-023 · Act IV: heat, the ending, Endless Depth and New Song+** · 2026-10-06 · Accepted
 Context: M4 needs the Ember Deep's heat, the Hollow Heart and both endings. The design bible names the systems but not how they work.
 Decision:
+
 - Heat is not simulated over time. It is worked out for a tile from depth and the ember ore and heartstone near it, minus vents and water, and cached until the mine changes (canon §15). It is cheap, needs nothing saved, and is the same every time for the same mine.
 - Too hot means miners won't take the face at all, so they move to cooler work and "Held back by: Heat" names it. The Foreman is only slowed (×0.3), so a player is never locked out.
 - Water cools. A player who floods a hot gallery on purpose is rewarded, which ties Act IV to Act III.
 - Wren's cold lamps (6 gold + 20 bricks) take the vent chore away, in line with ADR-020.
-- Act IV's tools are priced in what the Deep gives. The crystal pick costs 80 crystal and nothing else, since the Geodes give little silver and no aquamarine, the same lesson as M3-09. Gold ore drops 3. Heartstone needs the Heart pick, which is made from the Deep (80 ember ore + 80 gold), so Verse XII waits for the best pick in the game.
+- Act IV's tools are priced in what the Deep gives. The crystal pick costs 80 crystal and nothing else, since the Geodes give little silver and no aquamarine, the same lesson as M3-09. Gold ore drops 3. Heartstone needs the Heart pick, which is made from the Deep (60 ember ore + 50 gold), so Verse XII waits for the best pick in the game.
 - Act IV rock is twice as hard as first drafted (basalt 40, ember ore 64, gold ore 56, heartrock 52, heartstone 120). With the bot able to reach Verse XII, Act IV took only 1.5 to 2.5 hours; the design bible gives it five.
+- Amended after an 8-seed run: at 80 ember + 80 gold the Heart pick was out of reach for most villages. They ran out of gold near 1400 ft, stalled and caved in, and the ending slipped past 15 hours. At 60 + 50 every seed reaches it. To keep Act IV long enough without a hard wall, the Deep's rock is half again as hard (basalt 60, ember ore 96, gold ore 84, heartrock 78, heartstone 180). Ending, 8 seeds: 507, 530, 655, 691, 729, 739, 829, 838 min, median 710 against 690.
 - Both endings close the cycle like a Cave-in, paying Echoes. Sealing sets Endless Depth: the floor of the Heart opens 64 rows at a time. Singing starts New Song+: each song sung adds 50% to all later Echo gains.
 - "Remixed verses" (design bible) means each verse comes back sung, with its two lines the other way round. Canon verse text is never rewritten.
 - The ending choice is offered every run in which Verse XII is found, so a player can take the other ending later.
 - The ending target moves from 14 h to 11 h 30. Act IV keeps the five hours the design bible gives it, after Act III's new end at 6 h 30 (ADR-021).
-Consequences: no save change (`ending`, `ngPlus` and `endlessRows` were already in the state). The ending and scene wording is Claude's and open to Tom's edits.
+  Consequences: no save change (`ending`, `ngPlus` and `endlessRows` were already in the state). The ending and scene wording is Claude's and open to Tom's edits.
 
 ---
 

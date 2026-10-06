@@ -57,8 +57,8 @@ export const PICKS: readonly PickDef[] = [
     power: 40,
     // made from the Deep, not the Heart: heartstone itself wants this pick (ADR-023)
     cost: [
-      { res: 'emberOre', n: 80 },
-      { res: 'goldBar', n: 80 },
+      { res: 'emberOre', n: 60 },
+      { res: 'goldBar', n: 50 },
     ],
   },
 ];
