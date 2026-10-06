@@ -24,9 +24,14 @@ export class World {
   carvings: Carving[] = [];
   /** Shared with GameState.world.objects (keys are tile indices). */
   objects: Record<string, ObjKind> = {};
+  /** False when the Lumen has run out: every lantern goes dark. */
   lanternsLit = true;
+  /** Lanterns a moth is sitting on (tile indices); they give no light until it is shooed. */
+  dimmed = new Set<number>();
   /** Torch strength multiplier from Echo upgrades. */
   torchMult = 1;
+  /** Steady Flame: torches no longer gutter in the deep. */
+  torchSteady = false;
   /** Per-chunk flags. */
   lightDirty: Uint8Array;
   /** Per-chunk version, bumped on any visual change, read by the renderer. */

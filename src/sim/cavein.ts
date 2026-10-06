@@ -5,6 +5,8 @@ import { D, Decimal } from './decimal';
 import { attach, freshWorld, type Game } from './game';
 import { hash3 } from './rng';
 import { emptyRes, type GameState } from './state';
+import { UPGRADE_FX } from '../data/upgrades';
+import type { ResKey } from '../data/resources';
 
 export function maxFt(s: GameState): number {
   return s.stats.maxDepthD * FT_PER_TILE;
@@ -20,7 +22,8 @@ export function canCaveIn(s: GameState): boolean {
 
 /** canon §4.3 floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × verses found this run) ) */
 export function echoGain(s: GameState): Decimal {
-  return D(Math.floor(Math.sqrt(maxFt(s) / ECHO.divisor) * (1 + ECHO.perVerse * versesThisRun(s))));
+  const base = Math.floor(Math.sqrt(maxFt(s) / ECHO.divisor) * (1 + ECHO.perVerse * versesThisRun(s)));
+  return D(s.upgrades.surveyInstinct ? Math.floor(base * UPGRADE_FX.surveyInstinct) : base);
 }
 
 /** Seed for the mountain of a given cycle: the same village, a different dig. */
@@ -33,6 +36,7 @@ export function caveIn(g: Game): boolean {
   if (!canCaveIn(s)) return false;
   const gain = echoGain(s);
   s.echoes = s.echoes.add(gain);
+  s.echoesEver = s.echoesEver.add(gain);
   s.survey.push({
     cycle: s.cycle,
     depthFt: maxFt(s),
@@ -52,6 +56,9 @@ export function caveIn(g: Game): boolean {
 
 /** What the village forgets. Echoes, upgrades, known verses, the Survey Book and best depth stay. */
 export function resetRun(s: GameState): void {
+  // what the Echo upgrades carry through
+  s.heirloomTier = s.upgrades.heirloomPick ? Math.max(0, s.stats.bestPick - 1) : 0;
+  const oldShaftD = s.upgrades.oldShafts ? Math.floor(s.stats.bestDepthD * UPGRADE_FX.oldShaftsFrac) : 0;
   s.t = 0;
   s.res = emptyRes();
   s.underground = emptyRes();
@@ -79,8 +86,10 @@ export function resetRun(s: GameState): void {
     objects: {},
     water: null,
     endlessRows: s.world.endlessRows,
-    oldShaftD: s.world.oldShaftD,
+    oldShaftD,
   };
+  if (s.upgrades.bramsLedger)
+    for (const [k, n] of Object.entries(UPGRADE_FX.bramsLedger)) s.res[k as ResKey] = D(n);
   s.verses.run = new Array(12).fill(false);
   s.stats.maxDepthD = 0;
   s.stats.tilesMined = 0;

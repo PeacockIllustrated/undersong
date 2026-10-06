@@ -81,7 +81,7 @@ describe('saves', () => {
     expect(() => fromJSON('{"hello":1}')).toThrow(/Undersong/);
   });
 
-  for (const v of [1, 2]) {
+  for (const v of [1, 2, 3]) {
     it(`loads the v${v} fixture`, () => {
       const text = readFileSync(new URL(`./fixtures/saves/v${v}.json`, import.meta.url), 'utf8');
       const g = loadGame(fromJSON(text));
@@ -90,6 +90,9 @@ describe('saves', () => {
       expect(g.world.get(SHAFT_X, SKY_ROWS + 3)).toBe(M.AIR);
       expect(g.state.forge.recipe).toBe('auto');
       expect(g.state.res.rubble).toBeInstanceOf(Decimal);
+      expect(g.state.echoesEver).toBeInstanceOf(Decimal);
+      expect(typeof g.state.stats.bestPick).toBe('number');
+      expect(g.state.lampProgress).toBe(0);
     });
   }
 });

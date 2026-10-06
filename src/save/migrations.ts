@@ -20,6 +20,18 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 2;
     return o as Raw;
   },
+  // v2 → v3 (M2): lifetime Echoes, best pick, Lamp-works progress, collapse count.
+  2: (s) => {
+    const o = s as Record<string, any>;
+    o.echoesEver = o.echoes;
+    o.lampProgress = 0;
+    if (o.stats) {
+      o.stats.bestPick = o.pickTier ?? 0;
+      o.stats.collapses = 0;
+    }
+    o.v = 3;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

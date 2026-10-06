@@ -38,7 +38,10 @@ export function nextPick(s: GameState): { res: ResKey; amount: Decimal }[] | nul
 
 export function nextHaul(s: GameState): { res: ResKey; amount: Decimal }[] | null {
   const h = HAULS[s.haulTier + 1];
-  return h ? flat(h.cost) : null;
+  if (!h) return null;
+  // canon §9: rails are laid down the whole mine, so they cost per 10 tiles of its depth
+  const k = h.perTenTiles ? Math.max(1, Math.ceil(s.stats.maxDepthD / 10)) : 1;
+  return h.cost.map((c) => ({ res: c.res, amount: D(c.n * k) }));
 }
 
 export const torchCost = (): { res: ResKey; amount: Decimal }[] => [
@@ -53,26 +56,32 @@ function add(s: GameState, k: ResKey, n: Decimal | number): void {
 export function stepForge(g: Game, dt: number): void {
   const s = g.state;
   if (s.buildings.forge <= 0) return;
-  const job = pickJob(s);
-  if (!job) {
+  if (!pickJob(s)) {
     s.forge.progress = 0;
     return;
   }
   s.forge.progress += dt;
-  if (s.forge.progress < FORGE.seconds) return;
-  s.forge.progress = 0;
-  if (job === 'bronze') {
-    s.res.copperBar = s.res.copperBar.sub(FORGE.bronze.copperBar);
-    s.res.tinBar = s.res.tinBar.sub(FORGE.bronze.tinBar);
-    add(s, 'bronzeBar', 1);
-    g.events.push({ kind: 'smelt', bar: 'bronzeBar' });
-  } else {
-    const r = SMELT[job]!;
-    s.res[r.ore] = s.res[r.ore].sub(FORGE.orePerBar);
-    add(s, r.bar, 1);
-    g.events.push({ kind: 'smelt', bar: r.bar });
+  // a loop, so long catch-up steps (offline) smelt as much as real time would
+  while (s.forge.progress >= FORGE.seconds) {
+    const job = pickJob(s);
+    if (!job) {
+      s.forge.progress = 0;
+      return;
+    }
+    s.forge.progress -= FORGE.seconds;
+    if (job === 'bronze') {
+      s.res.copperBar = s.res.copperBar.sub(FORGE.bronze.copperBar);
+      s.res.tinBar = s.res.tinBar.sub(FORGE.bronze.tinBar);
+      add(s, 'bronzeBar', 1);
+      g.events.push({ kind: 'smelt', bar: 'bronzeBar' });
+    } else {
+      const r = SMELT[job]!;
+      s.res[r.ore] = s.res[r.ore].sub(FORGE.orePerBar);
+      add(s, r.bar, 1);
+      g.events.push({ kind: 'smelt', bar: r.bar });
+    }
+    s.forge.next++;
   }
-  s.forge.next++;
 }
 
 function pickJob(s: GameState): 'bronze' | 'copper' | 'tin' | 'iron' | 'silver' | 'gold' | null {

@@ -7,7 +7,7 @@ import { newGame, type GameState } from './state';
 /** Something the renderer, audio or UI may want to react to. Never saved. */
 export type SimEvent =
   | { kind: 'mined'; x: number; y: number; m: number; by: 'foreman' | 'miner' }
-  | { kind: 'refused'; x: number; y: number }
+  | { kind: 'refused'; x: number; y: number; needs?: string }
   | { kind: 'drop'; x: number; y: number; res: string; n: number }
   | { kind: 'smelt'; bar: string }
   | { kind: 'bought'; what: string }
@@ -15,6 +15,7 @@ export type SimEvent =
   | { kind: 'chest'; x: number; y: number }
   | { kind: 'verse'; verse: number; x: number; y: number }
   | { kind: 'rush'; mult: number; x: number; y: number }
+  | { kind: 'collapse'; x: number; y: number }
   | { kind: 'caveIn' };
 
 export interface Game {
@@ -24,6 +25,10 @@ export interface Game {
   /** Air tiles connected to the shaft (1) — cached, rebuilt when the world changes. */
   reach: Uint8Array;
   reachDirty: boolean;
+  /** Deepest row of the reach (valid after reach() runs). */
+  reachMaxY: number;
+  /** True while catching up on time away: pests and collapses wait for the player. */
+  offline?: boolean;
 }
 
 export function worldFor(state: GameState): World {
@@ -32,9 +37,17 @@ export function worldFor(state: GameState): World {
     endlessRows: state.world.endlessRows,
   });
   for (const [k, m] of Object.entries(state.world.diffs)) world.mat[Number(k)] = m;
-  world.torchMult = state.upgrades.lamplit ? UPGRADE_FX.lamplit : 1;
-  world.touchAll();
+  syncWorld(state, world);
   return world;
+}
+
+/** Copy the state's light-affecting facts onto the world: upgrades, Lumen, moth-dimmed lanterns. */
+export function syncWorld(state: GameState, world: World): void {
+  world.torchMult = state.upgrades.lamplit ? UPGRADE_FX.lamplit : 1;
+  world.torchSteady = state.upgrades.steadyFlame === 1;
+  world.lanternsLit = state.res.lumen.gt(0);
+  world.dimmed = new Set(state.pests.filter((p) => p.kind === 'moth').map((p) => p.y * world.w + p.x));
+  world.touchAll();
 }
 
 /** Wire a world into a game so every change is recorded for the save and the reach cache. */
@@ -50,7 +63,7 @@ export function attach(g: Game, world: World): void {
 }
 
 export function bind(state: GameState, world: World): Game {
-  const g = { state, events: [], reachDirty: true } as unknown as Game;
+  const g = { state, events: [], reachDirty: true, reachMaxY: 0 } as unknown as Game;
   attach(g, world);
   return g;
 }

@@ -34,6 +34,12 @@ export const VERSE_BANDS: readonly { d0: number; d1: number }[] = [
   { d0: 0, d1: 0 }, // XII heart
 ];
 
+/** fbm thresholds for ore veins (higher = rarer). Tuned with the balance sim (ADR-017). */
+const ORE = { copper: 0.7, tin: 0.76, iron: 0.7, deepCopper: 0.72, deepTin: 0.78 };
+
+/** Verses (0-based, inclusive) carved inside old brick shrines. */
+export const SHRINE_VERSES = [2, 4] as const;
+
 /** Drowned town street row (depth tiles). canon §2 Flooded Halls */
 export const TOWN_STREET_D = 138;
 export const TOWN_HOUSES_X = [8, 18, 46, 56] as const;
@@ -83,15 +89,16 @@ function baseTile(w: World, x: number, y: number, S: number, opts: GenOptions): 
     case 1: {
       if (y - s < 4) return n1 > 0.8 && y - s > 1 ? M.STONE : M.DIRT;
       if (d > 8 && cave > 0.74) return M.AIR;
-      if (n1 > 0.7) return M.COPPER;
-      if (n2 > 0.76) return M.TIN;
+      if (n1 > ORE.copper) return M.COPPER;
+      if (n2 > ORE.tin) return M.TIN;
       if (fbm(x * 0.15, y * 0.15, S + 41) > 0.72 && d < 24) return M.DIRT;
       return M.STONE;
     }
     case 2: {
       if (cave > 0.64) return M.AIR;
-      if (n1 > 0.72) return M.IRON;
-      if (n2 > 0.82) return M.COPPER;
+      if (n1 > ORE.iron) return M.IRON;
+      if (n2 > ORE.deepCopper) return M.COPPER;
+      if (fbm(x * 0.24, y * 0.24, S + 47) > ORE.deepTin) return M.TIN;
       return M.SLATE;
     }
     case 3: {
@@ -244,6 +251,10 @@ function placeCarvings(w: World, S: number): void {
           const i = (y + dy) * w.w + x + dx;
           if (w.mat[i] === M.AIR) w.mat[i] = M.STONE;
         }
+      // Glowroot verses sit in old brick shrines: an iron pick is needed to open them (ADR-017)
+      if (v >= SHRINE_VERSES[0] && v <= SHRINE_VERSES[1])
+        for (let dy = -1; dy <= 1; dy++)
+          for (let dx = -1; dx <= 1; dx++) w.mat[(y + dy) * w.w + x + dx] = M.BRICK;
     }
     w.mat[y * w.w + x] = M.CARVING;
     w.carvings.push({ verse: v, x, y });

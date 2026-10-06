@@ -76,6 +76,77 @@ export const LINES: Record<string, Line> = {
     who: 'bram',
     text: 'Hear that? The timbers. The whole hill wants to settle. When it goes we start again. We always do.',
   },
+  tooHard: {
+    id: 'tooHard',
+    who: 'bram',
+    text: 'That one just bounces the pick back at you. Harder rock wants a better pick. The forge can make one.',
+  },
+  // Act II: Glowroot. Old Wren keeps the lamps.
+  wrenMeet: {
+    id: 'wrenMeet',
+    who: 'wren',
+    text: 'Torches drown in that damp, Foreman. Bring me iron for a Lamp-works and I’ll light you something that lasts.',
+  },
+  firstIron: {
+    id: 'firstIron',
+    who: 'bram',
+    text: 'Iron. Heavier than it looks. The forge will take it, if you’re patient with her.',
+  },
+  firstSpores: {
+    id: 'firstSpores',
+    who: 'wren',
+    text: 'Glowcap spores. Don’t breathe them. Bring them to me and I’ll make Lumen of them.',
+  },
+  built_kiln: {
+    id: 'built_kiln',
+    who: 'bram',
+    text: 'Feed the kiln your rubble and it gives back bricks. Four bricks make a roof support.',
+  },
+  built_lampworks: {
+    id: 'built_lampworks',
+    who: 'wren',
+    text: 'There. Spores in, Lumen out. A lantern drinks a little every hour it burns, so don’t hang more than you can feed.',
+  },
+  built_songloom: {
+    id: 'built_songloom',
+    who: 'pell',
+    text: 'The loom hums when nobody is touching it. Bram says that’s the crystal. I don’t think it is.',
+  },
+  lanternsOut: {
+    id: 'lanternsOut',
+    who: 'wren',
+    text: 'The Lumen’s gone and so are the lanterns. Spores, Foreman. Lamps don’t live on promises.',
+  },
+  moth: {
+    id: 'moth',
+    who: 'wren',
+    text: 'Moths on the lanterns. They sit on the glass and drink the light. Tap them off.',
+  },
+  collapse: {
+    id: 'collapse',
+    who: 'bram',
+    text: 'Roof came down! Wide rooms want holding up down here. A support from the kiln’s bricks will do it.',
+  },
+  verse2: {
+    id: 'verse2',
+    who: 'wren',
+    text: 'I’ve seen that line before. On the inside of my own lamp-glass, scratched where I couldn’t have reached.',
+  },
+  verse3: {
+    id: 'verse3',
+    who: 'wren',
+    text: 'Nobody planted these glowcaps. I always said so. Somebody did, though.',
+  },
+  verse4: {
+    id: 'verse4',
+    who: 'bram',
+    text: 'There was a pick by that carving. Bronze, worn down to the shape of a hand. Your hand, Foreman.',
+  },
+  glowrootDone: {
+    id: 'glowrootDone',
+    who: 'wren',
+    text: 'Water below. I can hear it through the stone. The lanterns won’t like it, and neither will you.',
+  },
   surveyOld: {
     id: 'surveyOld',
     who: 'foreman',

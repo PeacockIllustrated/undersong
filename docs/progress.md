@@ -12,6 +12,47 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-06 · M2 Glowroot
+Done: Act II. The Kiln and bricks, the Lamp-works and Lumen, lanterns with upkeep and moths, supports and small collapses, rails, pick gates up to the Heartstone, Verses III–V in brick shrines, Old Wren, the full Echo tree (18 upgrades), Echo power, offline progress with a "While you were away" sheet, the phone bottom tray, and smooth lighting (Tom's request). Save v3. PR #3.
+
+**Directions taken**
+- **The bot found Act II was optional.** With everything built, it ignored lanterns and iron and hand-dug to 400 ft with a copper pick in two hours. ADR-017 is the fix: pick gates, verses in old brick that need an iron pick, and the Foreman digging by the light at the face below 150 ft.
+- **A run's mountain is finite.** Once gated, the bot couldn't afford the gates, because each mountain holds only so much copper and iron. Rather than flood the map with ore, Act II prices came down and every Echo ever earned now speeds the village by 3%. Each cycle reaches a little further, which is what a prestige loop should feel like.
+- **Lumen is a budget, not a meter.** Lanterns burn it constantly, and at zero they all go dark at once. Wren tells you so.
+- **Collapses never trap anyone.** If a fall would cut a worker off from the sky, the roof holds after all.
+- **Offline progress runs the real sim** in coarse steps, with pests held off, so what you come back to is exactly what the rules would have produced.
+- **Smooth lighting (ADR-018):** light eases over a tenth of a second and blends at quarter-tile steps. Soft, but still pixel art.
+- **Correction to M1:** the Act I bot never dug toward Verse I on purpose. It now chases the next verse once it has a pick; Act I targets are still all within ±15%.
+
+Balance sim, Act I (9 seeds):
+```
+Milestone                    target   median   per seed
+First bar smelted               ≤1m     0.5m    0.4   0.4   0.6   0.5   0.5   0.4   0.4   0.5   1.9 ✓
+First miner hired                8m     8.9m    4.2   6.7   7.7   8.9   9.7   4.5  10.6  10.7  15.1 ✓
+Verse I found                   10m     9.4m   12.8   4.9  13.4   2.8  14.2   6.9  14.1   9.4   3.1 ✓
+150 ft                          20m    18.9m   18.9  18.3  17.0  20.1  23.5  18.3  18.2  22.3  26.5 ✓
+First Cave-in available         45m    39.6m   39.1  51.8  39.6  46.9  49.9  28.9  34.5  61.9  31.4 ✓
+Echoes at first Cave-in       6–10        8       8     8     8     8     8     8     8     9     8 ✓
+```
+
+Balance sim, Act II (9 seeds, playing through Cave-ins):
+```
+Glowroot cleared (Act II)      240m   233.0m  265.4 301.6 233.0 183.8 269.5 178.0 225.7 212.4 255.4 ✓
+seed 1000: cave-ins at 54, 127 min · 400 ft 108.7 · Verse V 265.4 · cleared 265.4 · echoes ever 17 · pick 3 · lampworks 1 · collapses 5
+seed 8919: cave-ins at 88, 148, 193, 233 min · 400 ft 134.6 · Verse V 301.6 · cleared 301.6 · echoes ever 35 · pick 3 · lampworks 1 · collapses 4
+seed 16838: cave-ins at 57, 92, 134, 194 min · 400 ft 178.0 · Verse V 233.0 · cleared 233.0 · echoes ever 36 · pick 3 · lampworks 1 · collapses 13
+seed 24757: cave-ins at 64, 118 min · 400 ft 152.6 · Verse V 183.8 · cleared 183.8 · echoes ever 17 · pick 3 · lampworks 2 · collapses 11
+seed 32676: cave-ins at 39, 128, 158, 238 min · 400 ft 100.1 · Verse V 104.4 · cleared 269.5 · echoes ever 35 · pick 3 · lampworks 1 · collapses 4
+seed 40595: cave-ins at 93 min · 400 ft  83.1 · Verse V 150.9 · cleared 178.0 · echoes ever 9 · pick 3 · lampworks 2 · collapses 1
+seed 48514: cave-ins at 60, 110, 163 min · 400 ft 199.2 · Verse V 211.6 · cleared 225.7 · echoes ever 23 · pick 3 · lampworks 2 · collapses 3
+seed 56433: cave-ins at 84, 149, 179 min · 400 ft 168.7 · Verse V 208.6 · cleared 212.4 · echoes ever 26 · pick 3 · lampworks 1 · collapses 16
+seed 64352: cave-ins at 96, 157, 204 min · 400 ft 236.2 · Verse V 255.4 · cleared 255.4 · echoes ever 24 · pick 3 · lampworks 1 · collapses 6
+```
+
+State: `npm run check` green (40 tests), build green. Desktop and phone checked with an Act II save; draw time 1.4 ms.
+Next: M3 Drowned (water, pumps, silver and aquamarine, eels, the drowned town, Verses VI–VIII).
+Questions for Tom: is the Act II shape right (ADR-017)? The iron pick is now the key to the Glowroot verses.
+
 ## 2026-10-06 · M1 First Verse
 Done: the whole Act I loop. Forge with recipes, picks, the Bunkhouse and miners, rope and winch haulage, torches, Vein Rush, burrow beetles, old chests, Verses I and II with Pell's and Bram's lines, the Cave-in, the Survey Book and the five Echo upgrades. Save v2 with a migration. PR #2.
 

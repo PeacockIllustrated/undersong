@@ -3,6 +3,9 @@ import { CAVE_IN } from '../data/economy';
 import { LINES } from '../story/lines';
 import type { Game } from './game';
 import { canCaveIn } from './cavein';
+import { BIOMES } from '../data/biomes';
+
+const GLOWROOT = BIOMES[2]!;
 
 export function say(g: Game, id: string): void {
   const st = g.state.story;
@@ -38,6 +41,18 @@ export function stepStory(g: Game): void {
     say(g, 'depth150');
   }
   if (s.stats.maxDepthD * 4 >= CAVE_IN.minFt) first(g, 'ft300');
+  // Act II
+  if (s.stats.maxDepthD >= GLOWROOT.d0 + 2) say(g, 'wrenMeet');
+  if (s.res.ironOre.gt(0) || s.underground.ironOre.gt(0)) {
+    first(g, 'iron');
+    say(g, 'firstIron');
+  }
+  if (s.res.spores.gt(0)) say(g, 'firstSpores');
+  if (s.stats.maxDepthD >= GLOWROOT.d1) {
+    first(g, 'ft400');
+    say(g, 'glowrootDone');
+  }
+  if (s.verses.run[2] && s.verses.run[3] && s.verses.run[4]) first(g, 'glowrootVerses');
   if (canCaveIn(s)) {
     first(g, 'caveInReady');
     say(g, 'caveInReady');

@@ -1,18 +1,24 @@
 // Everything the player can ask for. The UI dispatches these; only the sim applies them. dev-bible §1.2
-import { CHEST_LOOT, TORCH_CRAFT, type Recipe } from '../data/economy';
+import { CHEST_LOOT, TORCH_CRAFT, type BuildingId, type CraftId, type Recipe } from '../data/economy';
 import { DIG_QUEUE_MAX } from '../data/constants';
-import { isMineable } from '../data/materials';
-import { UPGRADE_FX, UPGRADES } from '../data/upgrades';
+import { MIN_PICK, canDig, isMineable } from '../data/materials';
+import { PICKS } from '../data/items';
+import { UPGRADES } from '../data/upgrades';
+import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
 import { D } from './decimal';
 import { minerCost, nextHaul, nextPick, pay, torchCost } from './economy';
-import type { Game } from './game';
+import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
 import { makeRng } from './rng';
 import type { Tile } from './state';
 import { first, say } from './story';
+import { buyBuilding, craft } from './village';
 
-export type Tool = 'dig' | 'torch';
+export type Tool = 'dig' | 'torch' | 'lantern' | 'support';
+
+/** Tools that place an object from stock. */
+export const PLACE_TOOLS: readonly Exclude<Tool, 'dig'>[] = ['torch', 'lantern', 'support'];
 
 export type Action =
   | { type: 'dig'; x: number; y: number }
@@ -24,6 +30,8 @@ export type Action =
   | { type: 'buyPick' }
   | { type: 'buyHaul' }
   | { type: 'craftTorches' }
+  | { type: 'craft'; id: CraftId }
+  | { type: 'buyBuilding'; id: BuildingId }
   | { type: 'setRecipe'; recipe: Recipe }
   | { type: 'buyUpgrade'; id: string }
   | { type: 'caveIn' }
@@ -38,8 +46,15 @@ function queued(g: Game, x: number, y: number): boolean {
 function enqueue(g: Game, x: number, y: number, mustBeWorkable: boolean): boolean {
   const { world } = g;
   const f = g.state.foreman;
-  if (!isMineable(world.get(x, y))) return false;
+  const m = world.get(x, y);
+  if (!isMineable(m)) return false;
   if (queued(g, x, y)) return true;
+  if (!canDig(m, g.state.pickTier)) {
+    // canon §8.1: too hard for this pick; say which pick it wants, once
+    g.events.push({ kind: 'refused', x, y, needs: PICKS[MIN_PICK[m]!]!.name });
+    say(g, 'tooHard');
+    return false;
+  }
   if (mustBeWorkable && !workable(g, x, y)) {
     g.events.push({ kind: 'refused', x, y });
     return false;
@@ -55,6 +70,10 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
   if (pest) {
     s.pests = s.pests.filter((p) => p !== pest);
     for (const m of s.miners) if (m.stalledBy === pest.id) m.stalledBy = null;
+    if (pest.kind === 'moth') {
+      g.world.dimmed.delete(g.world.idx(x, y));
+      g.world.touch(x, y);
+    }
     g.events.push({ kind: 'pest', x, y, cleared: true });
     return;
   }
@@ -64,22 +83,36 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
     openChest(g, x, y, key);
     return;
   }
-  if (tool === 'torch') {
-    if (obj === 'torch') {
-      delete s.world.objects[key];
-      s.res.torch = s.res.torch.add(1);
-      g.world.touch(x, y);
-      return;
-    }
-    if (!obj && g.world.isAir(x, y) && y > g.world.surf[x]! && reachable(g, x, y) && s.res.torch.gte(1)) {
-      s.res.torch = s.res.torch.sub(1);
-      s.world.objects[key] = 'torch';
-      g.world.touch(x, y);
-      first(g, 'torch');
-    }
+  if (tool !== 'dig') {
+    place(g, x, y, key, tool, obj);
     return;
   }
   enqueue(g, x, y, true);
+}
+
+/** Place an object from stock on open ground, or pick up one of the same kind. */
+function place(
+  g: Game,
+  x: number,
+  y: number,
+  key: string,
+  kind: ObjKind & Tool,
+  obj: ObjKind | undefined,
+): void {
+  const s = g.state;
+  const stock = kind as 'torch' | 'lantern' | 'support';
+  if (obj === kind) {
+    delete s.world.objects[key];
+    s.res[stock] = s.res[stock].add(1);
+    g.world.touch(x, y);
+    return;
+  }
+  if (!obj && g.world.isAir(x, y) && y > g.world.surf[x]! && reachable(g, x, y) && s.res[stock].gte(1)) {
+    s.res[stock] = s.res[stock].sub(1);
+    s.world.objects[key] = kind;
+    g.world.touch(x, y);
+    first(g, kind);
+  }
 }
 
 function openChest(g: Game, x: number, y: number, key: string): void {
@@ -135,6 +168,7 @@ export function apply(g: Game, a: Action): void {
       const c = nextPick(s);
       if (!c || !pay(s, c)) return;
       s.pickTier++;
+      s.stats.bestPick = Math.max(s.stats.bestPick, s.pickTier);
       g.events.push({ kind: 'bought', what: 'pick' });
       return;
     }
@@ -150,6 +184,12 @@ export function apply(g: Game, a: Action): void {
       s.res.torch = s.res.torch.add(D(TORCH_CRAFT.makes));
       g.events.push({ kind: 'bought', what: 'torch' });
       return;
+    case 'craft':
+      craft(g, a.id);
+      return;
+    case 'buyBuilding':
+      buyBuilding(g, a.id);
+      return;
     case 'setRecipe':
       if (s.forge.recipe === a.recipe) return;
       s.forge.recipe = a.recipe;
@@ -162,10 +202,7 @@ export function apply(g: Game, a: Action): void {
       s.echoes = s.echoes.sub(u.cost);
       s.upgrades[u.id] = 1;
       if (u.id === 'rememberedRope' && s.haulTier < 1) s.haulTier = 1;
-      if (u.id === 'lamplit') {
-        g.world.torchMult = UPGRADE_FX.lamplit;
-        g.world.touchAll();
-      }
+      if (u.id === 'lamplit' || u.id === 'steadyFlame') syncWorld(s, g.world);
       return;
     }
     case 'caveIn':

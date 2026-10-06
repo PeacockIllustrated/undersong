@@ -1,10 +1,21 @@
 // Holloway: the forge, the bunkhouse, tools and torches.
-import { FORGE, HAULS, TORCH_CRAFT, type Recipe } from '../data/economy';
+import {
+  FORGE,
+  HAULS,
+  KILN,
+  LAMPWORKS,
+  TORCH_CRAFT,
+  type BuildingId,
+  type CraftId,
+  type Recipe,
+} from '../data/economy';
 import { PICKS } from '../data/items';
 import { RES_NAMES, type ResKey } from '../data/resources';
 import type { Decimal } from '../sim/decimal';
 import { canPay, haulRate, minerCost, nextHaul, nextPick, torchCost } from '../sim/economy';
 import { minerRate } from '../sim/miners';
+import { buildingCost, buildingDef, buildingOffered, craftCost, lanterns, lumenUpkeep } from '../sim/village';
+import { lumenMult } from '../sim/power';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
@@ -32,7 +43,65 @@ const RECIPES: { id: Recipe; label: string; needs?: (s: UiBridge['game']['state'
     label: 'Bronze',
     needs: (s) => s.res.tinBar.gt(0) || s.res.bronzeBar.gt(0) || s.pickTier >= 1,
   },
+  { id: 'iron', label: 'Iron', needs: (s) => s.stats.firsts.iron !== undefined },
+  { id: 'silver', label: 'Silver', needs: (s) => s.res.silverOre.gt(0) || s.res.silverBar.gt(0) },
+  { id: 'gold', label: 'Gold', needs: (s) => s.res.goldOre.gt(0) || s.res.goldBar.gt(0) },
 ];
+
+type State = UiBridge['game']['state'];
+
+/** A village building bought in levels, with what it makes and a craft or two. */
+function Building({
+  ui,
+  id,
+  children,
+}: {
+  ui: UiBridge;
+  id: BuildingId;
+  children: preact.ComponentChildren;
+}) {
+  const s = ui.game.state;
+  if (!buildingOffered(s, id)) return null;
+  const def = buildingDef(id);
+  const lv = s.buildings[id];
+  const cost = buildingCost(s, id);
+  return (
+    <section class="card">
+      <img class="prop" src={spriteURL(def.sprite, 1)} alt="" />
+      <div class="grow">
+        <h3>
+          {def.name}
+          {lv > 0 ? ` · level ${lv}` : ''}
+        </h3>
+        <p>{def.text}</p>
+        {lv > 0 && children}
+        <div class="row">
+          <button
+            class={`btn ${lv === 0 ? 'primary' : ''}`}
+            disabled={!canPay(s, cost)}
+            onClick={() => ui.dispatch({ type: 'buyBuilding', id })}
+          >
+            {lv === 0 ? `Build the ${def.name}` : 'Add a level'}
+          </button>
+          <Cost costs={cost} have={s.res} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Craft({ ui, id, label, s }: { ui: UiBridge; id: CraftId; label: string; s: State }) {
+  const c = craftCost(id);
+  return (
+    <div class="row">
+      <button class="btn" disabled={!canPay(s, c)} onClick={() => ui.dispatch({ type: 'craft', id })}>
+        {label}
+      </button>
+      <Cost costs={c} have={s.res} />
+      <span class="small">{fmt(s.res[id])} in hand</span>
+    </div>
+  );
+}
 
 export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const s = ui.game.state;
@@ -152,6 +221,25 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             )}
           </div>
         </section>
+
+        <Building ui={ui} id="lampworks">
+          <p class="small">
+            {s.res.spores.gt(0)
+              ? `Turning ${s.buildings.lampworks} spore${s.buildings.lampworks > 1 ? 's' : ''} a second into ${LAMPWORKS.lumen * lumenMult(s) * s.buildings.lampworks} Lumen.`
+              : 'Waiting on glowcap spores. Miners pick them from the cavern walls.'}{' '}
+            {lanterns(ui.game).length > 0 &&
+              `${lanterns(ui.game).length} lantern${lanterns(ui.game).length > 1 ? 's' : ''} burn ${lumenUpkeep(ui.game).toFixed(2)} Lumen a second${ui.game.world.lanternsLit ? '.' : ', but they are dark: no Lumen.'}`}
+          </p>
+          <Craft ui={ui} id="lantern" label={`Make a lantern`} s={s} />
+        </Building>
+
+        <Building ui={ui} id="kiln">
+          <p class="small">
+            Bakes {KILN.rubble} rubble into a brick every {KILN.seconds / s.buildings.kiln} s. Rubble comes
+            from the stone you dig by hand.
+          </p>
+          <Craft ui={ui} id="support" label={`Make a support`} s={s} />
+        </Building>
 
         <section class="card">
           <img class="icon" src={spriteURL('obj-torch')} alt="" />

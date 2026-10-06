@@ -15,6 +15,10 @@ import { Fx } from './fx';
 
 const T = TILE_PX;
 const CPX = CHUNK * T;
+/** Light blocks per tile edge: 4 gives 4-pixel steps, soft but still pixel art (ADR-018). */
+const LIGHT_SUB = 4;
+/** How fast displayed light chases the sim's light, per second. */
+const LIGHT_EASE = 10;
 
 /** Village buildings: sprite, tile x of the centre, and the building count that makes them appear. */
 export const VILLAGE: readonly {
@@ -26,6 +30,7 @@ export const VILLAGE: readonly {
   { sprite: 'bunkhouse', x: 8 },
   { sprite: 'forge', x: 14, key: 'forge' },
   { sprite: 'lampworks', x: 20, key: 'lampworks' },
+  { sprite: 'wren', x: 23, key: 'lampworks' },
   { sprite: 'kiln', x: 26, key: 'kiln' },
   { sprite: 'songloom', x: 32, key: 'songloom' },
   { sprite: 'headframe', x: SHAFT_X },
@@ -94,6 +99,7 @@ export class Renderer {
 
   invalidate(): void {
     this.chunks.clear();
+    this.dispW = null;
   }
 
   private chunkCanvas(w: World, cx: number, cy: number): HTMLCanvasElement {
@@ -374,38 +380,97 @@ export class Renderer {
     drawSprite(this.ctx, 'foreman', swing, Math.round(p.x), Math.round(p.y), p.flip);
   }
 
-  /** canon §7: darkness overlay and tints, one block per tile, flicker in render only. */
+  /**
+   * canon §7: darkness overlay and tints. Smooth lighting (ADR-018): the sim's per-tile light is
+   * eased over time, then sampled bilinearly between tile centres at LIGHT_SUB blocks per tile, so
+   * light falls off in soft steps instead of whole-tile squares. Render only; the sim never sees it.
+   */
   private lampX = 0;
   private lampY = 0;
+  private dispW: Float32Array | null = null;
+  private dispC: Float32Array | null = null;
+  private lastLight = 0;
   private drawLight(w: World, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
     const cw = tx1 - tx0 + 1;
     const ch = ty1 - ty0 + 1;
-    if (this.light.width !== cw || this.light.height !== ch) {
-      this.light.width = cw;
-      this.light.height = ch;
-      this.lightImg = this.lctx.createImageData(cw, ch);
+    const S = LIGHT_SUB;
+    if (this.light.width !== cw * S || this.light.height !== ch * S) {
+      this.light.width = cw * S;
+      this.light.height = ch * S;
+      this.lightImg = this.lctx.createImageData(cw * S, ch * S);
     }
+    for (
+      let cy = Math.floor(Math.max(0, ty0 - 1) / CHUNK);
+      cy <= Math.floor(Math.min(w.h - 1, ty1 + 1) / CHUNK);
+      cy++
+    )
+      for (
+        let cx = Math.floor(Math.max(0, tx0 - 1) / CHUNK);
+        cx <= Math.floor(Math.min(w.w - 1, tx1 + 1) / CHUNK);
+        cx++
+      )
+        w.ensureLightChunk(cx, cy);
+
+    // ease the displayed light toward the sim's light, so lamps fade in and out
+    const n = w.w * w.h;
+    let snap = false;
+    if (!this.dispW || this.dispW.length !== n) {
+      this.dispW = new Float32Array(n);
+      this.dispC = new Float32Array(n);
+      snap = true;
+    }
+    const dt = Math.min(0.25, Math.max(0, (now - this.lastLight) / 1000));
+    this.lastLight = now;
+    const k = snap ? 1 : 1 - Math.exp(-dt * LIGHT_EASE);
+    const dW = this.dispW;
+    const dC = this.dispC!;
+    // margin of one tile so every sample has neighbours to blend with
+    const mx0 = Math.max(0, tx0 - 1);
+    const my0 = Math.max(0, ty0 - 1);
+    const mx1 = Math.min(w.w - 1, tx1 + 1);
+    const my1 = Math.min(w.h - 1, ty1 + 1);
+    for (let y = my0; y <= my1; y++)
+      for (let x = mx0; x <= mx1; x++) {
+        const i = y * w.w + x;
+        // the sky is fully lit, so the grass line blends into daylight
+        const tw = y < w.surf[x]! ? 1 : w.warm[i]!;
+        const tc = y < w.surf[x]! ? 0 : w.cool[i]!;
+        dW[i] = dW[i]! + (tw - dW[i]!) * k;
+        dC[i] = dC[i]! + (tc - dC[i]!) * k;
+      }
+
     const img = this.lightImg!;
     const d = img.data;
+    const IW = cw * S;
     const flick = 1 + Math.sin(now / 95) * LIGHT.flicker * 0.5 + Math.sin(now / 37) * LIGHT.flicker * 0.5;
-    for (let cy = Math.floor(ty0 / CHUNK); cy <= Math.floor(ty1 / CHUNK); cy++)
-      for (let cx = Math.floor(tx0 / CHUNK); cx <= Math.floor(tx1 / CHUNK); cx++) w.ensureLightChunk(cx, cy);
-    for (let y = 0; y < ch; y++)
-      for (let x = 0; x < cw; x++) {
-        const tx = tx0 + x;
-        const ty = ty0 + y;
-        const i = ty * w.w + tx;
-        const o = (y * cw + x) * 4;
-        const above = ty < w.surf[tx]!;
-        if (above) {
+    const sample = (arr: Float32Array, fx: number, fy: number): number => {
+      // bilinear between tile centres, clamped to the margin
+      const x0 = Math.min(mx1, Math.max(mx0, Math.floor(fx)));
+      const y0 = Math.min(my1, Math.max(my0, Math.floor(fy)));
+      const x1 = Math.min(mx1, x0 + 1);
+      const y1 = Math.min(my1, y0 + 1);
+      const ax = Math.min(1, Math.max(0, fx - x0));
+      const ay = Math.min(1, Math.max(0, fy - y0));
+      const top = arr[y0 * w.w + x0]! * (1 - ax) + arr[y0 * w.w + x1]! * ax;
+      const bot = arr[y1 * w.w + x0]! * (1 - ax) + arr[y1 * w.w + x1]! * ax;
+      return top * (1 - ay) + bot * ay;
+    };
+    for (let sy = 0; sy < ch * S; sy++) {
+      const py = ty0 + (sy + 0.5) / S; // world position in tiles
+      const ty = Math.floor(py);
+      for (let sx = 0; sx < IW; sx++) {
+        const px = tx0 + (sx + 0.5) / S;
+        const tx = Math.floor(px);
+        const o = (sy * IW + sx) * 4;
+        if (ty < w.surf[tx]!) {
           d[o + 3] = 0;
           continue;
         }
         // the Foreman's own lamp: render-only, so the player can always see where they are digging (ADR-010)
-        const ld = Math.hypot(tx + 0.5 - this.lampX, ty + 0.5 - this.lampY);
+        const ld = Math.hypot(px - this.lampX, py - this.lampY);
         const lamp = Math.max(0, LIGHT.foremanLamp - ld * LIGHT.decayAir * 1.6);
-        const warm = Math.max(w.warm[i]! * flick, lamp * flick);
-        const cool = w.cool[i]!;
+        const warm = Math.max(sample(dW, px - 0.5, py - 0.5), lamp) * flick;
+        const cool = sample(dC, px - 0.5, py - 0.5);
         const L = Math.min(1, warm + cool);
         // darkness over everything, tinted toward whichever light reaches it
         const a = (1 - L) * LIGHT.darkness;
@@ -425,6 +490,7 @@ export class Renderer {
         d[o + 2] = (18 * a + tb * tA * (1 - a)) / outA;
         d[o + 3] = outA * 255;
       }
+    }
     this.lctx.putImageData(img, 0, 0);
     this.ctx.imageSmoothingEnabled = false;
     this.ctx.drawImage(this.light, tx0 * T, ty0 * T, cw * T, ch * T);

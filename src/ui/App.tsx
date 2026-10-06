@@ -6,6 +6,7 @@ import { RES_KEYS, RES_NAMES, type ResKey } from '../data/resources';
 import type { Action, Tool } from '../sim/actions';
 import type { Game } from '../sim/game';
 import type { GameState } from '../sim/state';
+import type { AwaySummary } from '../save/offline';
 import { spriteURL } from '../render/sprites';
 import { RES_ICON } from './icons';
 import { fmt } from './format';
@@ -13,6 +14,8 @@ import { VillageSheet } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
 import { StoryLayer } from './Story';
+import { AwaySheet } from './Away';
+import { lanterns } from '../sim/village';
 
 export interface UiBridge {
   readonly game: Game;
@@ -25,6 +28,13 @@ export interface UiBridge {
   lookAt(x: number, y: number): void;
   tool: Tool;
   setTool(t: Tool): void;
+  /** What the village did while the player was away, until they close the summary. */
+  readonly away: AwaySummary | null;
+  clearAway(): void;
+}
+
+function lumenOut(ui: UiBridge): boolean {
+  return !ui.game.world.lanternsLit && lanterns(ui.game).length > 0;
 }
 
 export type Sheet = null | 'village' | 'survey' | 'menu';
@@ -56,6 +66,7 @@ const HUD_ORDER: readonly ResKey[] = [
   'heartstone',
   'spores',
   'lumen',
+  'rubble',
   'brick',
 ];
 
@@ -66,7 +77,35 @@ export function App({ ui }: { ui: UiBridge }) {
   const s = g.state;
   const d = g.world.depth(s.foreman.y);
   const biome = biomeAt(d);
-  const held = HUD_ORDER.filter((k) => s.res[k].gt(0));
+  const held = HUD_ORDER.filter((k) => s.res[k].gt(0) && (k !== 'rubble' || s.buildings.kiln > 0));
+  const moths = s.pests.filter((p) => p.kind === 'moth');
+  const beetles = s.pests.filter((p) => p.kind === 'beetle');
+  const tools: { id: Tool; sprite: string; label: string; stock?: ResKey; show: boolean; title: string }[] = [
+    {
+      id: 'torch',
+      sprite: 'obj-torch',
+      label: 'Torch',
+      stock: 'torch',
+      show: true,
+      title: 'Tap open ground to place a torch; tap a torch to pick it up',
+    },
+    {
+      id: 'lantern',
+      sprite: 'obj-lantern',
+      label: 'Lantern',
+      stock: 'lantern',
+      show: s.buildings.lampworks > 0 || s.res.lantern.gt(0),
+      title: 'Tap open ground to hang a lantern; tap a lantern to take it down',
+    },
+    {
+      id: 'support',
+      sprite: 'obj-support',
+      label: 'Support',
+      stock: 'support',
+      show: s.buildings.kiln > 0 || s.res.support.gt(0),
+      title: 'Tap open ground to prop the roof; supports stop collapses nearby',
+    },
+  ];
   void RES_KEYS;
 
   // the Cave-in opens the Survey Book once its collapse has played
@@ -103,7 +142,7 @@ export function App({ ui }: { ui: UiBridge }) {
           ))}
         </div>
       </div>
-      {s.pests.length > 0 && (
+      {(beetles.length > 0 || moths.length > 0) && (
         <button
           class="panel alert"
           style={{
@@ -114,9 +153,21 @@ export function App({ ui }: { ui: UiBridge }) {
           }}
           onClick={() => ui.lookAt(s.pests[0]!.x, s.pests[0]!.y)}
         >
-          Beetles · {s.pests.length} miner{s.pests.length > 1 ? 's' : ''} stopped. Show me
+          {beetles.length > 0
+            ? `Beetles · ${beetles.length} miner${beetles.length > 1 ? 's' : ''} stopped.`
+            : `Moths · ${moths.length} lantern${moths.length > 1 ? 's' : ''} dimmed.`}{' '}
+          Show me
         </button>
       )}
+      {lumenOut(ui) && (
+        <div
+          class="panel alert dark"
+          style={{ position: 'absolute', top: 'calc(env(safe-area-inset-top, 0px) + 132px)', left: '10px' }}
+        >
+          Out of Lumen · the lanterns are dark
+        </div>
+      )}
+      {ui.away && <AwaySheet ui={ui} />}
       <StoryLayer ui={ui} />
       <div class="hud-bottom">
         <div class="tools panel" role="group" aria-label="Tool">
@@ -141,17 +192,22 @@ export function App({ ui }: { ui: UiBridge }) {
               )}
               alt=""
             />
-            Dig
+            <span class="tl">Dig</span>
           </button>
-          <button
-            class={`tool ${ui.tool === 'torch' ? 'on' : ''}`}
-            aria-pressed={ui.tool === 'torch'}
-            onClick={() => ui.setTool('torch')}
-            title="Tap open ground to place a torch; tap a torch to pick it up"
-          >
-            <img src={spriteURL('obj-torch')} alt="" />
-            Torch {fmt(s.res.torch)}
-          </button>
+          {tools
+            .filter((t) => t.show)
+            .map((t) => (
+              <button
+                key={t.id}
+                class={`tool ${ui.tool === t.id ? 'on' : ''}`}
+                aria-pressed={ui.tool === t.id}
+                onClick={() => ui.setTool(ui.tool === t.id ? 'dig' : t.id)}
+                title={t.title}
+              >
+                <img src={spriteURL(t.sprite)} alt="" />
+                <span class="tl">{t.label}</span> {t.stock ? fmt(s.res[t.stock]) : ''}
+              </button>
+            ))}
         </div>
         <div class="row nav">
           <button class="btn" onClick={() => ui.recenter()} aria-label="Follow the Foreman">
