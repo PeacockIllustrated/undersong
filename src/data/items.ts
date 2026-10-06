@@ -29,9 +29,10 @@ export const PICKS: readonly PickDef[] = [
     name: 'Aquamarine pick',
     sprite: 'pick-aqua',
     power: 12,
+    // mostly aquamarine: by the Geodes the Halls' silver has run thin (M3-09)
     cost: [
-      { res: 'aquamarine', n: 20 },
-      { res: 'silverBar', n: 35 },
+      { res: 'aquamarine', n: 30 },
+      { res: 'silverBar', n: 20 },
     ],
   },
   {

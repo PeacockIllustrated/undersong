@@ -116,6 +116,7 @@ Decision:
 - Act III end is 1000 ft reached with Verses VI–X known. Its target moves from 9 h to 6 h 30, in line with the faster game after ADR-020.
 - Bram's pump crew (canon §14) takes the pump chore off the player, like the other helpers.
 Consequences: 7 of 9 sim seeds reach Act III end inside 10 h, median 448 min against 390. Two seeds stall at the crystal rings; the tail is an open item (M3-09).
+Amended for M3-09: the two stalled seeds sat at 1000 ft with plenty of aquamarine and about 30 silver bars, short of the 35 the aquamarine pick wanted, because the Geodes give little silver. The aquamarine pick is now 30 aquamarine + 20 silver bars. All 9 seeds finish (199 to 382 min), median 333 min against 390, inside ±15%.
 
 **ADR-022 · UI polish pass** · 2026-10-06 · Accepted
 Context: Tom asked for polish: cancelling queued blocks, better UI, more popups and indicators. He approved the proposal artifact (roadmap P-01..10).
