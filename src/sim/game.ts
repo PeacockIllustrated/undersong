@@ -23,7 +23,7 @@ export type SimEvent =
   | { kind: 'harvest'; x: number; n: number; golden: boolean }
   | { kind: 'chop'; x: number; n: number }
   /** n: how many at once (M8-03), when more than one. */
-  | { kind: 'bought'; what: string; n?: number }
+  | { kind: 'bought'; what: string; n?: number; auto?: true }
   | { kind: 'pest'; x: number; y: number; cleared: boolean }
   | { kind: 'chest'; x: number; y: number }
   | { kind: 'verse'; verse: number; x: number; y: number }

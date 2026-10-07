@@ -2385,3 +2385,144 @@ ol.lately .when {
     right: calc(min(480px, 100vw) + 10px);
   }
 }
+
+/* M13-04 and M13-06: the Auto switch and the pin beside a buy */
+.buyline {
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: stretch;
+}
+/* the buy, its Auto switch and its pin share one line; the label wraps inside the button if it must */
+.buyline .btn.buy {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.drawer .btn.buy .lbl {
+  overflow-wrap: anywhere;
+}
+.drawer .card .buyline .btn.buy {
+  width: auto;
+}
+.mini {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  font-family: var(--display);
+  font-size: calc(10px * var(--ts));
+  color: var(--ink-dim);
+  background: var(--slate-0);
+  border: 2px solid var(--slate-2);
+  cursor: pointer;
+}
+.mini:hover {
+  color: var(--ink);
+  border-color: var(--slate-3);
+}
+.mini img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  opacity: 0.55;
+  vertical-align: middle;
+}
+.mini.pin.on img {
+  opacity: 1;
+}
+.mini.on {
+  color: var(--night);
+  background: var(--glow);
+  border-color: var(--glow);
+}
+.mini.pin.on {
+  background: rgba(255, 214, 90, 0.18);
+  border-color: var(--gold);
+}
+.buyline .ready {
+  flex-basis: 100%;
+}
+@media (max-width: 600px) {
+  .mini {
+    min-width: 38px;
+    padding: 0 4px;
+  }
+  .mini.auto-sw {
+    font-size: calc(9px * var(--ts));
+  }
+}
+
+/* M13-04: the pinned goal on the HUD */
+.pin-chip {
+  display: grid;
+  grid-template-columns: 16px auto;
+  column-gap: 6px;
+  align-items: center;
+  min-width: 150px;
+  max-width: 230px;
+  padding: 5px 10px 7px 8px;
+  text-align: left;
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: calc(13px * var(--ts));
+  cursor: pointer;
+}
+.pin-chip img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+.pin-chip .pname {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pin-chip .pbar {
+  grid-column: 2;
+  height: 5px;
+  margin: 4px 0 2px;
+  background: var(--night);
+  border: 1px solid var(--slate-2);
+}
+.pin-chip .pbar i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+}
+.pin-chip .pwhen {
+  grid-column: 2;
+  font-size: calc(11px * var(--ts));
+  color: var(--ink-dim);
+}
+.pin-chip.ready {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 2px var(--night),
+    0 0 12px rgba(255, 214, 90, 0.55);
+}
+.pin-chip.ready .pwhen {
+  color: var(--gold);
+}
+
+/* M13-05: the ledger */
+table.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(14px * var(--ts));
+}
+table.ledger th {
+  text-align: left;
+  font-weight: normal;
+  padding: 4px 8px 4px 0;
+}
+table.ledger td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  padding: 4px 0;
+}
+table.ledger tr.sub th {
+  padding-left: 16px;
+  color: #5f6487;
+}
+table.ledger tr:not(.sub) {
+  border-top: 1px dashed rgba(107, 67, 41, 0.3);
+}

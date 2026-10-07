@@ -53,8 +53,41 @@ export const SURVEY_TABS = {
   echoes: 'Echoes',
   verses: 'Verses',
   shelf: 'Shelf',
-  pages: 'Pages',
+  pages: 'Ledger',
   feats: 'Feats',
 };
 
 export const MENU_TABS = { game: 'Save' };
+
+export const PIN_TEXT = {
+  pin: 'Pin to the screen',
+  unpin: 'Unpin',
+  auto: 'Auto',
+  autoOn: 'Buying this by itself while it costs a tenth of what you hold. Tap to stop.',
+  autoOff: 'Buy this by itself whenever it costs no more than a tenth of what you hold',
+  miner: 'A miner',
+  whetstone: 'Sharpening',
+  plot: 'A barley plot',
+  sapling: 'A sapling',
+  ready: 'Ready',
+  readyToast: (name: string): string => `${name} is ready`,
+  readyToastSub: 'Your pinned goal can be bought',
+  chipTitle: 'Your pinned goal. Tap to go to it.',
+};
+
+export const LEDGER_TEXT = {
+  title: 'Ledger',
+  time: 'Time',
+  mins: (m: number): string => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`),
+  played: 'Time in the mountain',
+  playedRun: 'This cycle',
+  tiles: 'Tiles dug',
+  tilesRun: 'This cycle',
+  chests: 'Old chests opened',
+  caveIns: 'Cave-ins',
+  collapses: 'Roofs that fell',
+  deepest: 'Deepest ever',
+  fastest: 'Fastest Cave-in',
+  echoes: 'Echoes earned in all',
+  none: '—',
+};

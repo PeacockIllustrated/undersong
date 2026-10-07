@@ -101,6 +101,14 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 10;
     return o as Raw;
   },
+  // v10 → v11 (M13): the ledger's tiles in all, and the buys switched to Auto.
+  10: (s) => {
+    const o = s as Record<string, any>;
+    if (o.stats) o.stats.tilesEver = o.stats.tilesMined ?? 0;
+    if (o.auto) o.auto.buy = [];
+    o.v = 11;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

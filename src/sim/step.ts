@@ -16,6 +16,7 @@ import { stepKiln, stepLampworks, stepLanterns } from './village';
 import { stepMemory } from './memory';
 import { stepCart, stepDog } from './finds';
 import { stepAuto } from './beyond';
+import { stepAutoBuy } from './autobuy';
 
 export { mineTile } from './dig';
 
@@ -46,6 +47,7 @@ export function step(g: Game, dtMs: number): void {
   if (s.t % 1000 === 0 || dt >= 1) {
     stepEndless(g);
     stepAchievements(g);
+    stepAutoBuy(g);
     // last: a Cave-in swaps the world under everything above
     stepAuto(g);
   }

@@ -84,7 +84,7 @@ export function Fields({ ui }: { ui: UiBridge }) {
   const r = ripe(s);
   return (
     <div class="shop">
-      <section class="card" style={first(can(s, pc))}>
+      <section class="card" data-card="plot" style={first(can(s, pc))}>
         <img class="prop" src={spriteURL('tansy')} alt="" />
         <div class="grow">
           <h3>
@@ -113,6 +113,7 @@ export function Fields({ ui }: { ui: UiBridge }) {
 
       <section
         class="card"
+        data-card="meal"
         style={first(
           MEALS.some((m) => mealShown(s, m) && can(s, mealCost(s, m.id))) || (!on && sf.feast >= need),
         )}
@@ -280,7 +281,7 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
   const trees = sf.trees.map((t) => (isElder(t) ? 'elder' : STAGE[treeStage(t)]!));
   return (
     <div class="shop">
-      <section class="card" style={first(can(s, sc))}>
+      <section class="card" data-card="sapling" style={first(can(s, sc))}>
         <img class="prop" src={spriteURL('rook')} alt="" />
         <div class="grow">
           <h3>Rook’s woodlot · {fmt(s.res.timber)} timber</h3>
@@ -304,7 +305,7 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
         const c = woodCost(s, b.id);
         const lv = sf.wood[b.id];
         return (
-          <section class="card" style={first(can(s, c))} key={b.id}>
+          <section class="card" data-card={`wood:${b.id}`} style={first(can(s, c))} key={b.id}>
             <img class="prop" src={spriteURL(b.id === 'cottage' ? 'cottage' : 'forge', 1)} alt="" />
             <div class="grow">
               <h3>

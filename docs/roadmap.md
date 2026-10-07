@@ -533,19 +533,19 @@ Acceptance:
 Acceptance:
   1. Every big toast, biome banner and achievement also goes into a "Lately" list in the Menu (newest first, the last 50, with how long ago), so nothing that flashed past is lost. It is kept beside the settings, not in the save.
 
-### [ ] M13-04 · Pin a goal · S
+### [x] M13-04 · Pin a goal · S · PR #28
 Acceptance:
-  1. Any card with a price (pick, lift, building, metalwork, helper, Echo upgrade) can be pinned. A HUD chip shows the pinned thing, a bar for how much of its price is in hand, and "ready in". Tapping the chip opens its card. When it becomes affordable the chip lights up and a toast says so.
+  1. Any buy with a price in the Village (pick, deep pick, lift, building, helper, and every repeatable buy) can be pinned (Echo upgrades can't: ADR-042). A HUD chip shows the pinned thing, a bar for how much of its price is in hand, and "ready in". Tapping the chip opens its card. When it becomes affordable the chip lights up and a toast says so.
   2. One pin at a time; bought or gone, it clears itself. Kept beside the settings, not in the save.
 
-### [ ] M13-05 · The ledger · S
+### [x] M13-05 · The ledger · S · PR #28
 Acceptance:
   1. A Survey Book page lists time played (this run and in all), tiles dug (this run and in all), chests, Cave-ins, collapses, deepest ever and the fastest Cave-in.
   2. Save change for the totals, with migration, fixture and test.
 
-### [ ] M13-06 · Keep buying · M
+### [x] M13-06 · Keep buying · M · PR #28
 Acceptance:
-  1. After the second Cave-in, repeatable buys (miners, sharpening, metalwork, plots, saplings, torches) get an Auto switch. A switched-on buy is made by itself whenever its price is no more than a set share of what is in hand, so it never starves the next pick. Numbers in `src/data` and canon.
+  1. After the second Cave-in, repeatable buys (miners, sharpening, metalwork, plots, saplings, meals, woodlot buys; torches are the Lamplighters' job) get an Auto switch. A switched-on buy is made by itself whenever its price is no more than a set share of what is in hand, so it never starves the next pick. Numbers in `src/data` and canon.
   2. The switches are saved and survive the Cave-in. Save change with migration and test; the sim is unchanged unless the bot turns them on.
 
 ### [x] M13-07 · Panels that feel current · M · PR #27

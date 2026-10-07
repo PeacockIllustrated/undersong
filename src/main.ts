@@ -424,7 +424,7 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       );
       if (golden) for (let i = 0; i < 8; i++) r.fx.sparkle(e.x * TILE_PX + 8, y + 8, '#FFF2A8');
     } else if (e.kind === 'bought') {
-      announce(g, e.what, e.n);
+      if (!e.auto) announce(g, e.what, e.n);
     } else if (e.kind === 'veinBreak') {
       // M8-02: the vein gives way
       r.fx.shake(2, 400, now);

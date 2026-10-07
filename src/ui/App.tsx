@@ -32,6 +32,7 @@ import { FEAST, FIELDS } from '../data/surface';
 import { feasting, ripe } from '../sim/surface';
 import { bottleneck, echoAffordable, villageAffordable, type Fix } from './feedback';
 import { remember } from './lately';
+import { PinChip } from './Qol';
 import { SHORTCUTS } from '../data/ui';
 import { LATELY_TEXT } from '../story/qol';
 
@@ -350,6 +351,13 @@ export function App({ ui }: { ui: UiBridge }) {
               </button>
             )}
           </div>
+          <PinChip
+            ui={ui}
+            open={(tab, card) => {
+              villageFocus(card, tab);
+              setSheet('village');
+            }}
+          />
           {s.pests.length > 0 && (
             <button
               class="panel alert"

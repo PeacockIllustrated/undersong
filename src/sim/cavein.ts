@@ -54,6 +54,7 @@ export function caveIn(g: Game): boolean {
     verses: versesThisRun(s),
     echoes: gain.toString(),
     hand: 'yours',
+    min: Math.round(s.t / 60_000),
   });
   s.stats.caveIns++;
   s.lastRun = { miners: s.miners.length, depthByMin: s.runDepth };

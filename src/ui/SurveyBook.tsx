@@ -19,7 +19,8 @@ import { BIOMES } from '../data/biomes';
 import { CURIO_TEXT, CURIO_UI, RARITY_NAME } from '../story/finds';
 import { fullSets } from '../sim/finds';
 import { Tabs } from './Drawer';
-import { SURVEY_TABS } from '../story/qol';
+import { LEDGER_TEXT, SURVEY_TABS } from '../story/qol';
+import { Ledger } from './Ledger';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
 
@@ -243,6 +244,7 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
           </section>
         )}
 
+        {tab === 'pages' && <Ledger s={s} />}
         {tab === 'pages' && (
           <section>
             <h3>Pages</h3>
@@ -253,6 +255,7 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
                   <th>Depth</th>
                   <th>Verses</th>
                   <th>Echoes</th>
+                  <th>{LEDGER_TEXT.time}</th>
                 </tr>
               </thead>
               <tbody>
@@ -265,6 +268,7 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
                       {p.echoes}
                       {p.auto && <span class="small muted"> · {AUTO_TEXT.page}</span>}
                     </td>
+                    <td>{p.min !== undefined ? LEDGER_TEXT.mins(p.min) : '—'}</td>
                   </tr>
                 ))}
               </tbody>
