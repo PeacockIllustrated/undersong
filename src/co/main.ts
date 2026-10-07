@@ -7,11 +7,33 @@ import { buildTileTextures } from '../render/tiles';
 import { Sound } from '../audio/sound';
 import { breakCue } from '../audio/cues';
 import { VERSES } from '../story/verses';
-import { MAX_STEPS_PER_FRAME, RELICS, STEP_S, type BookId, type ShopId } from './data/co';
+import {
+  CO_PICKS,
+  GEMS,
+  MAX_STEPS_PER_FRAME,
+  ORES,
+  RELICS,
+  STEP_S,
+  type BookId,
+  type RelicId,
+  type ShopId,
+} from './data/co';
 import { Input } from './input';
 import { View } from './render/view';
 import { idleControl } from './sim/body';
-import { awayPay, buy, buyBook, duskDone, nextDay, settleDusk, signContract } from './sim/contract';
+import {
+  awayPay,
+  buy,
+  buyBook,
+  buyRelic,
+  duskDone,
+  nextDay,
+  rerollTinker,
+  settleDusk,
+  signContract,
+  singDown,
+} from './sim/contract';
+import { pickIndex } from './sim/stats';
 import { startDay, stepDay } from './sim/day';
 import { newGame, type CoEvent, type Game } from './sim/state';
 import { loadGame, saveGame, wipeGame } from './save';
@@ -80,8 +102,14 @@ function boot(): void {
       muted = m;
     },
     buy: (id: ShopId) => {
+      const before = id === 'pick' ? CO_PICKS[pickIndex(g.s)]!.power : 0;
       if (buy(g, id)) {
         play('bought');
+        if (id === 'pick') {
+          const p = CO_PICKS[pickIndex(g.s)]!;
+          play('record');
+          toast(`${p.name}! Digs ×${(p.power / before).toFixed(1).replace(/\.0$/, '')} faster`, 'gold');
+        }
         saveGame(g.s);
         return true;
       }
@@ -96,6 +124,31 @@ function boot(): void {
       }
       play('refused');
       return false;
+    },
+    buyRelic: (id: RelicId) => {
+      if (buyRelic(g, id)) {
+        play('record');
+        toast(`${RELICS[id].name}: ${RELICS[id].blurb}`, 'gold');
+        saveGame(g.s);
+        return true;
+      }
+      play('refused');
+      return false;
+    },
+    reroll: () => {
+      if (rerollTinker(g)) {
+        play('ui');
+        saveGame(g.s);
+        return true;
+      }
+      play('refused');
+      return false;
+    },
+    singDown: () => {
+      if (singDown(g)) {
+        play('caveIn');
+        saveGame(g.s);
+      }
     },
     nextDay: () => {
       nextDay(g);
@@ -157,10 +210,14 @@ function boot(): void {
             '#E8F4F0',
             now,
           );
-        if (e.ore > 0)
-          fx.float((e.x + 0.5) * T, e.y * T, `+${e.ore} ${def?.name.toLowerCase() ?? 'ore'}`, '#F2A35E', now);
+        if (e.ore > 0 && e.oreId)
+          fx.float((e.x + 0.5) * T, e.y * T, `+${e.ore} ${ORES[e.oreId].name.toLowerCase()}`, '#F2A35E', now);
         break;
       }
+      case 'crewOre':
+        fx.sparkle((e.x + 0.5) * T, (e.y + 0.5) * T, '#F2A35E', 6);
+        fx.float((e.x + 0.5) * T, e.y * T, `+${e.n} ${ORES[e.ore].name.toLowerCase()}`, '#F2A35E', now);
+        break;
       case 'refused':
         play('refused');
         fx.float((e.x + 0.5) * T, e.y * T, 'too hard', '#E0532F', now);
@@ -175,13 +232,23 @@ function boot(): void {
           fx.float(e.x * T, (e.y - 2) * T, `+${fmt(e.coal)} coal`, '#FFF2A8', now, true);
           fx.sparkle(e.x * T, (e.y - 1) * T, '#FFD65A', 10);
         }
-        if (e.scrip.gt(0)) fx.float(e.x * T, (e.y - 3) * T, `+${fmt(e.scrip)} scrip`, '#F2A35E', now, true);
+        if (e.scrip.gt(0)) fx.float(e.x * T, (e.y - 3) * T, `+${fmt(e.scrip)} scrip`, '#FFD65A', now, true);
+        if (e.ores > 0) {
+          fx.float(e.x * T, (e.y - 4) * T, `+${e.ores} ore to stock`, '#F2A35E', now, true);
+          fx.sparkle(e.x * T, (e.y - 1) * T, '#F2A35E', 8);
+        }
         break;
       case 'chest':
         play('chest');
         fx.sparkle((e.x + 0.5) * T, e.y * T, '#FFD65A', 14);
         fx.float((e.x + 0.5) * T, e.y * T, `+${fmt(e.scrip)} scrip`, '#FFD65A', now, true);
         if (e.relic) toast(`Relic: ${RELICS[e.relic].name}. ${RELICS[e.relic].blurb}`, 'gold');
+        if (e.gem) {
+          play('record', 1.2);
+          fx.kick(2, 200, now);
+          fx.sparkle((e.x + 0.5) * T, e.y * T, '#B9FFF3', 22);
+          toast(`${GEMS[e.gem].name}! The chest pays +${fmt(e.scrip)} scrip`, 'gold');
+        }
         break;
       case 'verse': {
         const v = VERSES[e.verse];
@@ -200,10 +267,21 @@ function boot(): void {
         play('record');
         toast('Last bell: twenty seconds to dusk', 'warn');
         break;
-      case 'quotaMet':
+      case 'quotaMet': {
         play('record');
         toast('Quota met. Everything more is scrip', 'gold');
+        // fireworks over the headframe
+        const w = g.world;
+        if (w) {
+          const kx = (SHAFT_X + 0.5) * T;
+          const ky = ((w.surf[SHAFT_X] ?? SKY_ROWS) - 3) * T;
+          for (const col of ['#FFD65A', '#5FF0D8', '#E0532F', '#FFF2A8', '#7FD6FF'])
+            fx.sparkle(kx, ky, col, 14);
+          fx.float(kx, ky - 2 * T, 'QUOTA MET!', '#A8F08A', now, true);
+          fx.kick(3, 300, now);
+        }
         break;
+      }
       case 'dusk':
         play('caveIn', 1.4);
         break;

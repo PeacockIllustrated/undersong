@@ -1,12 +1,29 @@
 // One day underground: dig, carry, deposit at the kibble, beat the clock. hybrid canon §2–§11. Pure.
 import { SHAFT_X, SKY_ROWS, ftFromDepthTiles } from '../../data/constants';
 import { M, MATERIALS, canDig } from '../../data/materials';
-import { D, ZERO } from '../../sim/decimal';
+import { D, ZERO, type Decimal } from '../../sim/decimal';
 import { makeRng } from '../../sim/rng';
-import { CHEST, CREW, DAY, DIG, DROPS, KIT, RELICS, SHAFT, hardnessAt, type RelicId } from '../data/co';
+import {
+  CHEST,
+  CREW,
+  DAY,
+  DIG,
+  DROPS,
+  GEM,
+  GEMS,
+  GOLD_SCRIP,
+  KIT,
+  ORE_IDS,
+  RELICS,
+  SHAFT,
+  hardnessAt,
+  type GemId,
+  type OreId,
+  type RelicId,
+} from '../data/co';
 import { chest as chestOf, newBody, stepBody, type Control } from './body';
 import { daySeed, makeMine, shaftFoot } from './mine';
-import type { DayRun, Game, Gang } from './state';
+import { zeroOres, type DayRun, type Game, type Gang } from './state';
 import {
   blastRadius,
   charges,
@@ -45,8 +62,9 @@ export function startDay(g: Game): void {
     byCrew: ZERO(),
     oreScrip: ZERO(),
     chestScrip: ZERO(),
+    ores: zeroOres(),
     body: b,
-    pack: { coal: ZERO(), ore: 0, oreScrip: ZERO() },
+    pack: { coal: ZERO(), ores: zeroOres() },
     ladders: ladders(s),
     charges: charges(s),
     dig: null,
@@ -64,7 +82,7 @@ export function startDay(g: Game): void {
   s.tally = null;
 }
 
-/** Gangs work tunnels off the shaft, one row each, alternating sides. Cosmetic pace; their coal is the crew rate. */
+/** Gangs start off the shaft, one row each, alternating sides, then tunnel after the nearest coal or ore. */
 function makeGangs(g: Game, depth: number): Gang[] {
   const n = hands(g.s);
   const shown = Math.min(CREW.shown, Math.ceil(n / CREW.perGang));
@@ -76,12 +94,15 @@ function makeGangs(g: Game, depth: number): Gang[] {
     const side = i % 2 === 0 ? 1 : -1;
     const left = n - i * CREW.perGang;
     out.push({
-      y: top + d,
-      side,
       x: SHAFT_X + side,
+      y: top + d,
+      home: top + d,
+      side,
       work: 0,
       count: Math.max(1, Math.min(CREW.perGang, left)),
       stuck: false,
+      target: null,
+      bad: [],
     });
   }
   // the last gang takes the rest of the crew, so banners add up to the whole payroll
@@ -90,27 +111,27 @@ function makeGangs(g: Game, depth: number): Gang[] {
   return out;
 }
 
-const packUsed = (d: DayRun): number => d.pack.coal.toNumber() + d.pack.ore;
+export const packOre = (d: DayRun): number => ORE_IDS.reduce((a, k) => a + d.pack.ores[k], 0);
+const packUsed = (d: DayRun): number => d.pack.coal.toNumber() + packOre(d);
 
 /** Put drops in the pack; whatever does not fit is lost. Returns what went in. */
-function take(g: Game, m: number, mult: number): { coal: number; ore: number } {
+function take(g: Game, m: number, mult: number): { coal: number; ore: number; oreId: OreId | null } {
   const d = g.day!;
   const drop = DROPS[m];
-  if (!drop) return { coal: 0, ore: 0 };
+  if (!drop) return { coal: 0, ore: 0, oreId: null };
   const room = Math.max(0, packCap(g.s) - packUsed(d));
   const n = Math.min(room, Math.round(drop.n * mult));
   if (n < Math.round(drop.n * mult) && d.warnT <= 0) {
     g.events.push({ t: 'full' });
     d.warnT = 1.2;
   }
-  if (n <= 0) return { coal: 0, ore: 0 };
+  if (n <= 0) return { coal: 0, ore: 0, oreId: null };
   if (drop.kind === 'coal') {
     d.pack.coal = d.pack.coal.add(n);
-    return { coal: n, ore: 0 };
+    return { coal: n, ore: 0, oreId: null };
   }
-  d.pack.ore += n;
-  d.pack.oreScrip = d.pack.oreScrip.add((drop.scrip ?? 0) * n);
-  return { coal: 0, ore: n };
+  d.pack.ores[drop.ore] += n;
+  return { coal: 0, ore: n, oreId: drop.ore };
 }
 
 /** Break a tile: verses, drops and the world. */
@@ -133,7 +154,7 @@ function breakTile(g: Game, x: number, y: number, byHand: boolean): void {
   }
   const got = take(g, m, rush);
   w.set(x, y, M.AIR);
-  g.events.push({ t: 'break', x, y, m, coal: got.coal, ore: got.ore, rush });
+  g.events.push({ t: 'break', x, y, m, coal: got.coal, ore: got.ore, oreId: got.oreId, rush });
 }
 
 function findVerse(g: Game, v: number): void {
@@ -305,12 +326,36 @@ function openChests(g: Game): void {
       const left = (Object.keys(RELICS) as RelicId[]).filter((r) => !g.s.contract.relics.includes(r));
       if (left.length) relic = left[rng.int(0, left.length - 1)]!;
     }
+    // deep chests can hold a gem worth far more than the coin (hybrid canon §15)
+    let gem: GemId | null = null;
+    let total = scrip;
+    const depth = Math.max(0, w.depth(y));
+    if (depth >= GEM.minDepth && rng.next() < GEM.chance) {
+      gem = pickGem(rng.next());
+      total = total.add(
+        D(GEMS[gem].scrip * (1 + depth / GEM.depthDiv))
+          .mul(chestMult(g.s))
+          .floor(),
+      );
+    }
     g.s.rng = rng.state();
-    g.s.contract.scrip = g.s.contract.scrip.add(scrip);
-    d.chestScrip = d.chestScrip.add(scrip);
+    g.s.contract.scrip = g.s.contract.scrip.add(total);
+    d.chestScrip = d.chestScrip.add(total);
     if (relic) g.s.contract.relics.push(relic);
-    g.events.push({ t: 'chest', x, y, scrip, relic });
+    g.events.push({ t: 'chest', x, y, scrip: total, relic, gem });
   }
+}
+
+/** A gem by weight, from a roll in [0, 1). */
+export function pickGem(roll: number): GemId {
+  const ids = Object.keys(GEMS) as GemId[];
+  const sum = ids.reduce((a, k) => a + GEMS[k].weight, 0);
+  let t = roll * sum;
+  for (const k of ids) {
+    t -= GEMS[k].weight;
+    if (t < 0) return k;
+  }
+  return ids[ids.length - 1]!;
 }
 
 /** Near the kibble at the headframe, or at the shaft foot once it has one. */
@@ -327,44 +372,131 @@ export function atKibble(g: Game): { x: number; y: number } | null {
   return null;
 }
 
+/** Ore into the contract's stock; gold is sold on the spot. Returns the scrip the gold fetched. */
+function bankOre(g: Game, ore: OreId, n: number): Decimal {
+  const d = g.day!;
+  if (n <= 0) return ZERO();
+  d.ores[ore] += n;
+  if (ore === 'gold') {
+    const scrip = D(GOLD_SCRIP * n)
+      .mul(oreMult(g.s))
+      .floor();
+    d.oreScrip = d.oreScrip.add(scrip);
+    g.s.contract.scrip = g.s.contract.scrip.add(scrip);
+    return scrip;
+  }
+  g.s.contract.ores[ore] += n;
+  return ZERO();
+}
+
 function deposit(g: Game, share = 1): void {
   const d = g.day!;
   if (packUsed(d) <= 0) return;
   const coal = d.pack.coal.mul(share).floor();
-  const scrip = d.pack.oreScrip.mul(share).mul(oreMult(g.s)).floor();
+  let scrip = ZERO();
+  let ores = 0;
+  for (const k of ORE_IDS) {
+    const n = Math.floor(d.pack.ores[k] * share);
+    ores += n;
+    scrip = scrip.add(bankOre(g, k, n));
+  }
   d.deposited = d.deposited.add(coal);
   d.byHand = d.byHand.add(coal);
-  d.oreScrip = d.oreScrip.add(scrip);
-  g.s.contract.scrip = g.s.contract.scrip.add(scrip);
   g.s.contract.coal = g.s.contract.coal.add(coal);
   const at = atKibble(g) ?? { x: d.body.x, y: d.body.y };
-  g.events.push({ t: 'deposit', coal, scrip, x: at.x, y: at.y });
-  d.pack = { coal: ZERO(), ore: 0, oreScrip: ZERO() };
+  g.events.push({ t: 'deposit', coal, scrip, ores, x: at.x, y: at.y });
+  d.pack = { coal: ZERO(), ores: zeroOres() };
+}
+
+/** The nearest coal or ore tile a gang can break, within its band of rows. Ore counts as a little nearer. */
+function findVein(g: Game, gang: Gang, tier: number): { x: number; y: number } | null {
+  const w = g.world!;
+  let best: { x: number; y: number } | null = null;
+  let bestD = Infinity;
+  const r = CREW.seek;
+  for (let y = gang.y - r; y <= gang.y + r; y++) {
+    if (Math.abs(y - gang.home) > CREW.band) continue;
+    for (let x = gang.x - r; x <= gang.x + r; x++) {
+      if (x <= 1 || x >= w.w - 2 || x === SHAFT_X) continue;
+      const m = w.get(x, y);
+      const drop = DROPS[m];
+      if (!drop || !canDig(m, tier) || gang.bad.includes(w.idx(x, y))) continue;
+      const dist = Math.abs(x - gang.x) + Math.abs(y - gang.y) - (drop.kind === 'ore' ? 2 : 0);
+      if (dist < bestD) {
+        bestD = dist;
+        best = { x, y };
+      }
+    }
+  }
+  return best;
+}
+
+/** A gang breaks a tile: coal goes up with the crew's coal, ore goes into stock. */
+function gangBreak(g: Game, x: number, y: number): void {
+  const w = g.world!;
+  const d = g.day!;
+  const m = w.get(x, y);
+  const drop = DROPS[m];
+  w.set(x, y, M.AIR);
+  if (!drop) return;
+  if (drop.kind === 'coal') {
+    d.deposited = d.deposited.add(drop.n);
+    d.byCrew = d.byCrew.add(drop.n);
+    g.s.contract.coal = g.s.contract.coal.add(drop.n);
+    d.crewPop += drop.n;
+  } else {
+    bankOre(g, drop.ore, drop.n);
+    g.events.push({ t: 'crewOre', x, y, ore: drop.ore, n: drop.n });
+  }
+}
+
+/** One unit of gang work: step toward the vein, breaking the first solid tile in the way. hybrid canon §8 */
+function gangStep(g: Game, gang: Gang, tier: number): void {
+  const w = g.world!;
+  if (gang.target && w.get(gang.target.x, gang.target.y) === M.AIR) gang.target = null;
+  if (!gang.target) gang.target = findVein(g, gang, tier);
+  let nx = gang.x;
+  let ny = gang.y;
+  const t = gang.target;
+  if (t) {
+    // stand beside the target, feet on its row or the row below
+    if (t.x !== gang.x) nx += Math.sign(t.x - gang.x);
+    else if (t.y > gang.y) ny++;
+    else if (t.y < gang.y - 1) ny--;
+  } else nx += gang.side;
+  if (nx <= 1 || nx >= w.w - 2 || nx === SHAFT_X || Math.abs(ny - gang.home) > CREW.band) {
+    if (t) gang.bad.push(w.idx(t.x, t.y));
+    gang.target = null;
+    if (!t) gang.stuck = true;
+    return;
+  }
+  // the tiles the gang would stand in at (nx, ny): head and feet
+  for (const yy of [ny - 1, ny]) {
+    const m = w.get(nx, yy);
+    if (m === M.AIR) continue;
+    if (m === M.CARVING || m === M.BEDROCK || !canDig(m, tier) || w.objects[String(w.idx(nx, yy))]) {
+      if (t) gang.bad.push(w.idx(t.x, t.y));
+      gang.target = null;
+      if (!t) gang.stuck = true;
+      return;
+    }
+    gangBreak(g, nx, yy);
+    return;
+  }
+  gang.x = nx;
+  gang.y = ny;
+  // keep feet on something: drop down through open air within the band
+  while (w.get(gang.x, gang.y + 1) === M.AIR && gang.y + 1 - gang.home <= CREW.band) gang.y++;
 }
 
 function stepGangs(g: Game, dt: number): void {
-  const w = g.world!;
   const tier = pickTier(g.s);
   for (const gang of g.day!.gangs) {
     if (gang.stuck) continue;
     gang.work += CREW.gangDig * Math.min(3, 1 + gang.count / 25) * dt;
-    if (gang.work < 1) continue;
-    gang.work -= 1;
-    // the face: walk out past open tunnel, then open the next solid tile of the two-high drift
-    for (let guard = 0; guard < 4; guard++) {
-      if (gang.x <= 1 || gang.x >= w.w - 2) {
-        gang.stuck = true;
-        break;
-      }
-      const y = [gang.y - 1, gang.y].find((yy) => w.get(gang.x, yy) !== M.AIR);
-      if (y === undefined) {
-        gang.x += gang.side;
-        continue;
-      }
-      const m = w.get(gang.x, y);
-      if (m === M.CARVING || m === M.BEDROCK || !canDig(m, tier)) gang.stuck = true;
-      else w.set(gang.x, y, M.AIR);
-      break;
+    while (gang.work >= 1) {
+      gang.work -= 1;
+      gangStep(g, gang, tier);
     }
   }
 }

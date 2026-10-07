@@ -1,5 +1,4 @@
 // Derived numbers: what the contract's upgrades, relics and the Survey Book add up to. Pure.
-import { PICKS } from '../../data/items';
 import { D, type Decimal } from '../../sim/decimal';
 import {
   BOOK,
@@ -8,7 +7,7 @@ import {
   DAY,
   ECHO_POWER,
   KIT,
-  PICK_COSTS,
+  CO_PICKS,
   QUOTA,
   SHAFT,
   SHOP,
@@ -16,6 +15,7 @@ import {
   VERSE_POWER,
   BODY,
   type BookId,
+  type OreId,
   type ShopId,
 } from '../data/co';
 import type { CoState } from './state';
@@ -24,12 +24,16 @@ const has = (s: CoState, r: string): boolean => s.contract.relics.includes(r as 
 const lvl = (s: CoState, id: ShopId): number => s.contract.levels[id];
 const book = (s: CoState, id: BookId): number => s.meta.book[id];
 
+/** Index into CO_PICKS: the pick the Foreman carries. */
+export const pickIndex = (s: CoState): number => Math.min(CO_PICKS.length - 1, lvl(s, 'pick'));
+
+/** The Undersong tier the pick digs as (MIN_PICK gates). */
 export function pickTier(s: CoState): number {
-  return Math.min(PICKS.length - 1, lvl(s, 'pick'));
+  return CO_PICKS[pickIndex(s)]!.gate;
 }
 
 export function pickPower(s: CoState): number {
-  return PICKS[pickTier(s)]!.power;
+  return CO_PICKS[pickIndex(s)]!.power;
 }
 
 /** Everyone digs faster for every Echo ever earned. */
@@ -110,11 +114,24 @@ export function shopCost(s: CoState, id: ShopId): Decimal | null {
   const l = lvl(s, id);
   if (def.max !== undefined && l >= def.max) return null;
   if (id === 'pick') {
-    const c = PICK_COSTS[l + 1];
-    return c === undefined ? null : D(c);
+    const c = CO_PICKS[l + 1];
+    return c === undefined ? null : D(c.scrip);
   }
   return D(def.growth).pow(l).mul(def.base).floor();
 }
+
+/** The ore the next level of a store item also needs (ADR-H009). Empty when it needs none or is maxed. */
+export function shopOres(s: CoState, id: ShopId): { id: OreId; n: number }[] {
+  const def = SHOP.find((d) => d.id === id)!;
+  const l = lvl(s, id);
+  if (def.max !== undefined && l >= def.max) return [];
+  if (id === 'pick') return [...(CO_PICKS[l + 1]?.ores ?? [])];
+  if (!def.ore) return [];
+  return [{ id: def.ore.id, n: Math.floor(def.ore.base * Math.pow(def.ore.growth, l)) }];
+}
+
+export const hasOres = (s: CoState, need: readonly { id: OreId; n: number }[]): boolean =>
+  need.every((o) => s.contract.ores[o.id] >= o.n);
 
 export function bookCost(s: CoState, id: BookId): Decimal | null {
   const def = BOOK.find((d) => d.id === id)!;

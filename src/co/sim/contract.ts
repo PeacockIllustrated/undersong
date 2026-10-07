@@ -1,9 +1,24 @@
 // Nights, contracts and the Cave-in: the tally at dusk, the Company Store, Echoes and the Survey Book. Pure.
 import { D, Decimal, ZERO } from '../../sim/decimal';
-import { AWAY, BOOK_FX, DAY, ECHO, SHOP, type BookId, type ShopId } from '../data/co';
+import { makeRng } from '../../sim/rng';
+import {
+  AWAY,
+  BOOK_FX,
+  DAY,
+  ECHO,
+  GRADES,
+  HEART_ECHOES,
+  RELICS,
+  SHOP,
+  STREAK,
+  TINKER,
+  type BookId,
+  type RelicId,
+  type ShopId,
+} from '../data/co';
 import { startDay } from './day';
 import { newContract, type Game } from './state';
-import { bookCost, crewRate, dayLength, pardons, scripMult, shopCost } from './stats';
+import { bookCost, crewRate, dayLength, hasOres, pardons, scripMult, shopCost, shopOres } from './stats';
 
 /** After the tally has been read at dusk: on to the night, or the roof comes down. */
 export function settleDusk(g: Game): void {
@@ -14,8 +29,12 @@ export function settleDusk(g: Game): void {
   const passed = d.deposited.gte(d.quota);
   const pardoned = !passed && c.pardonsUsed < pardons(s);
   if (pardoned) c.pardonsUsed++;
-  const surplus = passed ? d.deposited.sub(d.quota).mul(scripMult(s)).floor() : ZERO();
-  c.scrip = c.scrip.add(surplus);
+  c.streak = passed ? c.streak + 1 : 0;
+  const mult = streakMult(c.streak);
+  const surplus = passed ? d.deposited.sub(d.quota).mul(scripMult(s)).mul(mult).floor() : ZERO();
+  const g8 = passed ? gradeOf(d.deposited.div(d.quota).toNumber()) : null;
+  const gradeScrip = g8 ? d.quota.mul(g8.bonus).mul(scripMult(s)).mul(mult).floor() : ZERO();
+  c.scrip = c.scrip.add(surplus).add(gradeScrip);
   s.tally = {
     day: c.day,
     quota: d.quota,
@@ -26,6 +45,10 @@ export function settleDusk(g: Game): void {
     oreScrip: d.oreScrip,
     chestScrip: d.chestScrip,
     surplusScrip: surplus,
+    ores: { ...d.ores },
+    grade: g8?.name ?? null,
+    gradeScrip,
+    streak: c.streak,
     passed,
     pardoned,
   };
@@ -35,7 +58,71 @@ export function settleDusk(g: Game): void {
     if (passed) c.survived++;
     s.meta.bestDay = Math.max(s.meta.bestDay, c.day);
     s.phase = 'night';
+    c.tinker = { offers: rollOffers(g), rerolls: 0 };
   } else caveIn(g);
+}
+
+/** hybrid canon §14: the streak multiplier on surplus and grade scrip. */
+export const streakMult = (streak: number): number =>
+  Math.min(STREAK.max, 1 + STREAK.step * Math.max(0, streak - 1));
+
+/** The best grade a shift earned, by deposited ÷ quota. */
+export function gradeOf(ratio: number): (typeof GRADES)[number] | null {
+  return GRADES.find((x) => ratio >= x.at) ?? null;
+}
+
+/** Three relics the contract does not hold yet, from the state's rng. */
+function rollOffers(g: Game): RelicId[] {
+  const left = (Object.keys(RELICS) as RelicId[]).filter((r) => !g.s.contract.relics.includes(r));
+  const rng = makeRng(g.s.rng);
+  const out: RelicId[] = [];
+  while (out.length < TINKER.offers && left.length) out.push(left.splice(rng.int(0, left.length - 1), 1)[0]!);
+  g.s.rng = rng.state();
+  return out;
+}
+
+export const relicCost = (g: Game): Decimal =>
+  D(TINKER.growth).pow(g.s.contract.relics.length).mul(TINKER.base).floor();
+export const rerollCost = (g: Game): Decimal =>
+  D(TINKER.rerollGrowth).pow(g.s.contract.tinker.rerolls).mul(TINKER.reroll).floor();
+
+/** Buy one of tonight's relic offers from the tinker. */
+export function buyRelic(g: Game, id: RelicId): boolean {
+  const c = g.s.contract;
+  if (g.s.phase !== 'night' || !c.tinker.offers.includes(id) || c.relics.includes(id)) return false;
+  const cost = relicCost(g);
+  if (c.scrip.lt(cost)) return false;
+  c.scrip = c.scrip.sub(cost);
+  c.relics.push(id);
+  c.tinker.offers = c.tinker.offers.filter((r) => r !== id);
+  return true;
+}
+
+export function rerollTinker(g: Game): boolean {
+  const c = g.s.contract;
+  if (g.s.phase !== 'night') return false;
+  const cost = rerollCost(g);
+  if (c.scrip.lt(cost)) return false;
+  c.scrip = c.scrip.sub(cost);
+  c.tinker.rerolls++;
+  c.tinker.offers = rollOffers(g);
+  return true;
+}
+
+/** What a Cave-in would pay if the roof came down tonight (plan: "Echoes if it came down tonight"). */
+export const echoesIfTonight = (g: Game): Decimal => contractEchoes(g);
+
+/** Echoes for the contract as it stands: the coal formula, plus each heartstone still banked (ADR-H009). */
+function contractEchoes(g: Game): Decimal {
+  const c = g.s.contract;
+  return echoGain(c.coal, c.survived, c.versesFound.length).add(c.ores.heart * HEART_ECHOES);
+}
+
+/** Sing it down: end the contract on purpose at night and take the Echoes. */
+export function singDown(g: Game): boolean {
+  if (g.s.phase !== 'night') return false;
+  caveIn(g);
+  return true;
 }
 
 /** hybrid canon §12. Any contract that sent coal up pays at least ECHO.min, so no Cave-in is wasted. */
@@ -56,7 +143,7 @@ export function echoGain(coal: Decimal, days: number, verses: number): Decimal {
 export function caveIn(g: Game): void {
   const s = g.s;
   const c = s.contract;
-  const echoes = echoGain(c.coal, c.survived, c.versesFound.length);
+  const echoes = contractEchoes(g);
   s.meta.echoes = s.meta.echoes.add(echoes);
   s.meta.echoesEver = s.meta.echoesEver.add(echoes);
   s.meta.contracts++;
@@ -72,8 +159,10 @@ export function buy(g: Game, id: ShopId): boolean {
   const def = SHOP.find((x) => x.id === id);
   if (!def || (def.fromDay ?? 0) > s.contract.day + 1) return false;
   const cost = shopCost(s, id);
-  if (!cost || s.contract.scrip.lt(cost)) return false;
+  const ores = shopOres(s, id);
+  if (!cost || s.contract.scrip.lt(cost) || !hasOres(s, ores)) return false;
   s.contract.scrip = s.contract.scrip.sub(cost);
+  for (const o of ores) s.contract.ores[o.id] -= o.n;
   s.contract.levels[id]++;
   return true;
 }

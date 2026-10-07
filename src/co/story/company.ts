@@ -47,3 +47,19 @@ export const HINTS = {
   first: 'Dig the black coal, then carry it up to the kibble by the headframe.',
   kibble: 'Stand by the kibble to tip your pack in.',
 } as const;
+
+/** The night screen's new corners (ADR-H008, ADR-H009). */
+export const NIGHT = {
+  stock: 'Ore in the store room',
+  stockEmpty: 'No ore banked yet. Dig the coloured veins and tip them in at the kibble.',
+  tinker: "The tinker's cart",
+  tinkerLine: 'A cart at the pithead after dark. Nobody asks where she finds them.',
+  tinkerEmpty: 'Sold out for tonight.',
+  reroll: 'Turn the cart out',
+  singTitle: 'Sing it down',
+  singLine: 'End the contract tonight and take the Echoes.',
+  singAsk: 'Bring the roof down on purpose? The contract ends and the village keeps the Echoes.',
+  singYes: 'Sing it down',
+  singNo: 'Not tonight',
+  heart: 'each heartstone still banked adds an Echo',
+} as const;

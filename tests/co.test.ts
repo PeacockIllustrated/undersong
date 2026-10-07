@@ -2,13 +2,26 @@ import { describe, expect, it } from 'vitest';
 import { SHAFT_X } from '../src/data/constants';
 import { M } from '../src/data/materials';
 import { D } from '../src/sim/decimal';
-import { DAY, STEP_S } from '../src/co/data/co';
+import { CO_PICKS, DAY, GOLD_SCRIP, STEP_S } from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
-import { buy, buyBook, echoGain, nextDay, settleDusk, signContract } from '../src/co/sim/contract';
-import { aimTile, startDay, stepDay } from '../src/co/sim/day';
+import {
+  buy,
+  buyBook,
+  buyRelic,
+  echoGain,
+  echoesIfTonight,
+  gradeOf,
+  nextDay,
+  rerollTinker,
+  settleDusk,
+  signContract,
+  singDown,
+  streakMult,
+} from '../src/co/sim/contract';
+import { aimTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
-import { quota } from '../src/co/sim/stats';
+import { pickTier, quota, shopOres } from '../src/co/sim/stats';
 
 const run = (g: Game, c: Partial<Control>, seconds: number): void => {
   const ctl = { ...idleControl(), ...c };
@@ -111,7 +124,7 @@ describe('the Foreman', () => {
 describe('days, nights and the Cave-in', () => {
   it('quotas grow each day, with soft early days and audits', () => {
     const g = newGame(1);
-    expect(quota(g.s, 1).toNumber()).toBe(18);
+    expect(quota(g.s, 1).toNumber()).toBe(34);
     expect(quota(g.s, 6).gt(quota(g.s, 5))).toBe(true);
     expect(quota(g.s, 7).toNumber()).toBeGreaterThan(quota(g.s, 6).toNumber() * 1.5);
   });
@@ -136,7 +149,12 @@ describe('days, nights and the Cave-in', () => {
     expect(g.s.phase).toBe('night');
     expect(g.s.contract.scrip.toNumber()).toBeGreaterThan(0);
     g.s.contract.scrip = D(1000);
+    // a copper pick needs copper as well as scrip (ADR-H009); the crew may have banked some
+    g.s.contract.ores.copper = 0;
+    expect(buy(g, 'pick')).toBe(false);
+    g.s.contract.ores.copper = 8;
     expect(buy(g, 'pick')).toBe(true);
+    expect(g.s.contract.ores.copper).toBe(0);
     expect(g.s.contract.levels.pick).toBe(1);
     nextDay(g);
     expect(g.s.contract.day).toBe(2);
@@ -159,5 +177,108 @@ describe('days, nights and the Cave-in', () => {
     expect(back.contract.scrip.eq(D('1e40'))).toBe(true);
     expect(back.meta.echoes.toNumber()).toBe(12);
     expect(back.contract.levels.hand).toBe(0);
+  });
+
+  it('reads an old save without ore stock, streak or tinker', () => {
+    const g = started();
+    const raw = toSave(g.s) as { contract: Record<string, unknown> };
+    delete raw.contract.ores;
+    delete raw.contract.streak;
+    delete raw.contract.tinker;
+    const back = fromSave(JSON.parse(JSON.stringify(raw)), 1);
+    expect(back.contract.ores.iron).toBe(0);
+    expect(back.contract.streak).toBe(0);
+    expect(back.contract.tinker.offers).toEqual([]);
+  });
+});
+
+describe('ore, grades and the tinker', () => {
+  it('banks ore at the kibble, sells gold, and stocks the rest', () => {
+    const g = started();
+    const d = g.day!;
+    d.pack.ores.iron = 3;
+    d.pack.ores.gold = 2;
+    d.body.x = SHAFT_X + 1.5;
+    d.body.y = g.world!.surf[SHAFT_X + 1]!;
+    run(g, {}, 0.1);
+    expect(g.s.contract.ores.iron).toBe(3);
+    expect(g.s.contract.ores.gold).toBe(0);
+    expect(d.oreScrip.toNumber()).toBe(GOLD_SCRIP * 2);
+  });
+
+  it('store items cost ore, and the pick ladder opens harder rock', () => {
+    const g = started();
+    expect(shopOres(g.s, 'boots')[0]?.id).toBe('iron');
+    expect(shopOres(g.s, 'hand')).toEqual([]);
+    expect(CO_PICKS.length).toBe(16);
+    for (let i = 1; i < CO_PICKS.length; i++) {
+      expect(CO_PICKS[i]!.power).toBeGreaterThan(CO_PICKS[i - 1]!.power);
+      expect(CO_PICKS[i]!.gate).toBeGreaterThanOrEqual(CO_PICKS[i - 1]!.gate);
+    }
+    g.s.contract.levels.pick = 3;
+    expect(pickTier(g.s)).toBe(CO_PICKS[3]!.gate);
+  });
+
+  it('heartstone still banked pays an Echo each at the Cave-in', () => {
+    const g = started();
+    run(g, {}, DAY.baseS + 0.1);
+    g.s.contract.levels.hand = 0;
+    const base = echoesIfTonight(g).toNumber();
+    g.s.contract.ores.heart = 5;
+    expect(echoesIfTonight(g).toNumber()).toBe(base + 5);
+  });
+
+  it('grades a shift and multiplies a streak', () => {
+    expect(gradeOf(0.9)).toBe(null);
+    expect(gradeOf(1)?.name).toBe('Quota met');
+    expect(gradeOf(2.1)?.name).toBe('Bumper shift');
+    expect(gradeOf(3)?.name).toBe('Record shift');
+    expect(streakMult(1)).toBe(1);
+    expect(streakMult(3)).toBeCloseTo(1.3);
+    expect(streakMult(100)).toBe(3);
+  });
+
+  it('a gem pick covers every gem', () => {
+    expect(pickGem(0)).toBe('topaz');
+    expect(pickGem(0.9999)).toBe('diamond');
+  });
+
+  it("the tinker sells tonight's relics, rerolls, and Sing it down ends the contract", () => {
+    const g = started();
+    g.s.contract.levels.hand = 60;
+    startDay(g);
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(g.s.phase).toBe('night');
+    expect(g.s.tally!.grade).not.toBe(null);
+    expect(g.s.contract.streak).toBe(1);
+    expect(g.s.contract.tinker.offers.length).toBe(3);
+    g.s.contract.scrip = D(1e6);
+    const r = g.s.contract.tinker.offers[0]!;
+    expect(buyRelic(g, r)).toBe(true);
+    expect(g.s.contract.relics).toContain(r);
+    expect(rerollTinker(g)).toBe(true);
+    expect(g.s.contract.tinker.offers).not.toContain(r);
+    expect(singDown(g)).toBe(true);
+    expect(g.s.phase).toBe('cavein');
+    expect(g.s.meta.echoes.toNumber()).toBeGreaterThan(0);
+  });
+
+  it('gangs tunnel to ore and stock it', () => {
+    const g = started();
+    g.s.contract.levels.hand = 5;
+    startDay(g);
+    const w = g.world!;
+    const gang = g.day!.gangs[0]!;
+    // an iron tile a few columns out on the gang's row
+    const tx = gang.x + gang.side * 4;
+    for (let x = gang.x; x !== tx; x += gang.side) {
+      w.set(x, gang.y - 1, M.AIR);
+      w.set(x, gang.y, M.AIR);
+    }
+    w.set(tx, gang.y, M.IRON);
+    g.s.contract.levels.pick = 3;
+    run(g, {}, 40);
+    expect(g.s.contract.ores.iron).toBeGreaterThan(0);
   });
 });

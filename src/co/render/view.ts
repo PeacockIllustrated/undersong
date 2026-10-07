@@ -9,9 +9,9 @@ import type { World } from '../../world/world';
 import { drawSprite } from '../../render/sprites';
 import { tileTexture, wallTexture } from '../../render/tiles';
 import { BODY, DAY } from '../data/co';
-import { aimTile } from '../sim/day';
+import { aimTile, packOre } from '../sim/day';
 import { shaftFoot } from '../sim/mine';
-import { shaftDepth } from '../sim/stats';
+import { deputies, shaftDepth } from '../sim/stats';
 import type { Control } from '../sim/body';
 import type { Game } from '../sim/state';
 import { Fx } from './fx';
@@ -411,7 +411,7 @@ export class View {
       drawSprite(this.ctx, 'ore-heap', 0, (f.x + 1) * T + T / 2, (f.y + 1) * T);
     }
     // a bobbing arrow over the kibble when the pack is full or the bell has rung
-    const full = d.pack.coal.toNumber() + d.pack.ore > 0 && (d.bell || d.warnT > 0);
+    const full = d.pack.coal.toNumber() + packOre(d) > 0 && (d.bell || d.warnT > 0);
     if (full) {
       const bob = Math.round(Math.sin(now / 140) * 2);
       const ax = SHAFT_X * T + T / 2;
@@ -425,14 +425,18 @@ export class View {
   private drawGangs(g: Game, now: number): void {
     const { ctx } = this;
     for (const [i, gang] of g.day!.gangs.entries()) {
-      const fx = (gang.x - gang.side) * T + T / 2;
+      // gangs stand in their tunnel and face the vein they are working toward (ADR-H009)
+      const face = gang.target ? Math.sign(gang.target.x - gang.x) || gang.side : gang.side;
+      const fx = gang.x * T + T / 2;
       const fy = (gang.y + 1) * T;
       const show = Math.min(3, gang.count);
+      // a gang is a hewer at the face, a putter behind and a third role: a deputy if the gang has one (ADR-H008)
+      const roles = ['miner', 'putter', i < deputies(g.s) ? 'deputy' : i % 2 ? 'lampman' : 'shotfirer'];
       for (let k = 0; k < show; k++) {
         const swing = gang.stuck
           ? Math.floor(now / 600 + k) % 2
           : 2 + (Math.floor(now / 120 + k * 1.7 + i) % 3);
-        drawSprite(ctx, 'miner', swing, fx - gang.side * k * 7, fy, gang.side < 0);
+        drawSprite(ctx, roles[k]!, swing, fx - face * k * 6, fy, face < 0);
       }
       if (gang.count > 1) this.banner(`×${gang.count}`, fx, fy - 27);
     }

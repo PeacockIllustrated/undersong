@@ -1,6 +1,6 @@
 // The overlay: HUD by day, the Company Store by night, the Survey Book after a Cave-in. Reads the game, calls the bridge.
 import { useEffect, useState } from 'preact/hooks';
-import type { BookId, ShopId } from '../data/co';
+import type { BookId, RelicId, ShopId } from '../data/co';
 import type { Input } from '../input';
 import type { Game } from '../sim/state';
 import { CaveInScreen, TitleScreen } from './Contract';
@@ -18,6 +18,9 @@ export interface Bridge {
   setMuted(m: boolean): void;
   buy(id: ShopId): boolean;
   buyBook(id: BookId): boolean;
+  buyRelic(id: RelicId): boolean;
+  reroll(): boolean;
+  singDown(): void;
   nextDay(): void;
   sign(): void;
   startOver(): void;

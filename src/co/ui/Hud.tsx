@@ -1,13 +1,13 @@
 // The day's HUD: day and quota, the clock, the pack, scrip and the kit. Big, readable numbers (ADR-020).
 import { useState } from 'preact/hooks';
-import { PICKS } from '../../data/items';
 import { spriteURL } from '../../render/sprites';
 import { D } from '../../sim/decimal';
 import { fmt } from '../../ui/format';
-import { DAY, RELICS } from '../data/co';
+import { CO_PICKS, DAY, ORES, ORE_IDS, RELICS } from '../data/co';
+import { packOre } from '../sim/day';
 import { CONTROLS, HINTS, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
-import { crewRate, isAudit, packCap, pickTier } from '../sim/stats';
+import { crewRate, isAudit, packCap, pickIndex } from '../sim/stats';
 import type { Bridge } from './App';
 
 const clock = (s: number): string => {
@@ -21,7 +21,8 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
   const s = g.s;
   const left = d.length - d.t;
   const frac = d.quota.gt(0) ? Math.min(1, d.deposited.div(d.quota).toNumber()) : 1;
-  const used = d.pack.coal.toNumber() + d.pack.ore;
+  const used = d.pack.coal.toNumber() + packOre(d);
+  const pick = CO_PICKS[pickIndex(s)]!;
   const cap = packCap(s);
   const crew = crewRate(s);
   const dusk = s.phase === 'dusk';
@@ -57,6 +58,16 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
           <div class="bar">
             <div style={{ width: `${Math.min(100, (used / cap) * 100)}%` }} />
           </div>
+          {packOre(d) > 0 && (
+            <div class="ore-row">
+              {ORE_IDS.filter((k) => d.pack.ores[k] > 0).map((k) => (
+                <span key={k} class="ore" title={`${ORES[k].name}: ${ORES[k].job}`}>
+                  <img src={spriteURL(ORES[k].sprite)} alt="" />
+                  {d.pack.ores[k]}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         {crew > 0 && (
           <div class="stat">
@@ -69,7 +80,7 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
           <div class="relics">
             {s.contract.relics.map((r) => (
               <span key={r} class="relic" title={`${RELICS[r].name}: ${RELICS[r].blurb}`}>
-                {RELICS[r].name.split(' ').pop()}
+                <img src={spriteURL(`relic-${r}`)} alt={RELICS[r].name} />
               </span>
             ))}
           </div>
@@ -77,8 +88,8 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
       </div>
       <div class="kit">
         <div class="kit-slot">
-          <img src={spriteURL(PICKS[pickTier(s)]!.sprite)} alt="" />
-          <span>{PICKS[pickTier(s)]!.name}</span>
+          <img src={spriteURL(pick.sprite)} alt="" />
+          <span>{pick.name}</span>
         </div>
         <div class={`kit-slot ${d.charges ? '' : 'dim'}`}>
           <span class="key">E</span>

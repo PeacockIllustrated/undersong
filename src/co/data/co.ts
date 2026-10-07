@@ -6,7 +6,7 @@ export const STEP_S = 1 / 60;
 export const MAX_STEPS_PER_FRAME = 8;
 
 export const SAVE_KEY = 'hollowayco.save';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 3;
 
 /** hybrid canon §2: the day. */
 export const DAY = {
@@ -25,12 +25,12 @@ export const DAY = {
 
 /** hybrid canon §3: the quota. Q(d) = base × growth^(d−1); audit days × audit; days 1–softDays × soft. */
 export const QUOTA = {
-  base: 30,
-  growth: 1.38,
+  base: 45,
+  growth: 1.45,
   auditEvery: 7,
   audit: 1.6,
-  softDays: 5,
-  soft: 0.6,
+  softDays: 3,
+  soft: 0.75,
 } as const;
 
 /** hybrid canon §4: the Foreman's body, in tiles and seconds. */
@@ -75,27 +75,190 @@ export const DIG = {
 export const hardnessAt = (h: number, depthFt: number): number =>
   h * Math.pow(1 + Math.max(0, depthFt) / 60, 1.3);
 
-/** What a broken tile puts in the pack: coal for the quota, or ore that sells for scrip at the kibble. */
-export interface Drop {
-  kind: 'coal' | 'ore';
-  n: number;
-  /** Scrip per unit, for ore. */
-  scrip?: number;
+/** hybrid canon §17 (ADR-H009): every ore has a job. Coal fills the quota; each ore is stocked and spent at night. */
+export type OreId =
+  'copper' | 'tin' | 'iron' | 'glowcap' | 'silver' | 'aqua' | 'crystal' | 'ember' | 'gold' | 'heart';
+export interface OreDef {
+  name: string;
+  /** Item sprite for the HUD, the store and the tally. */
+  sprite: string;
+  /** What the ore is for, in a few words. */
+  job: string;
 }
+export const ORES: Record<OreId, OreDef> = {
+  copper: { name: 'Copper', sprite: 'chunk-copper', job: 'Picks and whetstones' },
+  tin: { name: 'Tin', sprite: 'chunk-tin', job: 'Bronze, packs and charge casings' },
+  iron: { name: 'Iron', sprite: 'chunk-iron', job: 'Picks, ladders, rails and boots' },
+  glowcap: { name: 'Glowcap', sprite: 'spores', job: 'Lantern oil: longer days' },
+  silver: { name: 'Silver', sprite: 'chunk-silver', job: 'Picks and deputies’ badges' },
+  aqua: { name: 'Aquamarine', sprite: 'chunk-aqua', job: 'Picks and jetpack fuel' },
+  crystal: { name: 'Crystal', sprite: 'chunk-crystal', job: 'Picks and spring boots' },
+  ember: { name: 'Ember ore', sprite: 'chunk-ember', job: 'Picks and bigger blasts' },
+  gold: { name: 'Gold', sprite: 'chunk-gold', job: 'Sells for scrip at the kibble' },
+  heart: { name: 'Heartstone', sprite: 'chunk-heart', job: 'The last picks, and an Echo each' },
+};
+export const ORE_IDS = Object.keys(ORES) as OreId[];
+
+/** What a broken tile puts in the pack: coal for the quota, or one ore. */
+export type Drop = { kind: 'coal'; n: number } | { kind: 'ore'; ore: OreId; n: number };
 
 export const DROPS: Partial<Record<number, Drop>> = {
-  [M.COAL]: { kind: 'coal', n: 3 },
-  [M.COPPER]: { kind: 'ore', n: 1, scrip: 3 },
-  [M.TIN]: { kind: 'ore', n: 1, scrip: 3 },
-  [M.GLOWCAP]: { kind: 'ore', n: 1, scrip: 2 },
-  [M.IRON]: { kind: 'ore', n: 1, scrip: 9 },
-  [M.SILVER]: { kind: 'ore', n: 1, scrip: 24 },
-  [M.AQUA]: { kind: 'ore', n: 1, scrip: 40 },
-  [M.CRYSTAL]: { kind: 'ore', n: 1, scrip: 70 },
-  [M.EMBER]: { kind: 'ore', n: 1, scrip: 110 },
-  [M.GOLD]: { kind: 'ore', n: 1, scrip: 150 },
-  [M.HEART]: { kind: 'ore', n: 1, scrip: 500 },
+  [M.COAL]: { kind: 'coal', n: 2 },
+  [M.COPPER]: { kind: 'ore', ore: 'copper', n: 1 },
+  [M.TIN]: { kind: 'ore', ore: 'tin', n: 1 },
+  [M.GLOWCAP]: { kind: 'ore', ore: 'glowcap', n: 1 },
+  [M.IRON]: { kind: 'ore', ore: 'iron', n: 1 },
+  [M.SILVER]: { kind: 'ore', ore: 'silver', n: 1 },
+  [M.AQUA]: { kind: 'ore', ore: 'aqua', n: 1 },
+  [M.CRYSTAL]: { kind: 'ore', ore: 'crystal', n: 1 },
+  [M.EMBER]: { kind: 'ore', ore: 'ember', n: 1 },
+  [M.GOLD]: { kind: 'ore', ore: 'gold', n: 1 },
+  [M.HEART]: { kind: 'ore', ore: 'heart', n: 1 },
 };
+
+/** Gold sells at the kibble for this much scrip each. Each heartstone banked pays this many Echoes at the Cave-in. */
+export const GOLD_SCRIP = 60;
+export const HEART_ECHOES = 1;
+
+/** hybrid canon §17: the hybrid's pick ladder, 16 tiers. `gate` is the Undersong tier it digs as (MIN_PICK). */
+export interface CoPick {
+  name: string;
+  sprite: string;
+  power: number;
+  gate: number;
+  scrip: number;
+  ores: readonly { id: OreId; n: number }[];
+}
+export const CO_PICKS: readonly CoPick[] = [
+  { name: 'Wooden pick', sprite: 'copick-wood', power: 1, gate: 0, scrip: 0, ores: [] },
+  {
+    name: 'Copper pick',
+    sprite: 'copick-copper',
+    power: 2,
+    gate: 1,
+    scrip: 40,
+    ores: [{ id: 'copper', n: 8 }],
+  },
+  {
+    name: 'Bronze pick',
+    sprite: 'copick-bronze',
+    power: 3,
+    gate: 2,
+    scrip: 110,
+    ores: [
+      { id: 'copper', n: 6 },
+      { id: 'tin', n: 6 },
+    ],
+  },
+  { name: 'Iron pick', sprite: 'copick-iron', power: 5, gate: 3, scrip: 300, ores: [{ id: 'iron', n: 10 }] },
+  { name: 'Steel pick', sprite: 'copick-steel', power: 7, gate: 3, scrip: 700, ores: [{ id: 'iron', n: 25 }] },
+  {
+    name: 'Silver pick',
+    sprite: 'copick-silver',
+    power: 10,
+    gate: 4,
+    scrip: 1600,
+    ores: [{ id: 'silver', n: 12 }],
+  },
+  {
+    name: 'Cobalt pick',
+    sprite: 'copick-cobalt',
+    power: 14,
+    gate: 4,
+    scrip: 3500,
+    ores: [
+      { id: 'silver', n: 25 },
+      { id: 'iron', n: 30 },
+    ],
+  },
+  {
+    name: 'Aquamarine pick',
+    sprite: 'copick-aqua',
+    power: 19,
+    gate: 5,
+    scrip: 8000,
+    ores: [{ id: 'aqua', n: 12 }],
+  },
+  {
+    name: 'Jade pick',
+    sprite: 'copick-jade',
+    power: 25,
+    gate: 5,
+    scrip: 18000,
+    ores: [
+      { id: 'aqua', n: 25 },
+      { id: 'glowcap', n: 20 },
+    ],
+  },
+  {
+    name: 'Crystal pick',
+    sprite: 'copick-crystal',
+    power: 33,
+    gate: 6,
+    scrip: 40000,
+    ores: [{ id: 'crystal', n: 12 }],
+  },
+  {
+    name: 'Obsidian pick',
+    sprite: 'copick-obsidian',
+    power: 44,
+    gate: 6,
+    scrip: 90000,
+    ores: [
+      { id: 'crystal', n: 25 },
+      { id: 'silver', n: 40 },
+    ],
+  },
+  {
+    name: 'Ember pick',
+    sprite: 'copick-ember',
+    power: 58,
+    gate: 7,
+    scrip: 2e5,
+    ores: [{ id: 'ember', n: 12 }],
+  },
+  {
+    name: 'Sunsteel pick',
+    sprite: 'copick-sunsteel',
+    power: 76,
+    gate: 7,
+    scrip: 4.5e5,
+    ores: [
+      { id: 'ember', n: 25 },
+      { id: 'glowcap', n: 40 },
+    ],
+  },
+  {
+    name: 'Heart pick',
+    sprite: 'copick-heart',
+    power: 100,
+    gate: 8,
+    scrip: 1e6,
+    ores: [
+      { id: 'ember', n: 40 },
+      { id: 'crystal', n: 40 },
+    ],
+  },
+  {
+    name: 'Moonsilver pick',
+    sprite: 'copick-moonsilver',
+    power: 140,
+    gate: 8,
+    scrip: 2.3e6,
+    ores: [{ id: 'heart', n: 10 }],
+  },
+  {
+    name: 'Songsteel pick',
+    sprite: 'copick-songsteel',
+    power: 200,
+    gate: 8,
+    scrip: 5e6,
+    ores: [
+      { id: 'heart', n: 25 },
+      { id: 'crystal', n: 60 },
+    ],
+  },
+];
 
 /** hybrid canon §6: coal seams laid over Undersong's generator. Higher threshold = rarer. */
 export const SEAMS = {
@@ -119,20 +282,23 @@ export const SHAFT = {
 
 /** hybrid canon §8: crews. A hand digs coal/s = rate × sqrt(pickPower); deputies lead 10 hands each. */
 export const CREW = {
-  rate: 0.35,
+  rate: 0.2,
   deputyGang: 10,
   deputyBoost: 0.5,
   /** Gangs shown digging in the mine: one per this many hands, at most `shown`. */
   perGang: 5,
   shown: 8,
-  /** Tiles a shown gang digs per second (cosmetic pace; their coal is the rate above). */
+  /** Tiles a shown gang digs per second. Coal they break adds to the crew rate; ore they break goes to stock. */
   gangDig: 0.35,
+  /** How far a gang looks for coal or ore to tunnel to, and how far it strays from its own row. */
+  seek: 7,
+  band: 4,
 } as const;
 
 /** Every verse ever found speeds every crew by this much. canon §4.13 */
 export const VERSE_POWER = 0.05;
 /** Every Echo ever earned adds this much to every crew and to hand digging. */
-export const ECHO_POWER = 0.02;
+export const ECHO_POWER = 0.01;
 
 /** hybrid canon §9: the Company Store at night. cost(n) = base × growth^n, in scrip. */
 export interface ShopDef {
@@ -144,6 +310,8 @@ export interface ShopDef {
   max?: number;
   /** Shown only from this day on. */
   fromDay?: number;
+  /** The ore the item also needs: base × growth^level of it (ADR-H009). */
+  ore?: { id: OreId; base: number; growth: number };
 }
 
 export type ShopId =
@@ -163,16 +331,23 @@ export type ShopId =
   | 'jetpack';
 
 export const SHOP: readonly ShopDef[] = [
-  { id: 'hand', name: 'Hire a hand', blurb: 'Digs coal all day and sends it up', base: 10, growth: 1.15 },
+  { id: 'hand', name: 'Hire a hand', blurb: 'Digs coal all day and sends it up', base: 18, growth: 1.22 },
   {
     id: 'pick',
     name: 'Better pick',
     blurb: 'Digs faster and breaks harder rock',
     base: 0,
     growth: 1,
-    max: 8,
+    max: 15,
   },
-  { id: 'whetstone', name: 'Whetstone', blurb: '+20% digging by hand', base: 25, growth: 1.45 },
+  {
+    id: 'whetstone',
+    name: 'Whetstone',
+    blurb: '+20% digging by hand',
+    base: 25,
+    growth: 1.45,
+    ore: { id: 'copper', base: 3, growth: 1.4 },
+  },
   {
     id: 'pack',
     name: 'Bigger pack',
@@ -180,8 +355,17 @@ export const SHOP: readonly ShopDef[] = [
     base: 30,
     growth: 1.6,
     max: 10,
+    ore: { id: 'tin', base: 4, growth: 1.4 },
   },
-  { id: 'boots', name: 'Pit boots', blurb: '+10% run speed', base: 40, growth: 1.7, max: 6 },
+  {
+    id: 'boots',
+    name: 'Pit boots',
+    blurb: '+10% run speed',
+    base: 40,
+    growth: 1.7,
+    max: 6,
+    ore: { id: 'iron', base: 3, growth: 1.4 },
+  },
   {
     id: 'hours',
     name: 'Lantern Hours',
@@ -189,6 +373,7 @@ export const SHOP: readonly ShopDef[] = [
     base: 60,
     growth: 1.9,
     max: DAY.hourMax,
+    ore: { id: 'glowcap', base: 3, growth: 1.6 },
   },
   {
     id: 'ladders',
@@ -197,6 +382,7 @@ export const SHOP: readonly ShopDef[] = [
     base: 20,
     growth: 1.8,
     max: 6,
+    ore: { id: 'iron', base: 2, growth: 1.3 },
   },
   {
     id: 'shaft',
@@ -205,6 +391,7 @@ export const SHOP: readonly ShopDef[] = [
     base: 50,
     growth: 1.75,
     max: 12,
+    ore: { id: 'iron', base: 4, growth: 1.45 },
   },
   {
     id: 'deputy',
@@ -213,6 +400,7 @@ export const SHOP: readonly ShopDef[] = [
     base: 60,
     growth: 1.55,
     fromDay: 2,
+    ore: { id: 'silver', base: 3, growth: 1.5 },
   },
   {
     id: 'charges',
@@ -222,6 +410,7 @@ export const SHOP: readonly ShopDef[] = [
     growth: 1.9,
     max: 8,
     fromDay: 2,
+    ore: { id: 'tin', base: 3, growth: 1.4 },
   },
   {
     id: 'blast',
@@ -231,6 +420,7 @@ export const SHOP: readonly ShopDef[] = [
     growth: 2.6,
     max: 3,
     fromDay: 3,
+    ore: { id: 'ember', base: 4, growth: 2 },
   },
   {
     id: 'doubleJump',
@@ -240,6 +430,7 @@ export const SHOP: readonly ShopDef[] = [
     growth: 1,
     max: 1,
     fromDay: 2,
+    ore: { id: 'crystal', base: 8, growth: 1 },
   },
   {
     id: 'footKibble',
@@ -249,6 +440,7 @@ export const SHOP: readonly ShopDef[] = [
     growth: 1,
     max: 1,
     fromDay: 3,
+    ore: { id: 'iron', base: 20, growth: 1 },
   },
   {
     id: 'jetpack',
@@ -258,11 +450,9 @@ export const SHOP: readonly ShopDef[] = [
     growth: 2.4,
     max: 5,
     fromDay: 4,
+    ore: { id: 'aqua', base: 8, growth: 1.8 },
   },
 ];
-
-/** Pick tiers: Undersong's picks (canon §9–§12) sold for scrip. Index matches MIN_PICK gates. */
-export const PICK_COSTS = [0, 40, 160, 600, 2200, 8000, 28000, 100000, 360000] as const;
 
 export const UPGRADE = {
   whetstone: 0.2,
@@ -274,7 +464,7 @@ export const UPGRADE = {
 
 /** hybrid canon §10: the Foreman's kit at dawn before upgrades. */
 export const KIT = {
-  pack: 40,
+  pack: 24,
   ladders: 8,
   charges: 0,
   blastRadius: 1,
@@ -296,6 +486,39 @@ export const RELICS: Record<RelicId, { name: string; blurb: string }> = {
   boots: { name: "Rook's boots", blurb: '+15% run speed' },
   lamp: { name: 'Old miner’s lamp', blurb: 'Ore sells for 25% more' },
 };
+
+/** hybrid canon §14 (ADR-H008): shift grades at dusk. Deposited ÷ quota at or above `at` earns the grade; it pays quota × bonus scrip. */
+export const GRADES = [
+  { at: 3, name: 'Record shift', bonus: 2 },
+  { at: 2, name: 'Bumper shift', bonus: 1 },
+  { at: 1.5, name: 'Good shift', bonus: 0.4 },
+  { at: 1, name: 'Quota met', bonus: 0 },
+] as const;
+
+/** hybrid canon §14: each met quota in a row multiplies surplus and grade scrip by 1 + step × (streak − 1), up to max. */
+export const STREAK = { step: 0.15, max: 3 } as const;
+
+/** hybrid canon §15: gems in chests below minDepth tiles. Value × (1 + depth / depthDiv) scrip, picked by weight. */
+export type GemId = 'topaz' | 'ruby' | 'sapphire' | 'emerald' | 'moonstone' | 'diamond';
+export const GEMS: Record<GemId, { name: string; scrip: number; weight: number }> = {
+  topaz: { name: 'Topaz', scrip: 80, weight: 5 },
+  ruby: { name: 'Ruby', scrip: 150, weight: 4 },
+  sapphire: { name: 'Sapphire', scrip: 250, weight: 3 },
+  emerald: { name: 'Emerald', scrip: 400, weight: 2 },
+  moonstone: { name: 'Moonstone', scrip: 700, weight: 1.2 },
+  diamond: { name: 'Diamond', scrip: 1500, weight: 0.6 },
+};
+export const GEM = { minDepth: 10, chance: 0.5, depthDiv: 20 } as const;
+
+/** hybrid canon §16: the tinker's cart at night. A relic costs base × growth^(relics owned); a reroll reroll × rerollGrowth^(rerolls tonight). */
+export const TINKER = {
+  offers: 3,
+  base: 60,
+  growth: 2.2,
+  reroll: 15,
+  rerollGrowth: 1.6,
+  fromDay: 1,
+} as const;
 
 /** hybrid canon §12: Echoes at a Cave-in. max(min, floor( sqrt(coal / div) × (1 + perDay × days) × (1 + perVerse × verses) )), and 0 if no coal went up. */
 export const ECHO = { div: 20, perDay: 0.15, perVerse: 0.25, min: 1 } as const;

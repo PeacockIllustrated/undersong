@@ -1,7 +1,16 @@
 // Holloway & Co. game state. The save holds the village (meta) and the contract; a day is rebuilt from its seed.
 import { D, ZERO, type Decimal } from '../../sim/decimal';
 import type { World } from '../../world/world';
-import { BOOK, SHOP, type BookId, type RelicId, type ShopId } from '../data/co';
+import {
+  BOOK,
+  ORE_IDS,
+  SHOP,
+  type BookId,
+  type GemId,
+  type OreId,
+  type RelicId,
+  type ShopId,
+} from '../data/co';
 import type { Body } from './body';
 
 export type Phase = 'title' | 'day' | 'dusk' | 'night' | 'cavein';
@@ -29,6 +38,12 @@ export interface Contract {
   pardonsUsed: number;
   relics: RelicId[];
   levels: Record<ShopId, number>;
+  /** Met quotas in a row (ADR-H008). */
+  streak: number;
+  /** Tonight's tinker's cart: three relic offers and how often they were rerolled. */
+  tinker: { offers: RelicId[]; rerolls: number };
+  /** Ore banked at the kibble and not yet spent at the store (ADR-H009). Counts, so plain numbers. */
+  ores: Record<OreId, number>;
 }
 
 export interface Tally {
@@ -38,9 +53,16 @@ export interface Tally {
   byHand: Decimal;
   byCrew: Decimal;
   late: Decimal;
+  /** Gold sold at the kibble. */
   oreScrip: Decimal;
   chestScrip: Decimal;
   surplusScrip: Decimal;
+  /** Ore banked today, by the Foreman and the crew. */
+  ores: Record<OreId, number>;
+  /** The shift's grade and its bonus, and the streak that multiplied both. */
+  grade: string | null;
+  gradeScrip: Decimal;
+  streak: number;
   passed: boolean;
   pardoned: boolean;
 }
@@ -72,22 +94,37 @@ export interface Bomb {
 }
 
 export interface Gang {
-  /** Row the gang works (the tunnel floor), side (−1 left, 1 right), and the face column. */
-  y: number;
-  side: -1 | 1;
+  /** Where the gang stands (feet row y, head row y−1), its home row, and the side of the shaft it works. */
   x: number;
+  y: number;
+  home: number;
+  side: -1 | 1;
   work: number;
   count: number;
   stuck: boolean;
+  /** The coal or ore tile it is tunnelling toward, if it has seen one. */
+  target: { x: number; y: number } | null;
+  /** Tiles it has given up on (too hard, or the rope). */
+  bad: number[];
 }
 
 export type CoEvent =
-  | { t: 'break'; x: number; y: number; m: number; coal: number; ore: number; rush: number }
+  | {
+      t: 'break';
+      x: number;
+      y: number;
+      m: number;
+      coal: number;
+      ore: number;
+      oreId: OreId | null;
+      rush: number;
+    }
+  | { t: 'crewOre'; x: number; y: number; ore: OreId; n: number }
   | { t: 'chip'; x: number; y: number; m: number }
   | { t: 'refused'; x: number; y: number }
   | { t: 'full' }
-  | { t: 'deposit'; coal: Decimal; scrip: Decimal; x: number; y: number }
-  | { t: 'chest'; x: number; y: number; scrip: Decimal; relic: RelicId | null }
+  | { t: 'deposit'; coal: Decimal; scrip: Decimal; ores: number; x: number; y: number }
+  | { t: 'chest'; x: number; y: number; scrip: Decimal; relic: RelicId | null; gem: GemId | null }
   | { t: 'verse'; verse: number; first: boolean }
   | { t: 'boom'; x: number; y: number; r: number }
   | { t: 'lastBell' }
@@ -107,8 +144,10 @@ export interface DayRun {
   byCrew: Decimal;
   oreScrip: Decimal;
   chestScrip: Decimal;
+  /** Ore banked today (the tally reads it). */
+  ores: Record<OreId, number>;
   body: Body;
-  pack: { coal: Decimal; ore: number; oreScrip: Decimal };
+  pack: { coal: Decimal; ores: Record<OreId, number> };
   ladders: number;
   charges: number;
   dig: { x: number; y: number; t: number; need: number } | null;
@@ -136,6 +175,8 @@ export interface Game {
 
 const zeroLevels = (): Record<ShopId, number> =>
   Object.fromEntries(SHOP.map((d) => [d.id, 0])) as Record<ShopId, number>;
+export const zeroOres = (): Record<OreId, number> =>
+  Object.fromEntries(ORE_IDS.map((k) => [k, 0])) as Record<OreId, number>;
 const zeroBook = (): Record<BookId, number> =>
   Object.fromEntries(BOOK.map((d) => [d.id, 0])) as Record<BookId, number>;
 
@@ -151,6 +192,9 @@ export function newContract(n: number, seed: number): Contract {
     pardonsUsed: 0,
     relics: [],
     levels: zeroLevels(),
+    streak: 0,
+    tinker: { offers: [], rerolls: 0 },
+    ores: zeroOres(),
   };
 }
 
@@ -189,6 +233,7 @@ const DEC_TALLY = [
   'oreScrip',
   'chestScrip',
   'surplusScrip',
+  'gradeScrip',
 ] as const;
 
 /** Rebuild a state from save JSON, filling anything missing from a fresh state. */
@@ -209,6 +254,14 @@ export function fromSave(raw: unknown, seed: number): CoState {
   };
   s.meta.book = { ...zeroBook(), ...s.meta.book };
   s.contract.levels = { ...zeroLevels(), ...s.contract.levels };
+  // save v1 had no streak or tinker (ADR-H008); the spread over a fresh contract fills them
+  const tk = s.contract.tinker as Partial<Contract['tinker']> | undefined;
+  s.contract.tinker = { offers: tk?.offers ?? [], rerolls: tk?.rerolls ?? 0 };
+  s.contract.streak = Number(s.contract.streak) || 0;
+  // save v2 had no ore stock (ADR-H009)
+  s.contract.ores = { ...zeroOres(), ...(s.contract.ores as Partial<Record<OreId, number>> | undefined) };
+  if (s.tally)
+    s.tally.ores = { ...zeroOres(), ...(s.tally.ores as Partial<Record<OreId, number>> | undefined) };
   for (const k of DEC_META) s.meta[k] = D(s.meta[k] ?? 0);
   for (const k of DEC_CONTRACT) s.contract[k] = D(s.contract[k] ?? 0);
   if (s.tally) for (const k of DEC_TALLY) s.tally[k] = D(s.tally[k] ?? 0);

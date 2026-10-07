@@ -236,11 +236,42 @@ button.danger {
 }
 .relic {
   pointer-events: auto;
-  font-size: 11px;
   background: var(--slate-1);
   border: 1px solid var(--gold);
-  color: var(--gold-pale);
-  padding: 1px 5px;
+  padding: 1px;
+  line-height: 0;
+}
+.relic img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+.ore-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+.ore {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--ink);
+}
+.ore img {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+}
+.ore.short {
+  color: var(--ember);
+}
+.ore-need {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
 }
 .kit {
   position: absolute;
@@ -431,6 +462,105 @@ button.danger {
   gap: 14px;
   width: 100%;
   max-width: 900px;
+}
+.tinker {
+  grid-column: 1 / -1;
+}
+.h-icon {
+  width: 32px;
+  height: 24px;
+  image-rendering: pixelated;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.tinker-offers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.offer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  padding: 8px;
+  background: var(--slate-0);
+  border: 2px solid var(--gold);
+}
+.offer:disabled {
+  border-color: var(--slate-2);
+}
+.offer img {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+.offer span {
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.offer em {
+  font-style: normal;
+  font-family: var(--display);
+  color: var(--gold);
+}
+.stock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 2px dashed var(--slate-2);
+  padding: 6px 8px;
+}
+.grade-stamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  animation: stamp-in 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.grade-stamp b {
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--gold);
+  text-transform: uppercase;
+  border: 3px solid var(--gold);
+  padding: 0 8px;
+  transform: rotate(-4deg);
+}
+.streak {
+  font-family: var(--display);
+  color: var(--glow);
+}
+.sheet .hot dd {
+  color: var(--gold);
+}
+.banked {
+  margin-top: 4px;
+}
+.sing {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px dashed var(--slate-2);
+  padding-top: 8px;
+}
+.sing > div:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.echo-n {
+  color: var(--glow);
+}
+@keyframes stamp-in {
+  from {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .tally-line {
   margin: 0;
