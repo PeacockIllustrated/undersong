@@ -1,8 +1,8 @@
 // M8-03: a buy button that honours the ×1 / ×10 / Max toggle, shows the total, and says when it will be ready.
 // M8-05: the price sits inside the button, the resource you are short of in red, and descriptions fold to a line.
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ComponentChildren } from 'preact';
-import { BULK_STEPS } from '../data/ui';
+import { BULK_STEPS, HOLD_BUY } from '../data/ui';
 import { RES_NAMES, type ResKey } from '../data/resources';
 import type { Decimal } from '../sim/decimal';
 import { bulkCost, type BulkKind } from '../sim/bulk';
@@ -30,27 +30,80 @@ export function Cost({ costs, have }: { costs: Costs; have: Record<ResKey, Decim
   );
 }
 
+/**
+ * M13-02: holding the button keeps buying, faster the longer it is held, until it can't pay. A tap buys once; a
+ * hold that has bought swallows the click its release would make. The keyboard's own key repeat does the rest.
+ */
+function useHold(buy: () => void, can: () => boolean) {
+  const latest = useRef({ buy, can });
+  latest.current = { buy, can };
+  const st = useRef<{ timer: number; gap: number; bought: boolean }>({ timer: 0, gap: 0, bought: false });
+  const stop = (): void => {
+    window.clearTimeout(st.current.timer);
+    st.current.timer = 0;
+  };
+  const tick = (): void => {
+    if (!latest.current.can()) return stop();
+    latest.current.buy();
+    st.current.bought = true;
+    st.current.gap = Math.max(HOLD_BUY.minMs, st.current.gap * HOLD_BUY.speedUp);
+    st.current.timer = window.setTimeout(tick, st.current.gap);
+  };
+  useEffect(() => {
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+    window.addEventListener('blur', stop);
+    return () => {
+      stop();
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+      window.removeEventListener('blur', stop);
+    };
+  }, []);
+  return {
+    onPointerDown: (e: PointerEvent): void => {
+      if (e.button !== 0) return;
+      // keep the pointer even if the card moves under it once the price changes
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      stop();
+      st.current.bought = false;
+      st.current.gap = HOLD_BUY.everyMs / HOLD_BUY.speedUp;
+      st.current.timer = window.setTimeout(tick, HOLD_BUY.delayMs);
+    },
+    onContextMenu: (e: Event): void => e.preventDefault(),
+    onClick: (): void => {
+      stop();
+      if (st.current.bought) st.current.bought = false;
+      else latest.current.buy();
+    },
+  };
+}
+
 /** A buy button with its price inside it, and "ready in" beside it while it can't be paid. */
 export function PriceButton({
   s,
   costs,
   onClick,
   primary,
+  hold,
   children,
 }: {
   s: GameState;
   costs: Costs;
   onClick: () => void;
   primary?: boolean;
+  /** M13-02: holding keeps buying. Only for buys that can be made again and again. */
+  hold?: () => boolean;
   children: ComponentChildren;
 }) {
   const ok = canPay(s, costs);
+  const h = useHold(onClick, hold ?? (() => false));
   return (
     <div class="row">
       <button
-        class={`btn buy ${primary ? 'primary' : ''} ${ok ? 'can' : ''}`}
+        class={`btn buy ${primary ? 'primary' : ''} ${ok ? 'can' : ''} ${hold ? 'holdable' : ''}`}
         disabled={!ok}
-        onClick={onClick}
+        {...(hold ? h : { onClick })}
       >
         <span class="lbl">{children}</span>
         <Cost costs={costs} have={s.res} />
@@ -130,7 +183,15 @@ export function BuyRow({
       s={s}
       costs={b.costs}
       primary={primary}
-      onClick={() => ui.dispatch({ type: 'buyMany', of, n: b.n })}
+      onClick={() => {
+        // the price may have moved since this render, so ask again at the moment of buying
+        const now = bulkCost(ui.game.state, of, step);
+        if (now) ui.dispatch({ type: 'buyMany', of, n: now.n });
+      }}
+      hold={() => {
+        const now = bulkCost(ui.game.state, of, step);
+        return !!now && canPay(ui.game.state, now.costs);
+      }}
     >
       {children}
       {b.n > 1 && <span class="many"> ×{b.n}</span>}

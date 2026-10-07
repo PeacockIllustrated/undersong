@@ -10,6 +10,15 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M13-01 to M13-03 (Quality of life, first batch)
+Done: Tom asked for every QoL improvement; M13 is ticketed in the roadmap (seven tickets, the last one a panel redesign he asked for).
+- Keys: V Village, B Survey Book, C cart, F follow, G mountain, 1–6 tools, ? key list (also a Keys page in the Menu). Tooltips name the key. Nothing fires while typing or with a modifier held.
+- Hold to buy: holding any repeatable buy (miners, sharpening, metalwork, plots, saplings, meals, woodlot buys, torches) keeps buying, faster the longer it is held. The button captures the pointer, so it keeps going when the card shifts under the finger. Repeated toasts replace each other instead of queueing.
+- Lately: a Menu page with the last 50 toasts, biome banners and achievements, newest first, with how long ago. Kept on the device, not in the save.
+State: `npm run check` is green. Checked in Playwright at 1280×800 and 390×844: a 2 s hold hired 19 miners; a tap still buys once; no horizontal overflow.
+Next: M13-04 pin a goal, M13-05 the ledger, M13-06 auto-buy, M13-07 the panel redesign.
+Questions for Tom: none.
+
 ## 2026-10-07 · M12-05 (Enough aquamarine)
 Done: while the village has the silver pick but less aquamarine than the aquamarine pick needs, every tinker's cart carries a crate, and it holds aquamarine instead of bars. The crate is named for it, and the bot takes it. No mountain changes, so old saves are untouched (ADR-040). Canon §21.1.
 State: `npm run check` is green (144 tests). Act III, 9 seeds, 600 min: all finish, 140 to 240 min, median 182. Seed 48514 went from 306 to 238 min and no longer needs a fourth Cave-in. The slowest seed (24757, 240 min) does not stall at a gate; its third run just digs slowly. No village sits at the aquamarine gate any more.

@@ -1915,3 +1915,54 @@ button {
   padding: 10px 12px;
   margin: 8px 0;
 }
+
+/* M13-02: a held buy button keeps buying, so a long press must not select text or open a menu */
+.btn.buy.holdable {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+/* M13-01: the key list */
+table.keys {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 12px;
+}
+table.keys th {
+  text-align: left;
+  padding: 4px 12px 4px 0;
+  white-space: nowrap;
+  font-weight: normal;
+  vertical-align: top;
+}
+table.keys td {
+  padding: 4px 0;
+}
+kbd {
+  font-family: var(--display);
+  font-size: calc(12px * var(--ts));
+  color: var(--gold);
+  border: 2px solid var(--slate-3);
+  background: var(--night);
+  padding: 1px 6px;
+}
+
+/* M13-03: the Lately list */
+ol.lately {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  max-height: 60vh;
+  overflow: auto;
+}
+ol.lately li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--slate-2);
+  line-height: 1.35;
+}
+ol.lately .when {
+  display: block;
+  color: var(--ink-dim);
+}

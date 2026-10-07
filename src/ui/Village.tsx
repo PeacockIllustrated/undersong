@@ -495,7 +495,12 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                 <Desc>
                   Light a face and the miners there work at full pace. Use the Torch tool to place one.
                 </Desc>
-                <PriceButton s={s} costs={torchC} onClick={() => ui.dispatch({ type: 'craftTorches' })}>
+                <PriceButton
+                  s={s}
+                  costs={torchC}
+                  onClick={() => ui.dispatch({ type: 'craftTorches' })}
+                  hold={() => canPay(ui.game.state, torchC)}
+                >
                   Make {TORCH_CRAFT.makes}
                 </PriceButton>
               </div>

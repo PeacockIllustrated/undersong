@@ -471,6 +471,9 @@ Values live in `src/data/ui.ts`.
 | Ore heap     | ore waiting at the forge: sizes from 1, 15, 60, 200 ore; drawn at tile column 36.5 beside the headframe                                                                                                                                                                      |
 | Bar stack    | bars in hand: heights from 1, 6, 25, 80 bars; drawn at tile column 16.6 beside the forge                                                                                                                                                                                     |
 | Chip colours | copper #D9823B · tin #878E9A · bronze #B8902A · iron #A46D48 · silver #E8F4F0 · aquamarine #7FD6FF · crystal #C4F0FF · ember #E0532F · gold #FFD65A · heartstone #FF9A3C · spores #5FF0D8 · Lumen #FFF2A8 · rubble #6D7480 · brick #7A2A1E · barley #F2A35E · timber #6B4329 |
+| Shortcuts    | V Village · B Survey Book · C cart (while parked) · F follow the Foreman · G whole mountain · 1–6 tools · ? key list · M mute · Esc close or stop (M13-01)                                                                                                                   |
+| Hold to buy  | first repeat 400 ms after the press, then every 220 ms, each gap ×0.85 down to 50 ms; stops when it can't pay (M13-02)                                                                                                                                                       |
+| Lately       | the last 50 toasts, biome banners and achievements, newest first, kept on the device apart from the save (M13-03)                                                                                                                                                            |
 
 ## §20 Memory and the deep game (v0, ADR-034)
 

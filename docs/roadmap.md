@@ -1,6 +1,6 @@
 # Undersong roadmap
 
-**Current milestone: M7 Touch and aim** (M7 to M12 approved by Tom on 2026-10-07)
+**Current milestone: M13 Quality of life** (M7 to M12 approved by Tom on 2026-10-07; M13 asked for by Tom on 2026-10-07)
 
 Work on the first unchecked ticket in the current milestone. M0 and M1 are broken into full tickets. Later milestones are listed as epics, and they're split into tickets (using the template below) **as the first task of that milestone**. They aren't split earlier, because what we learn in each milestone changes the next one.
 
@@ -513,6 +513,47 @@ Found by M12-04: the aquamarine pick needs 30 aquamarine (15 tiles at 2 each), b
 Acceptance:
   1. Every mountain can pay for the aquamarine pick: either the tinker's cart crate carries aquamarine while the Halls are the deepest biome, or the Halls' aquamarine has a floor. Existing saves keep their mountains (a generator change must not move tiles under an old save's diffs).
   2. The Act III sim shows no village stalled at the aquamarine gate; numbers in canon.
+
+## M13 · Quality of life (Tom's request, 2026-10-07)
+
+Tom (2026-10-07): "Keep going through it, all qol upgrades and improvements you may think of".
+
+**Exit:** fewer clicks, nothing missed, nothing to look up.
+
+### [x] M13-01 · Keyboard shortcuts · S · PR #26
+Acceptance:
+  1. On a keyboard: V opens the Village, B the Survey Book, C the cart when it is parked, F follows the Foreman, G shows the whole mountain, 1 to 6 pick a tool, ? lists every key. M (mute), Esc and the pan keys work as before.
+  2. No shortcut fires while typing in a field or with Ctrl, Cmd or Alt held. Each button names its key in its tooltip. The key list is also in the Menu.
+
+### [x] M13-02 · Hold to buy · S · PR #26
+Acceptance:
+  1. Holding a buy button keeps buying, faster the longer it is held, and stops as soon as it can't pay. A tap still buys once. It works with a mouse, a finger and the keyboard. Timings in `src/data/ui.ts`.
+
+### [x] M13-03 · What just happened · S · PR #26
+Acceptance:
+  1. Every big toast, biome banner and achievement also goes into a "Lately" list in the Menu (newest first, the last 50, with how long ago), so nothing that flashed past is lost. It is kept beside the settings, not in the save.
+
+### [ ] M13-04 · Pin a goal · S
+Acceptance:
+  1. Any card with a price (pick, lift, building, metalwork, helper, Echo upgrade) can be pinned. A HUD chip shows the pinned thing, a bar for how much of its price is in hand, and "ready in". Tapping the chip opens its card. When it becomes affordable the chip lights up and a toast says so.
+  2. One pin at a time; bought or gone, it clears itself. Kept beside the settings, not in the save.
+
+### [ ] M13-05 · The ledger · S
+Acceptance:
+  1. A Survey Book page lists time played (this run and in all), tiles dug (this run and in all), chests, Cave-ins, collapses, deepest ever and the fastest Cave-in.
+  2. Save change for the totals, with migration, fixture and test.
+
+### [ ] M13-06 · Keep buying · M
+Acceptance:
+  1. After the second Cave-in, repeatable buys (miners, sharpening, metalwork, plots, saplings, torches) get an Auto switch. A switched-on buy is made by itself whenever its price is no more than a set share of what is in hand, so it never starves the next pick. Numbers in `src/data` and canon.
+  2. The switches are saved and survive the Cave-in. Save change with migration and test; the sim is unchanged unless the bot turns them on.
+
+### [ ] M13-07 · Panels that feel current · M
+Tom (2026-10-07): "we can do the village, survey etc. menu UI better too, more inline with industry standards. This feels dated and not seamless".
+Acceptance:
+  1. The Village, Survey Book, cart and Menu share one panel frame: a sticky header with the title, tabs and close, one scrolling body, and a consistent card layout (icon, name, one-line effect, price button) in a grid on desktop.
+  2. On a phone the panel is a bottom sheet with a grab handle that can be dragged between half and full height, and swiped down to close. Panels slide in and out (still for reduced motion), and switching between Village, Survey and Menu doesn't close and reopen the frame.
+  3. Checked at 1280×800 and 390×844 with before-and-after screenshots; the smoke test stays green.
 
 ---
 
