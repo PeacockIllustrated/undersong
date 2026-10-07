@@ -1898,3 +1898,20 @@ button {
 .curio.has.singing {
   border-color: var(--glow);
 }
+
+/* M12-01: opening a save file, and the step before it replaces the game */
+.file-btn {
+  position: relative;
+  overflow: hidden;
+}
+.file-btn input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.confirm-load {
+  border: 2px solid var(--gold);
+  padding: 10px 12px;
+  margin: 8px 0;
+}

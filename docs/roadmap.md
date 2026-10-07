@@ -491,22 +491,28 @@ Acceptance:
 
 **Exit:** a save can't be lost, the game installs on a phone, and the sim covers every system.
 
-### [ ] M12-01 · Save export and import · S
+### [x] M12-01 · Save export and import · S · PR #24
 Acceptance:
   1. Settings can copy the save as text, download it as a file, and import pasted text or a file, with a confirm step and a validity check.
 
-### [ ] M12-02 · Install on a phone · S
+### [x] M12-02 · Install on a phone · S · PR #24
 Acceptance:
   1. A web manifest and a hand-written service worker (no new dependency; ADR) make the site installable and playable offline, on Vercel and in the itch.io zip without breaking either.
 
-### [ ] M12-03 · Layout smoke test · S
+### [x] M12-03 · Layout smoke test · S · PR #24
 Acceptance:
   1. An ADR adds Playwright as a dev dependency; CI boots each save fixture at 1280×800 and 390×844, checks there are no page errors and no horizontal overflow, and keeps screenshots as artifacts.
 
-### [ ] M12-04 · Sim coverage · S
+### [x] M12-04 · Sim coverage · S · PR #24
 Acceptance:
   1. The bot places pumps so cress paddies appear in sims; it buys plots so the feast bell can ring; whether 150 crops is reachable in an ordinary run is answered in progress.md.
   2. The slow Act III seeds are explained in progress.md, with a fix ticketed if the cause is the game.
+
+### [ ] M12-05 · Enough aquamarine in every mountain · S
+Found by M12-04: the aquamarine pick needs 30 aquamarine (15 tiles at 2 each), but 4 of 45 sim mountains (9 seeds × 5 cycles) hold fewer than 15 aquamarine tiles in the Flooded Halls, and more hold fewer within reach. A village there cannot finish Act III that cycle and has to cave in.
+Acceptance:
+  1. Every mountain can pay for the aquamarine pick: either the tinker's cart crate carries aquamarine while the Halls are the deepest biome, or the Halls' aquamarine has a floor. Existing saves keep their mountains (a generator change must not move tiles under an old save's diffs).
+  2. The Act III sim shows no village stalled at the aquamarine gate; numbers in canon.
 
 ---
 
@@ -515,7 +521,6 @@ Acceptance:
 - Holloway Above ideas still open: none (the cart, curio shelf, Pell's dog, day and night, rain and the ore heap are now M8 and M10 tickets).
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
-- Balance bot: seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.

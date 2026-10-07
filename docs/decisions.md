@@ -300,3 +300,19 @@ Decision:
 - M11-03 was marked "split before starting". It is built here as two parts in one PR: the keys and their rules in the sim (M11-03a), and the key shown on the choice and in the Survey Book (M11-03b). Four keys, each changing one rule through a small hook (`src/sim/keys.ts`, heat, `villageMult`, `echoGain`). The key is picked from a hash of songs sung and cycle, never repeats the current key, and is stored in `songKey`.
 - Save v10 adds `endlessPaid`, `deepPick`, `auto` and `songKey`, with a migration and a fixture.
 **Consequences.** Nothing changes before the ending, so Act I to IV sims are unaffected. The balance bot stops at the ending, so the post-ending game is covered by unit tests only.
+
+## ADR-038 · Install on a phone with a hand-written service worker
+
+**Context.** M12-02 asks that Undersong installs on a phone and plays offline, on Vercel and in the itch.io zip, with no new dependency.
+**Decision.**
+- `public/manifest.webmanifest` and `public/sw.js` are plain files that Vite copies into `dist/`. Every path is relative (`./`, scope `./`), so the same build works at the site root on Vercel and in a subfolder on itch.io.
+- The worker caches the shell on install. Pages are network first, so a deploy shows at once and the last page is used when offline. Everything else (hashed scripts, sprites, the two Google Fonts hosts) is cache first and refreshed in the background. Bump `CACHE` in `sw.js` whenever the worker itself changes.
+- It is registered only in the built game (`import.meta.env.PROD`), so the dev server's hot reload is never cached. A refused registration (an iframe, a private window) is ignored and the game runs the same.
+- `vercel.json` serves `sw.js` with `Cache-Control: no-cache`. Icons are drawn by `tools/art/icons.py` from the favicon's pixel pick, at integer scale, in palette colours; the maskable icon has a two-cell safe zone.
+**Consequences.** Checked by serving `dist/` from a subfolder, letting the worker take over, going offline and reloading: the game boots. Old hashed assets stay in the cache after a deploy until the cache name changes; they are small.
+
+## ADR-039 · Playwright for a layout smoke test
+
+**Context.** M12-03: every UI ticket must be checked at 1280×800 and 390×844, so far by hand. Golden rule 7 needs an ADR for a new dependency.
+**Decision.** Add `playwright` (the library, not the test runner) as a dev dependency, pinned to 1.56.1 to match the browsers in the cloud sandbox. `tools/smoke.ts` (`npm run smoke`) serves `dist/` with a small Node server, boots a new game and every save fixture at both sizes, and fails on any page error or horizontal overflow. Screenshots go to `smoke-shots/` (git-ignored). CI installs Chromium, runs it after the build, and keeps the screenshots as an artifact even when it fails. It is not part of `npm run check`, which stays browser-free; set `PW_CHROMIUM` to use a local Chromium.
+**Consequences.** CI takes longer (a browser install and 22 boots). Console warnings are not failures; only uncaught page errors are.

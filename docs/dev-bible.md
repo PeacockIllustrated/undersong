@@ -54,7 +54,7 @@ input (pointer/keys/UI) ──► actions ──► sim.step(state, action|tick,
 
 - Saves are written to `localStorage['undersong.save']` every 30 s, on `visibilitychange` and on `beforeunload`. The data is JSON compressed with lz-string.
 - Every save has the shape `{ v: SAVE_VERSION, t: savedAtMs, state }`. `src/save/migrations.ts` holds one function per version step. **Never edit an old migration**; add a new one.
-- Export and import use the same compressed string. Import validates before replacing, and a bad string shows an error without touching the current save.
+- Export and import use the same compressed string, copied or downloaded as a dated `.txt` file; import also takes the plain JSON. Import checks the save (`checkSave`), shows what it holds, and replaces the game only after a confirm; a bad string shows an error without touching the current save (M12-01).
 - Keep a fixture save for each released version in `tests/fixtures/saves/`. A test loads every fixture and runs it through all migrations.
 
 ---
@@ -78,6 +78,7 @@ input (pointer/keys/UI) ──► actions ──► sim.step(state, action|tick,
 | `vite`, `typescript`, `vitest`, `eslint`, `prettier`     | Tooling                                           |
 | `@preact/preset-vite`, `typescript-eslint`, `@eslint/js` | Tooling glue for the above                        |
 | `tsx`, `@types/node`                                     | Running and typing the TypeScript tools (ADR-012) |
+| `playwright` (dev only)                                  | The layout smoke test in CI (ADR-039)             |
 
 Anything else needs an ADR in `decisions.md` before it's installed.
 
@@ -149,7 +150,7 @@ frames: 1                  # optional; frames are stacked vertically in the grid
 | `src/save`              | Round-trips and every fixture migrating cleanly                                                    | Vitest                       |
 | `src/data` ↔ `canon.md` | Values match                                                                                       | Vitest                       |
 | Sprites                 | Palette, size and naming                                                                           | `lint:sprites`               |
-| Balance                 | Time to each milestone is no more than 15% past its canon target (ADR-035)                          | `npm run sim` in CI          |
+| Balance                 | Time to each milestone is no more than 15% past its canon target (ADR-035)                         | `npm run sim` in CI          |
 | UI                      | Manual check at 1280×800 and 390×844, with screenshots in the PR                                   | Playwright screenshot script |
 
 A bug fix is only finished when a test reproduces the bug first.

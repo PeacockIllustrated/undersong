@@ -1,5 +1,6 @@
 // Headless balance sim: a bot plays like an engaged player and reports time to each canon §5 milestone.
 // Usage: npm run sim -- [--seeds=5] [--until=first-cavein] [--minutes=90] [--strict]
+import type { GameState } from '../src/sim/state';
 import { TICK_MS, SHAFT_X } from '../src/data/constants';
 import { MATERIALS, canDig, isMineable } from '../src/data/materials';
 import { lightFactor } from '../src/data/light';
@@ -44,6 +45,7 @@ import {
   isElder,
   mealCost,
   plotCost,
+  pumpsPlaced,
   saplingCost,
   cellarCost,
   paddyCost,
@@ -292,13 +294,18 @@ function tendSurface(g: Game): void {
   if (s.helpers.tansy) apply(g, { type: 'autoFeast', on: true });
   const spare = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
     !!c && canPay(s, c) && c[0]!.amount.lte(s.res.copperBar.mul(0.1)) && s.miners.length >= 2;
-  if (spare(plotCost(s))) apply(g, { type: 'buyPlot' });
+  // M12-04: plots are cheap and the bell needs a field of them, so take one whenever it is half the copper in hand
+  const plot = plotCost(s);
+  if (plot && canPay(s, plot) && plot[0]!.amount.lte(s.res.copperBar.mul(0.5)) && s.miners.length >= 2)
+    apply(g, { type: 'buyPlot' });
   // act crops (M6-07): the cellar, paddies and hot-beds, each from a quarter of what is in hand
   const spareAny = (c: { res: ResKey; amount: Decimal }[] | null): boolean =>
     !!c && c.every((x) => s.res[x.res].mul(0.25).gte(x.amount));
   if (spareAny(cellarCost(s))) apply(g, { type: 'workCellar' });
-  if (spareAny(paddyCost(s))) apply(g, { type: 'plantCrop', crop: 'cress' });
-  if (spareAny(hotbedCost(s))) apply(g, { type: 'plantCrop', crop: 'pepper' });
+  // never turn over the last few barley plots: barley feeds the bell and the meals
+  const barley = sf.plots.filter((p) => !p.crop).length;
+  if (barley > 2 && spareAny(paddyCost(s))) apply(g, { type: 'plantCrop', crop: 'cress' });
+  if (barley > 2 && spareAny(hotbedCost(s))) apply(g, { type: 'plantCrop', crop: 'pepper' });
   for (const m of [...MEALS].sort((a, b) => sf.meals[a.id] - sf.meals[b.id]))
     if (canPay(s, mealCost(s, m.id) ?? [{ res: 'barley', amount: s.res.barley.add(1) }]))
       apply(g, { type: 'eatMeal', id: m.id });
@@ -314,6 +321,46 @@ function tendSurface(g: Game): void {
   for (const b of [...WOOD_BUYS].sort((a, c) => price(a.id) - price(c.id)))
     if (s.res.timber.gte(price(b.id) + 6)) apply(g, { type: 'buyWood', id: b.id });
 }
+
+/** M12-04: what the bot touched over the whole session, across Cave-ins, for the systems the sims must cover. */
+interface Coverage {
+  pumps: number;
+  paddies: number;
+  hotbeds: number;
+  plots: number;
+  feasts: number;
+  lastFeasts: number;
+  bell: number;
+  bellNeed: number;
+  crops: number;
+}
+const newCoverage = (): Coverage => ({
+  pumps: 0,
+  paddies: 0,
+  hotbeds: 0,
+  plots: 0,
+  feasts: 0,
+  lastFeasts: 0,
+  bell: 0,
+  bellNeed: 0,
+  crops: 0,
+});
+function trackCoverage(s: GameState, c: Coverage): void {
+  const sf = s.surface;
+  c.pumps = Math.max(c.pumps, pumpsPlaced(s));
+  c.paddies = Math.max(c.paddies, sf.plots.filter((p) => p.crop === 'cress').length);
+  c.hotbeds = Math.max(c.hotbeds, sf.plots.filter((p) => p.crop === 'pepper').length);
+  c.plots = Math.max(c.plots, sf.plots.length);
+  // the bell's count resets with a Cave-in, so count rings as they happen
+  if (sf.feasts > c.lastFeasts) c.feasts += sf.feasts - c.lastFeasts;
+  c.lastFeasts = sf.feasts;
+  if (sf.feast >= c.bell) {
+    c.bell = sf.feast;
+    c.bellNeed = feastNeed(s);
+  }
+}
+const coverageLine = (c: Coverage): string =>
+  `coverage: plots max ${c.plots} · pumps max ${c.pumps} · paddies max ${c.paddies} · hot-beds max ${c.hotbeds} · feasts rung ${c.feasts} · bell best ${c.bell}/${c.bellNeed}`;
 
 /** The whetstone: an engaged player takes the cheap levels at once, later ones from spare copper. */
 function sharpen(g: Game): void {
@@ -601,6 +648,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     caveIns: number[];
   } = { caveIns: [] };
   const limit = MINUTES * 60 * 1000;
+  const cov = newCoverage();
   for (let t = 0; t < limit; t += TICK_MS) {
     if (t % ATTENTION_MS === 0) {
       const act2Mode = ACT2 && (s.cycle > 1 || s.verses.run[1] === true);
@@ -646,6 +694,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
       placeTorches(g);
       tendSurface(g);
       if (ACT3 && !s.helpers.pumps) managePumps(g);
+      trackCoverage(s, cov);
       s.story.events.length = 0;
       if (args.trace && t % 600000 === 0)
         console.log(
@@ -725,7 +774,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     );
   if (ACT2)
     console.log(
-      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses} · surface bread ${s.surface.meals.bread} porridge ${s.surface.meals.porridge} hearth ${s.surface.wood.hearth} cottages ${s.surface.wood.cottage} feasts ${s.surface.feasts} plots ${s.surface.plots.length} trees ${s.surface.trees.map((t) => t.stood).join('/')}`,
+      `seed ${seed}: cave-ins at ${act2.caveIns.join(', ')} min · 400 ft ${mins(act2.ft400)} · Verse V ${mins(act2.verse4)} · cleared ${mins(act2.glowroot)}${ACT3 ? ` · 1000 ft ${mins(act2.ft1000)} · Act III ${mins(act2.act3)} ${ENDING ? ` · 1400 ft ${mins(act2.ft1400)} · ending ${mins(act2.ending)}` : ''} · verses ${s.verses.known.map((k) => (k ? 1 : 0)).join('')} · charms ${s.charms.equipped.join('+')} · pumps ${s.stats.firsts.pumped !== undefined ? 'used' : 'none'}` : ''} · echoes ever ${s.echoesEver.toString()} · pick ${s.pickTier} · lampworks ${s.buildings.lampworks} · collapses ${s.stats.collapses} · surface bread ${s.surface.meals.bread} porridge ${s.surface.meals.porridge} hearth ${s.surface.wood.hearth} cottages ${s.surface.wood.cottage} feasts ${s.surface.feasts} plots ${s.surface.plots.length} trees ${s.surface.trees.map((t) => t.stood).join('/')} · ${coverageLine(cov)}`,
     );
   return {
     ...(first1 ?? s.stats.firsts),
