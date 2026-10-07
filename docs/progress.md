@@ -23,8 +23,9 @@ State:
 - `npm run check` is green.
 - 8 ending seeds: median about 620 against 690 (−10%). Per-act median waits are under 10 minutes; single seeds still hit 10.8 (Act II) and 17.3 (Act III).
 - Act III median is about 300 against 390 (−23%). It was already 240 before M9 (M8 runs), so this is old and needs its own tune.
-- Seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes; that is a bot problem, not a game one, and is in the Parking lot.
-Next: M10.
+- Seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes; that is a bot problem, not a game one.
+- Both Act III issues are split into a new ticket, M9-07, which comes next.
+Next: M9-07, then M10.
 Questions for Tom: none.
 
 ## 2026-10-07 · M8-01 to M8-06 (Payoffs)

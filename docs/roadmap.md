@@ -405,35 +405,41 @@ Note: covers U6, U8, U9 and idea 15.
 
 **Exit:** no stretch of more than 10 minutes with nothing to buy in any act of the median sim run, and the Cave-in feels like a payout.
 
-### [x] M9-01 · Waits in every act · S
+### [x] M9-01 · Waits in every act · S · PR #21
 Acceptance:
   1. The sim reports the longest wait with nothing to buy per act and per run, not just the first 15 minutes.
   2. The nightly sim fails when any act's median longest wait is over 10 minutes (CI gate for Act I stays as M8-01).
 
-### [x] M9-02 · Something to buy in the deep game · M
+### [x] M9-02 · Something to buy in the deep game · M · PR #21
 Acceptance:
   1. Silver, gold, resonant crystal and ember ore each have a cheap repeatable buy like the whetstone, resetting on a Cave-in, with numbers in canon.
-  2. M9-01's gate passes; the Act III and ending targets stay inside ±15%.
+  2. M9-01's gate passes; the ending target stays inside ±15%. (Act III moved to M9-07: it was already ~25% early before M9.)
 
-### [x] M9-03 · The bunkhouse remembers · S
+### [x] M9-03 · The bunkhouse remembers · S · PR #21
 Acceptance:
   1. A new Memory Echo upgrade: after a Cave-in, miners hire themselves as bars come in, up to last run's count.
   2. Save change with migration and test (last run's miner count).
 
-### [x] M9-04 · A Cave-in worth watching · M
+### [x] M9-04 · A Cave-in worth watching · M · PR #21
 Acceptance:
   1. The Cave-in plays a sequence of about 6 s: the shaft folds in from the top, Echoes count up over the notes of this run's verses, a stone drops on the cairn, then the new run opens with "last cycle you reached N ft".
   2. Tap to skip; reduced motion shows a still card; the sim is unaffected.
 
-### [x] M9-05 · Race your last run · S
+### [x] M9-05 · Race your last run · S · PR #21
 Acceptance:
   1. The depth ruler shows a ghost mark for where you were at this minute of the last run; passing it toasts "N min ahead of last cycle".
   2. Save change: the last run's depth by minute, capped in size, with migration and test.
 
-### [x] M9-06 · Lead from the front · S
+### [x] M9-06 · Lead from the front · S · PR #21
 Acceptance:
   1. Miners within a radius of the Foreman dig faster by a factor in `src/data` (start ×1.5; shipped at ×1.25, ADR-034), shown as a glow on those miners.
   2. Pacing targets still inside ±15%.
+
+### [ ] M9-07 · Act III back on time · S
+Split from M9-02 and M9-06: Act III ran ~25% early before M9 (median 240 in M8 runs, about 300 after M9).
+Acceptance:
+  1. The Act III median over 9 seeds is inside ±15% of 390 min, with the ending still inside ±15% of 690.
+  2. The bot learns verses IX–XII on seed 32676 within 1000 minutes.
 
 ## M10 · Finds
 
@@ -505,7 +511,6 @@ Acceptance:
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
-- Balance bot: seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes. Act III median runs ~25% early (since M8); tune it on its own.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.
 
