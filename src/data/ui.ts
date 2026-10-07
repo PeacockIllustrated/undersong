@@ -48,3 +48,22 @@ export const RES_COLOUR: Partial<Record<ResKey, string>> = {
  * verses, a stone drops on the cairn, then the last line; the run opens at `end`.
  */
 export const CEREMONY = { fold: 1600, count: 4000, stone: 4900, line: 5000, end: 6600 } as const;
+
+/** canon §19 M13-01: keyboard shortcuts. Number keys 1 to 6 pick a tool; M mutes and Esc clears (main.ts). */
+export const SHORTCUTS = {
+  village: 'v',
+  survey: 'b',
+  cart: 'c',
+  follow: 'f',
+  mountain: 'g',
+  help: '?',
+} as const;
+
+/**
+ * canon §19 M13-02: hold to buy. The first repeat comes `delayMs` after the press, then every `everyMs`, each gap
+ * ×`speedUp` until it reaches `minMs`.
+ */
+export const HOLD_BUY = { delayMs: 400, everyMs: 220, speedUp: 0.85, minMs: 50 } as const;
+
+/** canon §19 M13-03: how many lines the Lately list keeps. */
+export const LATELY_KEEP = 50;

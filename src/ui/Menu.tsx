@@ -6,15 +6,27 @@ import { fmt } from './format';
 import type { UiBridge } from './App';
 import { SettingsPanel } from './Settings';
 import { SETTINGS_TEXT } from '../story/settings';
+import { KEYS_TEXT, LATELY_TEXT } from '../story/qol';
+import { KeysList, LatelyList } from './Qol';
 
-export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
+export type MenuView = 'menu' | 'settings' | 'keys' | 'lately';
+
+export function MenuSheet({
+  ui,
+  close,
+  start = 'menu',
+}: {
+  ui: UiBridge;
+  close: () => void;
+  start?: MenuView;
+}) {
   const [out, setOut] = useState('');
   const [inp, setInp] = useState('');
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
   /** M12-01: a checked save waiting for the player to say yes. */
   const [pending, setPending] = useState<GameState | null>(null);
-  const [view, setView] = useState<'menu' | 'settings'>('menu');
+  const [view, setView] = useState<MenuView>(start);
 
   const doExport = (): void => {
     const s = exportString(ui.game.state);
@@ -61,6 +73,29 @@ export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
     setMsg({ ok: true, text: 'Save loaded.' });
   };
 
+  // M13-01 and M13-03: the key list and the Lately list, each a page of the Menu
+  if (view === 'keys' || view === 'lately')
+    return (
+      <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
+        <div
+          class="panel sheet"
+          role="dialog"
+          aria-label={view === 'keys' ? KEYS_TEXT.title : LATELY_TEXT.title}
+        >
+          <h2>{view === 'keys' ? KEYS_TEXT.title : LATELY_TEXT.title}</h2>
+          {view === 'keys' ? <KeysList /> : <LatelyList />}
+          <div class="row end">
+            <button class="btn" onClick={() => setView('menu')}>
+              {SETTINGS_TEXT.back}
+            </button>
+            <button class="btn" onClick={close}>
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+
   if (view === 'settings')
     return (
       <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
@@ -87,6 +122,12 @@ export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
         <div class="row">
           <button class="btn primary" onClick={() => setView('settings')}>
             {SETTINGS_TEXT.open}
+          </button>
+          <button class="btn" onClick={() => setView('lately')}>
+            {LATELY_TEXT.open}
+          </button>
+          <button class="btn" onClick={() => setView('keys')}>
+            {KEYS_TEXT.open}
           </button>
         </div>
         <p>The game saves itself every 30 seconds and whenever you leave.</p>
@@ -161,7 +202,7 @@ export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
         {msg && <div class={msg.ok ? 'ok' : 'err'}>{msg.text}</div>}
         <p class="small">
           Controls: tap rock to dig it, drag from rock to dig a path (on touch, press and hold first). Drag
-          empty space, scroll, or use WASD to look around.
+          empty space, scroll, or use WASD to look around. Hold a buy button to keep buying.
         </p>
         <div class="row end">
           <button class="btn" onClick={close}>

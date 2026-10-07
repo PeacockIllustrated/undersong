@@ -1,5 +1,5 @@
 // The HUD and menus. Reads the game, dispatches actions; never mutates state directly.
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { BIOMES, BIOME_BAND, biomeAt } from '../data/biomes';
 import { BIOME_LINES } from '../story/biomes';
 import { SKY_ROWS, ftFromDepthTiles } from '../data/constants';
@@ -30,6 +30,9 @@ import { DepthRuler } from './DepthRuler';
 import { FEAST, FIELDS } from '../data/surface';
 import { feasting, ripe } from '../sim/surface';
 import { bottleneck, echoAffordable, villageAffordable, type Fix } from './feedback';
+import { remember } from './lately';
+import { SHORTCUTS } from '../data/ui';
+import { LATELY_TEXT } from '../story/qol';
 
 export interface UiBridge {
   readonly game: Game;
@@ -61,7 +64,14 @@ function Toasts() {
     let n = 0;
     const on = (e: Event): void => {
       const d = (e as CustomEvent<{ big: string; sub: string }>).detail;
-      setQ((x) => [...x.slice(-2), { ...d, id: ++n }]);
+      remember(d.big, d.sub, Date.now());
+      // a held buy makes the same toast again and again: the newest replaces the one waiting
+      setQ((x) => {
+        const last = x[x.length - 1];
+        if (last && last.big === d.big)
+          return [...x.slice(0, -1), { ...d, id: x.length > 1 ? ++n : last.id }];
+        return [...x.slice(-2), { ...d, id: ++n }];
+      });
     };
     window.addEventListener('undersong:toast', on);
     return () => window.removeEventListener('undersong:toast', on);
@@ -86,7 +96,12 @@ function BiomeBanner() {
   const [b, setB] = useState<{ id: number; key: number } | null>(null);
   useEffect(() => {
     let n = 0;
-    const on = (e: Event): void => setB({ id: (e as CustomEvent<number>).detail, key: ++n });
+    const on = (e: Event): void => {
+      const id = (e as CustomEvent<number>).detail;
+      const def = BIOMES[id]!;
+      remember(LATELY_TEXT.biome(def.name), `Act ${def.act} · ${ftFromDepthTiles(def.d0)} ft`, Date.now());
+      setB({ id, key: ++n });
+    };
     window.addEventListener('undersong:biome', on);
     return () => window.removeEventListener('undersong:biome', on);
   }, []);
@@ -112,7 +127,7 @@ function lumenOut(ui: UiBridge): boolean {
   return !ui.game.world.lanternsLit && lanterns(ui.game).length > 0;
 }
 
-export type Sheet = null | 'village' | 'survey' | 'menu' | 'cart';
+export type Sheet = null | 'village' | 'survey' | 'menu' | 'cart' | 'keys';
 
 function useTick(ms: number): void {
   const [, set] = useState(0);
@@ -250,13 +265,39 @@ export function App({ ui }: { ui: UiBridge }) {
     s.story.ever.includes(`used:${id}`) || s.stats.firsts[id] !== undefined;
   const cur = toolList.find((t) => t.id === ui.tool) ?? toolList[0]!;
 
+  // M13-01: keyboard shortcuts. The handler is registered once and reads this render's world through a ref.
+  const keyRef = useRef<(e: KeyboardEvent) => void>(() => undefined);
+  keyRef.current = (e: KeyboardEvent): void => {
+    const k = e.key.toLowerCase();
+    const toggle = (to: Exclude<Sheet, null>): void => setSheet(sheet === to ? null : to);
+    if (k === SHORTCUTS.village) toggle('village');
+    else if (k === SHORTCUTS.survey) toggle('survey');
+    else if (k === SHORTCUTS.cart && s.cart.offers) toggle('cart');
+    else if (k === SHORTCUTS.follow) ui.recenter();
+    else if (k === SHORTCUTS.mountain) ui.setMountain(!ui.mountain);
+    else if (e.key === SHORTCUTS.help) toggle('keys');
+    else if (/^[1-9]$/.test(k) && toolList[Number(k) - 1]) ui.setTool(toolList[Number(k) - 1]!.id);
+    else return;
+    e.preventDefault();
+  };
+  useEffect(() => {
+    const on = (e: KeyboardEvent): void => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      keyRef.current(e);
+    };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  }, []);
+
   const mountainBtn = (extra: string) => (
     <button
       class={`btn ibtn ${extra} ${ui.mountain ? 'primary' : ''}`}
       onClick={() => ui.setMountain(!ui.mountain)}
       aria-label="See the whole mountain"
       aria-pressed={ui.mountain}
-      title="The whole mountain (tap the map to go there)"
+      title="The whole mountain (G; tap the map to go there)"
     >
       <img src={spriteURL('icon-mountain')} alt="" />
       <span class="il">Mountain</span>
@@ -323,7 +364,11 @@ export function App({ ui }: { ui: UiBridge }) {
             </button>
           )}
           {s.cart.offers && (
-            <button class="panel alert cart-alert" onClick={() => setSheet('cart')}>
+            <button
+              class="panel alert cart-alert"
+              onClick={() => setSheet('cart')}
+              title="The tinker’s cart (C)"
+            >
               <img src={spriteURL('cart')} alt="" /> {CART_UI.here} ›
             </button>
           )}
@@ -370,7 +415,7 @@ export function App({ ui }: { ui: UiBridge }) {
                   ui.setTool(t.id !== 'dig' && ui.tool === t.id ? 'dig' : t.id);
                   setToolsOpen(false);
                 }}
-                title={t.title}
+                title={`${t.title} (${toolList.indexOf(t) + 1})`}
               >
                 <img src={spriteURL(t.sprite)} alt="" />
                 <span class="tl">{t.label}</span> {t.stock ? fmt(s.res[t.stock]) : ''}
@@ -399,7 +444,7 @@ export function App({ ui }: { ui: UiBridge }) {
             class="btn ibtn"
             onClick={() => ui.recenter()}
             aria-label="Follow the Foreman"
-            title="Follow the Foreman"
+            title="Follow the Foreman (F)"
           >
             <img src={spriteURL('icon-follow')} alt="" />
             <span class="il">Foreman</span>
@@ -414,16 +459,23 @@ export function App({ ui }: { ui: UiBridge }) {
           <button
             class={`btn ${sheet === 'village' ? 'primary' : ''} ${newInVillage && sheet !== 'village' ? 'new' : ''}`}
             onClick={() => setSheet(sheet === 'village' ? null : 'village')}
+            title="The Village (V)"
           >
             Village
           </button>
           <button
             class={`btn ${sheet === 'survey' ? 'primary' : ''} ${newInSurvey ? 'glow' : ''}`}
             onClick={() => setSheet(sheet === 'survey' ? null : 'survey')}
+            title="The Survey Book (B)"
           >
             Survey
           </button>
-          <button class="btn ibtn" onClick={() => setSheet('menu')} aria-label="Menu" title="Menu">
+          <button
+            class="btn ibtn"
+            onClick={() => setSheet('menu')}
+            aria-label="Menu"
+            title="Menu (? for the keys)"
+          >
             <img src={spriteURL('icon-menu')} alt="" />
             <span class="il">Menu</span>
           </button>
@@ -434,6 +486,7 @@ export function App({ ui }: { ui: UiBridge }) {
       {sheet === 'survey' && <SurveyBook ui={ui} close={() => setSheet(null)} />}
       {sheet === 'cart' && <CartSheet ui={ui} close={() => setSheet(null)} />}
       {sheet === 'menu' && <MenuSheet ui={ui} close={() => setSheet(null)} />}
+      {sheet === 'keys' && <MenuSheet ui={ui} close={() => setSheet(null)} start="keys" />}
     </>
   );
 }
