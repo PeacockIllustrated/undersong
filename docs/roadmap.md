@@ -1,6 +1,6 @@
 # Undersong roadmap
 
-**Current milestone: M2 Glowroot** (M0 in PR #1, M1 in PR #2, stacked per ADR-009)
+**Current milestone: M7 Touch and aim** (M7 to M12 approved by Tom on 2026-10-07)
 
 Work on the first unchecked ticket in the current milestone. M0 and M1 are broken into full tickets. Later milestones are listed as epics, and they're split into tickets (using the template below) **as the first task of that milestone**. They aren't split earlier, because what we learn in each milestone changes the next one.
 
@@ -304,9 +304,204 @@ Tom approved this on 2026-10-06 from the proposal at https://claude.ai/artifact/
 
 ---
 
+## M7 to M12 · What to dig next (Tom's request, 2026-10-07)
+
+Tom approved all forty ideas from https://claude.ai/artifact/UsaEt12C1SSRMKns5xGjA1 on 2026-10-07 ("ticket all items until implemented"). Order: touch and aim first, then payoffs, the deep game, finds, beyond the song, and keeping the save. Every new number goes in `src/data` and canon; every save change bumps `SAVE_VERSION` with a migration and a test; UI is checked at 1280×800 and 390×844.
+
+## M7 · Touch and aim
+
+**Exit:** on a phone you can always see the tile you are about to dig, and on a desktop you can see what is under the mouse.
+
+### [x] M7-01 · The loupe · M · PR #19
+Goal: a touch on rock shows a magnifier above the finger, so the target is never hidden.
+Acceptance:
+  1. A touch held on rock shows a round loupe about 100 CSS px above the finger, showing the tiles under the finger at 2× their on-screen size with the target tile outlined; it flips to the side near the top edge.
+  2. While dragging, the loupe follows and shows the dig path. Nothing is queued until the finger lifts; lifting off the canvas edge cancels.
+  3. Settings has Aim: Loupe (default on touch), Crosshair (a cursor floating 64 px above the finger) or Off. Saved with the other settings.
+  4. Render only reads state; input stays in `src/render/input.ts`. Pixel art stays integer-scaled (the loupe is a ×2 integer blit).
+Out of scope: pinch zoom (M7-05), smart dig (M7-02).
+Depends on: none.
+
+### [x] M7-02 · Smart dig · S · PR #19
+Goal: taps snap to ore and a long press takes the whole vein.
+Acceptance:
+  1. A Smart dig toggle in Settings (default on; ADR-031). With it on, a tap on rock within 1 tile of exposed, diggable ore targets the ore instead.
+  2. A press held 600 ms on an ore tile without dragging queues every connected (8-way) visible ore tile of that vein the pick can break, nearest first, up to the queue limit.
+  3. Tests cover the snap and the vein queue in a pure helper.
+Out of scope: Vein Break (M8-02).
+
+### [x] M7-03 · Hover highlight · S · PR #19
+Goal: the mouse shows what it is over.
+Acceptance:
+  1. On a mouse, the tile under the pointer is outlined. After 400 ms a small label shows material name, Foreman time to break it and what it drops, or "Needs the X pick" in red.
+  2. No label on touch devices. Label text lives in `src/story`.
+
+### [x] M7-04 · Tips out of the way · S · PR #19
+Goal: tips never cover the dig face.
+Acceptance:
+  1. Tip cards show as a slim strip under the header, one at a time.
+  2. A tip only shows once its system is in play this run (water: flooded tiles reached; and so on), and tips not yet shown are dropped when their act is behind the player.
+  3. Checked at both layouts.
+
+### [x] M7-05 · Pinch zoom and the whole mountain · M · PR #19
+Goal: zoom in to aim, out to see the crew working.
+Acceptance:
+  1. Pinch on touch, or Ctrl + wheel and +/− keys on desktop, step through whole-number render scales (phone ×1 to ×3 art scale, desktop ×2 to ×4).
+  2. A Mountain button zooms to show the whole cross-section from the fields to the deepest miner, then back. Lighting and sprites stay crisp (integer scaling only); ADR records how the far view is drawn.
+  3. Frame time stays inside the dev-bible budget at the far zoom with 40 miners.
+Note: covers idea 8 "See the whole mountain".
+
+### [x] M7-06 · Small fixes · S · PR #19
+Acceptance:
+  1. Escape closes the open sheet before it clears the queue.
+  2. ⌖, ▲ and ☰ get pixel icons with labels on phones ("Foreman", "Fields", "Menu").
+  3. Haptics where the device supports them: a short buzz when the Foreman breaks a tile, a stronger one on ore during Vein Rush, behind a Settings toggle.
+
+## M8 · Payoffs
+
+**Exit:** something to buy at almost every moment of Act I, and every reward is something you see.
+
+### [ ] M8-01 · A busier first five minutes · M
+Goal: no long wait with nothing to buy at the start.
+Acceptance:
+  1. The sim's longest wait with nothing to buy in the first 15 minutes has a median under 90 s, and `--strict` fails above it.
+  2. Every Act I target in canon §5 stays inside ±15%; at least 3 miners at the first Cave-in in the median run.
+  3. New numbers in canon and an ADR (likely a cheaper first miner and one more cheap repeatable buy).
+
+### [ ] M8-02 · Vein Break · M
+Goal: at Vein Rush ×5, the next ore tap shatters the connected vein.
+Acceptance:
+  1. Breaking an ore tile with the chain at the cap breaks every connected ore tile of that vein the pick can break, up to a cap in `src/data`, one after another outward, each paying as if hand-mined at ×5.
+  2. Each tile pops with the ore sound climbing; Glowroot veins flash, Geode veins ring.
+  3. Sim: pacing targets still inside ±15%.
+
+### [ ] M8-03 · Buy ×10 and Max, and "ready in" · S
+Acceptance:
+  1. A ×1 / ×10 / Max toggle on the Village sheet applies to miners, the whetstone, plots, saplings, cottages and meals; the button shows the total.
+  2. Anything not affordable shows "ready in 40 s" from the current income of that resource, or "needs X" when there is no income.
+  3. Buying many at once raises one toast with the total jump.
+
+### [ ] M8-04 · The ore heap · S
+Acceptance:
+  1. Hauled ore waiting for the forge draws as a heap beside the headframe whose size follows the backlog; bars stack beside the forge.
+  2. Render only; new sprites pass `lint:sprites`.
+
+### [ ] M8-05 · A Village you can shop at a glance · M
+Acceptance:
+  1. Each tab lists affordable things first; the price is inside the button; a missing resource is red.
+  2. Descriptions are one line, with the rest behind a tap.
+  3. On a phone the sheet is half height so the mine stays visible.
+  4. Units read as players think: ore a minute instead of hardness a second; no ".00".
+Note: covers U7 and U8's unit fixes.
+
+### [ ] M8-06 · Chips, header and alerts · S
+Acceptance:
+  1. Each ore chip uses its ore's colour; ore and bars are grouped; tap or hover shows name and rate.
+  2. The phone header is one line (depth · biome edge colour · best).
+  3. Every alert is a button to its fix: Held back by opens the right purchase or shows the stalled miners; Out of Lumen opens the Lamp-works.
+Note: covers U6, U8, U9 and idea 15.
+
+## M9 · The deep game
+
+**Exit:** no stretch of more than 10 minutes with nothing to buy in any act of the median sim run, and the Cave-in feels like a payout.
+
+### [ ] M9-01 · Waits in every act · S
+Acceptance:
+  1. The sim reports the longest wait with nothing to buy per act and per run, not just the first 15 minutes.
+  2. The nightly sim fails when any act's median longest wait is over 10 minutes (CI gate for Act I stays as M8-01).
+
+### [ ] M9-02 · Something to buy in the deep game · M
+Acceptance:
+  1. Silver, gold, resonant crystal and ember ore each have a cheap repeatable buy like the whetstone, resetting on a Cave-in, with numbers in canon.
+  2. M9-01's gate passes; the Act III and ending targets stay inside ±15%.
+
+### [ ] M9-03 · The bunkhouse remembers · S
+Acceptance:
+  1. A new Memory Echo upgrade: after a Cave-in, miners hire themselves as bars come in, up to last run's count.
+  2. Save change with migration and test (last run's miner count).
+
+### [ ] M9-04 · A Cave-in worth watching · M
+Acceptance:
+  1. The Cave-in plays a sequence of about 6 s: the shaft folds in from the top, Echoes count up over the notes of this run's verses, a stone drops on the cairn, then the new run opens with "last cycle you reached N ft".
+  2. Tap to skip; reduced motion shows a still card; the sim is unaffected.
+
+### [ ] M9-05 · Race your last run · S
+Acceptance:
+  1. The depth ruler shows a ghost mark for where you were at this minute of the last run; passing it toasts "N min ahead of last cycle".
+  2. Save change: the last run's depth by minute, capped in size, with migration and test.
+
+### [ ] M9-06 · Lead from the front · S
+Acceptance:
+  1. Miners within a radius of the Foreman dig faster by a factor in `src/data` (start ×1.5), shown as a glow on those miners.
+  2. Pacing targets still inside ±15%.
+
+## M10 · Finds
+
+**Exit:** every session has a surprise worth coming back for.
+
+### [ ] M10-01 · The tinker's cart · M
+Acceptance:
+  1. Every 6 to 10 minutes a cart parks by the shaft with three offers; you pick one; it waits for you and while you are away.
+  2. Offers and odds in `src/data`; save change with migration and test; the sim bot takes the first offer.
+
+### [ ] M10-02 · The curio shelf · M
+Acceptance:
+  1. About 1 tile in 350 drops a curio: common, fine or singing, each with its own sound. Four per biome in six sets, each a small permanent bonus and a bigger one for a full set.
+  2. The shelf (Survey Book page) shows found and missing curios; curios survive the Cave-in. Save change with migration and test.
+
+### [ ] M10-03 · Pell's dog · S
+Acceptance:
+  1. A helper (canon §14) that walks to the nearest unopened chest within 30 tiles and fetches it once a worker is close. Save change for the helper flag.
+
+### [ ] M10-04 · Day, night and rain · S
+Acceptance:
+  1. An eight-minute sky cycle with lit windows at dusk and fireflies over the fields (render only).
+  2. Rain now and then makes crops grow ×3 for a minute; it waits while you are away. Numbers in canon §17.
+
+## M11 · Beyond the song
+
+**Exit:** the game after the ending keeps paying and can run itself.
+
+### [ ] M11-01 · Endless Depth that keeps paying · M
+Acceptance:
+  1. Every 500 ft past the Heart floor is a marker with a reward that grows each time, and a pick line past the Heart pick that doubles at each marker.
+  2. Numbers in canon; save change with migration and test.
+
+### [ ] M11-02 · Let the Cave-in run itself · S
+Acceptance:
+  1. After the song has been sung once, Settings offers Auto Cave-in: it caves in when Echoes on offer have not risen for a set time, and logs a line each time.
+
+### [ ] M11-03 · New Song+ in a new key · L (split before starting)
+Acceptance:
+  1. Each sung song picks the next mountain's key, shown before you choose: one rule changes (wet year, hot year, rich veins, at least four keys).
+  2. Keys in `src/data` and canon; save change with migration and test.
+
+## M12 · Keep it
+
+**Exit:** a save can't be lost, the game installs on a phone, and the sim covers every system.
+
+### [ ] M12-01 · Save export and import · S
+Acceptance:
+  1. Settings can copy the save as text, download it as a file, and import pasted text or a file, with a confirm step and a validity check.
+
+### [ ] M12-02 · Install on a phone · S
+Acceptance:
+  1. A web manifest and a hand-written service worker (no new dependency; ADR) make the site installable and playable offline, on Vercel and in the itch.io zip without breaking either.
+
+### [ ] M12-03 · Layout smoke test · S
+Acceptance:
+  1. An ADR adds Playwright as a dev dependency; CI boots each save fixture at 1280×800 and 390×844, checks there are no page errors and no horizontal overflow, and keeps screenshots as artifacts.
+
+### [ ] M12-04 · Sim coverage · S
+Acceptance:
+  1. The bot places pumps so cress paddies appear in sims; it buys plots so the feast bell can ring; whether 150 crops is reachable in an ordinary run is answered in progress.md.
+  2. The slow Act III seeds are explained in progress.md, with a fix ticketed if the cause is the game.
+
+---
+
 ## Parking lot
 
-- M7 ideas from the Holloway Above proposal: the tinker's cart, the curio shelf, Pell's dog, day and night, rain showers and the ore heap.
+- Holloway Above ideas still open: none (the cart, curio shelf, Pell's dog, day and night, rain and the ore heap are now M8 and M10 tickets).
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.

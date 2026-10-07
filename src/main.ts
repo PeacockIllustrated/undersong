@@ -12,12 +12,16 @@ import {
 import { MATERIALS, isMineable } from './data/materials';
 import { apply, queued, type Action } from './sim/actions';
 import { createGame, loadGame, type Game } from './sim/game';
+import { snapToOre, veinTiles } from './sim/smartdig';
+import { workable } from './sim/reach';
+import { settings } from './settings';
 import { step } from './sim/step';
 import { loadSprites } from './render/sprites';
 import { buildTileTextures } from './render/tiles';
 import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
-import { HOLD_MS, Input } from './render/input';
+import { HOLD_MS, Input, buzz } from './render/input';
+import { HAPTICS } from './data/touch';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
 import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
@@ -72,9 +76,23 @@ function boot(): void {
   const input = new Input(canvas, cam, {
     scale: () => renderer.scale,
     isDiggable: (x, y) => ui.tool === 'dig' && isMineable(game.g.world.get(x, y)),
-    onTap: (x, y) => {
+    onTap: (x, y, touch) => {
       if (ui.tool === 'dig') following = true;
+      // M7-02: a finger's tap beside ore digs the ore; so does a click on rock that can't be dug yet
+      if (
+        ui.tool === 'dig' &&
+        settings().smartDig &&
+        !queued(game.g, x, y) &&
+        (touch || !workable(game.g, x, y))
+      )
+        ({ x, y } = snapToOre(game.g, x, y));
       dispatch({ type: 'tap', x, y, tool: ui.tool });
+    },
+    isOre: (x, y) => ui.tool === 'dig' && !!MATERIALS[game.g.world.get(x, y)]?.isOre,
+    onVein: (x, y) => {
+      following = true;
+      const tiles = veinTiles(game.g, x, y);
+      if (tiles.length) dispatch({ type: 'digPath', tiles });
     },
     onPath: (tiles) => {
       following = true;
@@ -86,7 +104,35 @@ function boot(): void {
     onPan: () => {
       following = false;
     },
+    onZoom: (dir) => {
+      // M7-05: zooming in from the Mountain view goes back to the close view; otherwise keep the centre still
+      if (renderer.mountain) {
+        if (dir === 1) setMountain(false);
+        return;
+      }
+      const cx = cam.x + renderer.viewW / 2;
+      const cy = cam.y + renderer.viewH / 2;
+      // past the farthest step, out goes to the whole mountain
+      if (!renderer.zoom(dir)) {
+        if (dir === -1) setMountain(true);
+        return;
+      }
+      cam.x = cx - renderer.viewW / 2;
+      cam.y = cy - renderer.viewH / 2;
+    },
+    mountainTap: (x, y) => {
+      if (!renderer.mountain) return false;
+      // a tap on the map goes to that spot, close up
+      const k = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
+      const t = renderer.mountainView.tileAt(x * k, y * k, game.g.world.w);
+      setMountain(false);
+      if (t) ui.lookAt(t.x, t.y);
+      return true;
+    },
   });
+  const setMountain = (on: boolean): void => {
+    renderer.mountain = on;
+  };
 
   const ears = new Ears();
   // Esc clears the Foreman's dig queue; M mutes
@@ -101,8 +147,10 @@ function boot(): void {
       const on = ears.toggleMute();
       toast(on ? SETTINGS_TEXT.unmuted : SETTINGS_TEXT.muted, on ? undefined : SETTINGS_TEXT.mutedSub);
     }
-    if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]'))
-      dispatch({ type: 'cancelDig' });
+    if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]')) {
+      if (renderer.mountain) setMountain(false);
+      else dispatch({ type: 'cancelDig' });
+    }
   });
 
   const save = (): void => saveLocal(game.g.state, Date.now());
@@ -161,6 +209,14 @@ function boot(): void {
       this.tool = t;
       canvas.style.cursor = t === 'dig' ? 'crosshair' : 'cell';
     },
+    get mountain() {
+      return renderer.mountain;
+    },
+    setMountain,
+    get hover() {
+      const h = input.hover;
+      return h && input.mode === 'idle' ? h : null;
+    },
     get away() {
       return away;
     },
@@ -198,6 +254,9 @@ function boot(): void {
     const p0 = input.path[0];
     const h = input.hold;
     renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
+    renderer.touch = input.touch;
+    renderer.hover = input.hover;
+    renderer.aimTile = input.aimTile;
     renderer.previewCancel = input.mode === 'dig' && !!p0 && queued(game.g, p0.x, p0.y);
     const t0 = performance.now();
     renderer.draw(game.g, cam, now);
@@ -284,9 +343,16 @@ function shaftHead(g: Game, r: Renderer, now: number): void {
 function handleEvents(g: Game, r: Renderer, now: number): void {
   shaftHead(g, r, now);
   biomeWatch(g);
+  // M7-06: one buzz a frame at most, the strongest earned: a break, ore, or ore in a Vein Rush
+  let hum = 0;
   for (const e of g.events) {
     if (e.kind === 'mined') {
       const def = MATERIALS[e.m];
+      if (e.by === 'foreman')
+        hum = Math.max(
+          hum,
+          !def?.isOre ? HAPTICS.brk : g.state.foreman.chain > 0 ? HAPTICS.rushOre : HAPTICS.ore,
+        );
       const host = def?.host !== undefined ? MATERIALS[def.host] : def;
       if (host) r.fx.debris(e.x * TILE_PX + 8, e.y * TILE_PX + 8, host.ramp, 7);
     } else if (e.kind === 'drop') {
@@ -338,5 +404,6 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       r.fx.shake(3, 1500, now);
     }
   }
+  if (hum && document.visibilityState === 'visible') buzz(hum);
   g.events.length = 0;
 }

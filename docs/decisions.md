@@ -231,3 +231,20 @@ Decision:
 - The cellar is drawn in the cross-section under the cookhouse, over the soil, and does not touch the tile grid.
 - Cress and firepepper are new village resources. Save v7 adds soup and broth levels and the cellar state.
 - Costs and caps are my own call, in `src/data/surface.ts` and canon §17.6. Pacing is checked after merge with the act3 and ending sims (the M6 working rule: ship, then tune).
+
+## ADR-031 · Aiming on touch: a loupe, smart dig, and buzzes
+
+**Context.** On a phone a tile is 32 CSS px and the finger hides it (Tom's report; Terraria answers this with an offset zoom box).
+**Decision.**
+- While a finger is on rock, a ×2 loupe shows above it with the aimed tile outlined in gold. Settings offer Aim on touch: Magnifier (default), Crosshair (aim 64 px above the finger) or Off. Lifting the finger off the edge of the view cancels.
+- Smart dig (Settings, default on) snaps a finger's tap on plain rock to workable ore within 1 tile. A mouse is precise, so a click only snaps when the clicked rock can't be worked. Holding 600 ms on ore queues the whole visible vein. The ticket said a tool-bar toggle; it went in Settings beside Aim, because the phone tray has no room.
+- Vibration (Settings, default on) buzzes on the hold, on the Foreman's breaks and on ore, one buzz a frame at most.
+
+## ADR-032 · Zoom in whole steps, and the Mountain view as a flat map
+
+**Context.** M7-05 asks for pinch zoom and a view of the whole cross-section, with integer scaling only. The world is 64 tiles wide and over 300 deep by Act IV, so no whole-number sprite scale shows it all on any screen.
+**Decision.**
+- Zoom steps through whole art scales (phone ×1 to ×3, desktop ×2 to ×4), keeping the centre still. The tile chunk caches are in art pixels, so zooming costs no re-render.
+- The Mountain view is a different drawing, not a smaller one: one flat master-palette colour per tile (rock faces the village has opened in their own colour, unopened rock all one slate, dug space dark, water blue, workers as gold and teal dots), scaled up by whole device pixels with smoothing off. Biome names mark where each band starts. Only opened faces show their ore, so the map gives nothing away.
+- A tap on the map goes there, close up. Esc, + or a pinch in also leave it.
+- Measured with 40 miners in headless Chromium: draw time p95 1.0 ms at the default zoom, 2.5 ms at the farthest, 0.7 ms in the Mountain view (budget 8 ms). That machine is not a mid-range phone, so this is an indication rather than proof.

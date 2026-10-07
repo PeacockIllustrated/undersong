@@ -431,3 +431,19 @@ Each act's crop hangs off a system that act already has. Paddies and hot-beds ar
 | IV  | Firepepper hot-bed | 3 Gold bars × 1.15ⁿ (n = hot-beds), up to 4; offered from the Ember Deep (250 tiles) | grows firepeppers while ember ore is in hand; each harvest burns 1 ember ore |
 
 The cellar, paddies, hot-beds, soup and broth reset on a Cave-in.
+
+## §18 Touch, aim and zoom (v0, ADR-031, ADR-032)
+
+Values live in `src/data/touch.ts`.
+
+| Thing | Value |
+| ----- | ----- |
+| Loupe | circle of radius 58 CSS px, 104 CSS px above the finger (beside it near the top edge), ×2 magnification, gold outline on the aimed tile |
+| Crosshair | aims 64 CSS px above the finger |
+| Smart dig snap | a tap on rock within 1 tile of workable ore the pick can break digs the ore; on a mouse, only when the clicked rock cannot be worked |
+| Vein long-press | 600 ms held still on ore queues every 8-way connected ore tile the pick can break, nearest first, up to the dig-queue limit |
+| Haptics (ms) | hold to dig 12 · Foreman breaks rock 6 · ore 14 · ore during a Vein Rush 24 · vein queued 24; one buzz a frame at most |
+| Hover label | mouse rests 400 ms on a tile: name, Foreman seconds to break it now, the drop; or "Needs the X pick" |
+| Zoom steps (art px per CSS px) | phone ×1, ×2, ×3 (default ×2) · desktop ×2, ×3, ×4 (default ×3, ×4 above 1400 CSS px) |
+| Zoom input | pinch ratio 1.3 per step · Ctrl + wheel 60 px per step · + and − keys; one step out past the farthest opens the Mountain view |
+| Mountain view | 6 rows of sky to 6 rows below the deepest worker or dug tile; whole device pixels per tile; HUD margins 84 / 124 CSS px on phones, 16 from 900 CSS px wide; redrawn every 250 ms |

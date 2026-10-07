@@ -108,6 +108,37 @@ export function SettingsPanel() {
         set={(music) => setSettings({ music })}
       />
       <Choice
+        label={t.aim.label}
+        hint={t.aim.hint}
+        value={s.aim}
+        options={[
+          ['loupe', t.aim.loupe],
+          ['crosshair', t.aim.crosshair],
+          ['off', t.aim.off],
+        ]}
+        set={(aim) => setSettings({ aim })}
+      />
+      <Choice
+        label={t.smartDig.label}
+        hint={t.smartDig.hint}
+        value={s.smartDig}
+        options={[
+          [true, t.on],
+          [false, t.off],
+        ]}
+        set={(smartDig) => setSettings({ smartDig })}
+      />
+      <Choice
+        label={t.haptics.label}
+        hint={t.haptics.hint}
+        value={s.haptics}
+        options={[
+          [true, t.on],
+          [false, t.off],
+        ]}
+        set={(haptics) => setSettings({ haptics })}
+      />
+      <Choice
         label={t.numbers.label}
         hint={t.numbers.hint}
         value={s.numbers}

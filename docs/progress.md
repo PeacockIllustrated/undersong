@@ -12,6 +12,15 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 ---
 
+## 2026-10-07 · M7 Touch and aim (M7-01 to M7-06)
+
+Done (PR #19): a ×2 loupe above the finger while it is on rock, with Crosshair and Off in Settings; smart dig (a finger's tap beside ore digs the ore, a 600 ms hold on ore queues the vein); a hover outline and label on the mouse; tips moved to a slim strip under the header, held until their system is in play and dropped once their act is behind; pinch, Ctrl + wheel and +/− zoom in whole steps; the Mountain view (a flat whole-pixel map with biome names, tap to go there); Esc closes the open sheet first; pixel icons with labels on phones for Foreman, Fields, Mountain and Menu; vibration on breaks and ore. canon §18, ADR-031, ADR-032. No save change.
+State: `npm run check` green. Checked at 1280×800 and 390×844 with Playwright: phone nav fits, Esc closes the Village sheet, the hover label reads right. Draw time with 40 miners in headless Chromium: p95 1.0 ms default zoom, 2.5 ms farthest, 0.7 ms Mountain view; that machine is not a mid-range phone. Haptics and real pinch were driven by synthetic touches only, not a device.
+Next: M8-01 a busier first five minutes.
+Questions for Tom: none.
+
+---
+
 ## 2026-10-06 · M6-07 Act crops
 
 Done: the root cellar under the cookhouse (dig with iron and bricks, seed with spores, then a spore every 5 s), cress paddies (a barley plot flooded, 2 watered per pump, cress soup gives haul +20% a level), firepepper hot-beds (from the Ember Deep, each harvest burns an ember ore, pepper broth takes 0.1 off a face's heat for miners a level). Save v7 with a migration and fixture. canon §17.6, ADR-030. Five new sprites. The sim bot uses all three.
