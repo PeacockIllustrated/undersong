@@ -141,6 +141,20 @@ export function minerRate(g: Game, m: Miner): number {
   );
 }
 
+/** M8-05: ore a second the miners send up from the faces they are working now (for the Village sheet). */
+export function minerOreRate(g: Game): number {
+  let sum = 0;
+  for (const m of g.state.miners) {
+    const t = m.target;
+    if (!t || m.stalledBy !== null) continue;
+    const drop = MATERIALS[g.world.get(t.x, t.y)]?.drop;
+    if (!drop || drop.res === 'rubble') continue;
+    const need = hardnessAt(g.world.hardnessOf(t.x, t.y), g.world.depth(t.y));
+    sum += (minerRate(g, m) / need) * drop.n;
+  }
+  return sum;
+}
+
 /**
  * Put dt seconds of work into the miner's face. A long catch-up step (offline) keeps going onto the next face with
  * the time left over, so coarse steps dig as much as real time would.

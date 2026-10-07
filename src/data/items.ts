@@ -15,7 +15,7 @@ export interface PickDef {
 
 export const PICKS: readonly PickDef[] = [
   { name: 'Wooden pick', sprite: 'pick-wood', power: 1, cost: [] },
-  { name: 'Copper pick', sprite: 'pick-copper', power: 2, cost: [{ res: 'copperBar', n: 10 }] },
+  { name: 'Copper pick', sprite: 'pick-copper', power: 2, cost: [{ res: 'copperBar', n: 22 }] },
   { name: 'Bronze pick', sprite: 'pick-bronze', power: 3, cost: [{ res: 'bronzeBar', n: 25 }] },
   { name: 'Iron pick', sprite: 'pick-iron', power: 5, cost: [{ res: 'ironBar', n: 15 }] },
   {

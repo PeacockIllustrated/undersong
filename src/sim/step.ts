@@ -2,7 +2,7 @@
 import { UPGRADE_FX } from '../data/upgrades';
 import { FOREMAN_RATE, hardnessAt } from './formulas';
 import type { Game } from './game';
-import { stepForeman } from './dig';
+import { stepForeman, stepShatter } from './dig';
 import { stepMiners } from './miners';
 import { stepForge, stepHaul } from './economy';
 import { stepStory } from './story';
@@ -26,6 +26,7 @@ export function step(g: Game, dtMs: number): void {
   // water moves and vents come and go: heat is worked out afresh each second
   if (s.t % 1000 === 0 || dt >= 1) coolCache(g);
   stepForeman(g, dt);
+  stepShatter(g, dt);
   stepMiners(g, dt);
   stepHaul(g, dt);
   stepForge(g, dt);

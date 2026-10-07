@@ -33,7 +33,7 @@ import {
 import { D } from '../sim/decimal';
 import { spriteURL } from '../render/sprites';
 import type { UiBridge } from './App';
-import { Cost } from './Village';
+import { BuyRow, Desc, PriceButton, first } from './BuyRow';
 import { fmt } from './format';
 
 type State = UiBridge['game']['state'];
@@ -83,33 +83,26 @@ export function Fields({ ui }: { ui: UiBridge }) {
   const left = Math.ceil((sf.feastUntil - s.t) / 1000);
   const r = ripe(s);
   return (
-    <>
-      <section class="card">
+    <div class="shop">
+      <section class="card" style={first(can(s, pc))}>
         <img class="prop" src={spriteURL('tansy')} alt="" />
         <div class="grow">
           <h3>
             Tansy’s fields · {sf.plots.length} plot{sf.plots.length === 1 ? '' : 's'}
           </h3>
-          <p>
+          <Desc>
             Barley ripens in {FIELDS.ripenS} s and gives {FIELDS.yield}, or {FIELDS.yield * FIELDS.handMult}{' '}
             when you reap it yourself: tap a ripe plot east of the shaft. About one ear in{' '}
             {Math.round(1 / FIELDS.goldenChance)} comes up golden and pays ×{FIELDS.goldenMult}.
-          </p>
+          </Desc>
           <p class="small">
             {r > 0 ? `${r} ripe now.` : 'Nothing ripe yet.'}
             {s.helpers.tansy ? ' Tansy reaps whatever ripens.' : ''}
           </p>
           {pc ? (
-            <div class="row">
-              <button
-                class={`btn ${canPay(s, pc) ? 'can' : ''}`}
-                disabled={!canPay(s, pc)}
-                onClick={() => ui.dispatch({ type: 'buyPlot' })}
-              >
-                Dig a new plot
-              </button>
-              <Cost costs={pc} have={s.res} />
-            </div>
+            <BuyRow ui={ui} of={{ k: 'plot' }}>
+              Dig a new plot
+            </BuyRow>
           ) : (
             <p class="small">Every plot on the hillside is sown.</p>
           )}
@@ -118,11 +111,16 @@ export function Fields({ ui }: { ui: UiBridge }) {
 
       <ActCrops ui={ui} />
 
-      <section class="card">
+      <section
+        class="card"
+        style={first(
+          MEALS.some((m) => mealShown(s, m) && can(s, mealCost(s, m.id))) || (!on && sf.feast >= need),
+        )}
+      >
         <img class="prop" src={spriteURL('cookhouse', on ? 1 : 0)} alt="" />
         <div class="grow">
           <h3>The cookhouse · {fmt(s.res.barley)} barley</h3>
-          <p>Meals last until the Cave-in.</p>
+          <Desc>Meals last until the Cave-in.</Desc>
           {MEALS.filter((m) => mealShown(s, m)).map((m) => {
             const c = mealCost(s, m.id);
             const lv = sf.meals[m.id];
@@ -133,19 +131,14 @@ export function Fields({ ui }: { ui: UiBridge }) {
                 </p>
               );
             return (
-              <div class="row" key={m.id}>
-                <button
-                  class={`btn ${canPay(s, c) ? 'can' : ''}`}
-                  disabled={!canPay(s, c)}
-                  onClick={() => ui.dispatch({ type: 'eatMeal', id: m.id })}
-                >
+              <div key={m.id}>
+                <BuyRow ui={ui} of={{ k: 'meal', id: m.id }}>
                   {m.name} <em>{mealFx(m, 1)}</em>
-                </button>
-                <Cost costs={c} have={s.res} />
-                <span class="small">
+                </BuyRow>
+                <p class="small">
                   {m.text}
                   {lv > 0 ? ` · ${mealFx(m, lv)} now` : ''}
-                </span>
+                </p>
               </div>
             );
           })}
@@ -181,7 +174,7 @@ export function Fields({ ui }: { ui: UiBridge }) {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
@@ -202,55 +195,45 @@ function ActCrops({ ui }: { ui: UiBridge }) {
   return (
     <>
       {cellarOffered(s) && (
-        <section class="card">
+        <section class="card" style={first(can(s, cc))}>
           <img class="prop" src={spriteURL('cellar', sf.cellar >= 2 ? 1 : 0)} alt="" />
           <div class="grow">
             <h3>The root cellar</h3>
-            <p>
+            <Desc>
               {sf.cellar >= 2
                 ? `Glowcaps grow in the dark under the cookhouse: a spore every ${ACT_CROPS.cellarEveryS} s for the Lamp-works.`
                 : sf.cellar === 1
                   ? 'Dug and damp. Seed it with spores and it gives them back, one every few seconds.'
                   : 'Dig a cellar under the cookhouse and grow glowcaps there, so the Lamp-works never runs short of spores.'}
-            </p>
+            </Desc>
             {cc && (
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, cc) ? 'can' : ''}`}
-                  disabled={!canPay(s, cc)}
-                  onClick={() => ui.dispatch({ type: 'workCellar' })}
-                >
-                  {sf.cellar === 0 ? 'Dig the cellar' : 'Seed it'}
-                </button>
-                <Cost costs={cc} have={s.res} />
-              </div>
+              <PriceButton s={s} costs={cc} onClick={() => ui.dispatch({ type: 'workCellar' })}>
+                {sf.cellar === 0 ? 'Dig the cellar' : 'Seed it'}
+              </PriceButton>
             )}
           </div>
         </section>
       )}
       {showPaddy && (
-        <section class="card">
+        <section class="card" style={first(can(s, pac))}>
           <img class="prop" src={spriteURL('crop-cress', 3)} alt="" />
           <div class="grow">
             <h3>
               Cress paddies · {paddies} · {fmt(s.res.cress)} cress
             </h3>
-            <p>
+            <Desc>
               Flood a barley plot from the pumps and it grows cress for soup. Each pump in the mine waters{' '}
               {ACT_CROPS.paddiesPerPump} paddies ({pumps} pump{pumps === 1 ? '' : 's'} now).
-            </p>
+            </Desc>
             {dry > 0 && <p class="small">{dry} stand dry: place more pumps to water them.</p>}
             {pac ? (
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, pac) ? 'can' : ''}`}
-                  disabled={!canPay(s, pac)}
-                  onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'cress' })}
-                >
-                  Flood a plot
-                </button>
-                <Cost costs={pac} have={s.res} />
-              </div>
+              <PriceButton
+                s={s}
+                costs={pac}
+                onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'cress' })}
+              >
+                Flood a plot
+              </PriceButton>
             ) : (
               <p class="small">The pumps water every paddy they can.</p>
             )}
@@ -258,27 +241,24 @@ function ActCrops({ ui }: { ui: UiBridge }) {
         </section>
       )}
       {showHot && (
-        <section class="card">
+        <section class="card" style={first(can(s, hbc))}>
           <img class="prop" src={spriteURL('crop-pepper', 3)} alt="" />
           <div class="grow">
             <h3>
               Pepper hot-beds · {hotbeds} · {fmt(s.res.pepper)} peppers
             </h3>
-            <p>
+            <Desc>
               Build a hot-bed on a barley plot and grow firepeppers for broth. Each harvest burns{' '}
               {ACT_CROPS.hotbedEmber} ember ore; with none in hand, the beds go cold and wait.
-            </p>
+            </Desc>
             {hbc ? (
-              <div class="row">
-                <button
-                  class={`btn ${canPay(s, hbc) ? 'can' : ''}`}
-                  disabled={!canPay(s, hbc)}
-                  onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'pepper' })}
-                >
-                  Build a hot-bed
-                </button>
-                <Cost costs={hbc} have={s.res} />
-              </div>
+              <PriceButton
+                s={s}
+                costs={hbc}
+                onClick={() => ui.dispatch({ type: 'plantCrop', crop: 'pepper' })}
+              >
+                Build a hot-bed
+              </PriceButton>
             ) : (
               <p class="small">
                 {hotbeds >= ACT_CROPS.maxHotbeds
@@ -299,29 +279,22 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
   const sc = saplingCost(s);
   const trees = sf.trees.map((t) => (isElder(t) ? 'elder' : STAGE[treeStage(t)]!));
   return (
-    <>
-      <section class="card">
+    <div class="shop">
+      <section class="card" style={first(can(s, sc))}>
         <img class="prop" src={spriteURL('rook')} alt="" />
         <div class="grow">
           <h3>Rook’s woodlot · {fmt(s.res.timber)} timber</h3>
-          <p>
+          <Desc>
             Trees grow young at {WOODLOT.stageS[0]! / 60} min, grown at {WOODLOT.stageS[1]! / 60} and old at{' '}
             {WOODLOT.stageS[2]! / 60}. Felling gives {WOODLOT.chop.slice(1).join(', ')} timber, double when
             you swing the axe: tap a tree. A tree that stands through {WOODLOT.elderAfter} Cave-ins becomes an
             elder.
-          </p>
+          </Desc>
           <p class="small">{trees.length ? `Standing: ${trees.join(', ')}.` : 'The woodlot is bare.'}</p>
           {sc ? (
-            <div class="row">
-              <button
-                class={`btn ${canPay(s, sc) ? 'can' : ''}`}
-                disabled={!canPay(s, sc)}
-                onClick={() => ui.dispatch({ type: 'plantSapling' })}
-              >
-                Plant a sapling
-              </button>
-              <Cost costs={sc} have={s.res} />
-            </div>
+            <BuyRow ui={ui} of={{ k: 'sapling' }}>
+              Plant a sapling
+            </BuyRow>
           ) : (
             <p class="small">Every slot in the woodlot has a tree.</p>
           )}
@@ -331,28 +304,21 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
         const c = woodCost(s, b.id);
         const lv = sf.wood[b.id];
         return (
-          <section class="card" key={b.id}>
+          <section class="card" style={first(can(s, c))} key={b.id}>
             <img class="prop" src={spriteURL(b.id === 'cottage' ? 'cottage' : 'forge', 1)} alt="" />
             <div class="grow">
               <h3>
                 {b.name}
                 {lv > 0 ? ` · ${lv}` : ''}
               </h3>
-              <p>
+              <Desc>
                 {b.text}: +{Math.round(b.per * 100)}% each
                 {lv > 0 ? `, +${Math.round(b.per * lv * 100)}% now` : ''}.
-              </p>
+              </Desc>
               {c ? (
-                <div class="row">
-                  <button
-                    class={`btn ${canPay(s, c) ? 'can' : ''}`}
-                    disabled={!canPay(s, c)}
-                    onClick={() => ui.dispatch({ type: 'buyWood', id: b.id })}
-                  >
-                    {b.id === 'cottage' ? 'Raise a cottage' : lv ? 'Stoke it higher' : 'Build the hearth'}
-                  </button>
-                  <Cost costs={c} have={s.res} />
-                </div>
+                <BuyRow ui={ui} of={{ k: 'wood', id: b.id }}>
+                  {b.id === 'cottage' ? 'Raise a cottage' : lv ? 'Stoke it higher' : 'Build the hearth'}
+                </BuyRow>
               ) : (
                 <p class="small">
                   {b.id === 'cottage' ? 'The valley has no room for more.' : 'As hot as it will burn.'}
@@ -366,7 +332,7 @@ export function Woodlot({ ui }: { ui: UiBridge }) {
         Pit props: once the Kiln is built, a support takes {PIT_PROP.n} timber in place of bricks while timber
         is the cheaper.
       </p>
-    </>
+    </div>
   );
 }
 

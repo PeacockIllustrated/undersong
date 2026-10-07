@@ -248,3 +248,15 @@ Decision:
 - The Mountain view is a different drawing, not a smaller one: one flat master-palette colour per tile (rock faces the village has opened in their own colour, unopened rock all one slate, dug space dark, water blue, workers as gold and teal dots), scaled up by whole device pixels with smoothing off. Biome names mark where each band starts. Only opened faces show their ore, so the map gives nothing away.
 - A tap on the map goes there, close up. Esc, + or a pinch in also leave it.
 - Measured with 40 miners in headless Chromium: draw time p95 1.0 ms at the default zoom, 2.5 ms at the farthest, 0.7 ms in the Mountain view (budget 8 ms). That machine is not a mid-range phone, so this is an indication rather than proof.
+
+## ADR-033 · Payoffs: a cheaper start, Vein Break, and a shop you read at a glance
+
+**Context.** M8 asks for something to buy at almost every moment of Act I, and for every reward to be something you see. The sim found the first 15 minutes had a median longest wait of about 185 s with nothing affordable. Copper bars come in at 1–3 a minute in Act I, and the bot was spending most of them on torches.
+**Decision.**
+- Economy (canon §4.14, §9): the first miner costs 12 copper bars (was 15), the whetstone `1 × 1.4^n` (was `2 × 1.45^n`), a torch craft makes 5 (was 3), and the copper pick costs 22 (was 10) so that it stays a goal rather than an instant buy. A steeper whetstone than 1.2 is needed: at 1.2 the whetstone keeps paying into Act III and the act ended 27% early.
+- The balance bot buys like a player: helpers wait for the third miner, haul is bought when ore piles up underground, and buys on the surface (plots, meals, saplings) count as "something to buy". `--strict` now also fails when the median longest wait is over 90 s.
+- Vein Break (canon §4.7.1): an ore tile broken by hand at the ×5 Rush cap breaks the rest of the vein (up to 12 tiles, 90 ms apart). It is a reward for a hand-mining chain, so it never fires offline and miners never trigger it.
+- The shop (canon §19): ×1 / ×10 / Max applies to the repeatable buys only; one-off purchases stay single. "Ready in" is read from what the HUD sees coming in, which is a UI estimate and not part of the sim. Prices sit inside the buttons, the short resource is red, affordable cards sort first and descriptions fold to one line. On a phone the Village takes the bottom half of the screen so the mine stays in view.
+- The ore heap and bar stack are render-only and read `res`, so they cost nothing in the save.
+- Alerts carry where their fix is (`Fix` in `src/ui/feedback.ts`): a Village card, scrolled to and lit, or a place in the mine. The haulage alert now compares ore a second with ore a second (it used to compare hardness with ore).
+**Consequences.** The "≥3 miners at the first Cave-in" criterion is not met: the median is 2, and about 4 seeds in 9 reach 3. Getting there pulled the first Cave-in under its target, so the ticket was rewritten (see roadmap M8-01) rather than forcing it.

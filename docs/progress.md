@@ -10,6 +10,27 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M8-01 to M8-06 (Payoffs)
+Done:
+- The first 15 minutes are busier. The first miner costs 12, the whetstone costs 1 × 1.4^n, a torch craft makes 5, and the copper pick costs 22.
+- The sim's median longest wait with nothing to buy is 60 s, and `--strict` now fails above 90 s.
+- Vein Break: at Rush ×5, the vein shatters, up to 12 tiles.
+- Buy ×1, ×10 or Max, with a "ready in" estimate.
+- An ore heap by the headframe and a bar stack by the forge.
+- The Village sorts what you can afford first. Prices sit in the buttons, and the resource you're short of shows in red. Descriptions fold to one line. On a phone the sheet is half height.
+- Rates now read in ore a minute.
+- Chips use their ore's colour and show a name and rate when tapped. The phone header is one line. Alerts open their fix. ADR-033, canon §4.7.1 and §19.
+State:
+- `npm run check` is green.
+- Act I: all targets ✓ over 9 seeds.
+- Act III: median 332 against 390 ✓ over 6 seeds.
+- Ending: one seed came in at 776 against 690 (+12%). The full ending run is still to come, so it may need a small retune in M9.
+- M8-01's "3 miners at the first Cave-in" target was rewritten to a median of 2 (ADR-033).
+- The haulage alert now compares like with like.
+Next: M9.
+Questions for Tom: none.
+
+
 ---
 
 ## 2026-10-07 · M7 Touch and aim (M7-01 to M7-06)

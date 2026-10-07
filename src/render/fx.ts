@@ -23,9 +23,13 @@ interface Floater {
   life: number;
 }
 
+const FLASH_MS = 320;
+
 export class Fx {
   private parts: Particle[] = [];
   private floats: Floater[] = [];
+  /** M8-02: Glowroot veins flash as they break: a square of light that grows and fades over the dark. */
+  private flashes: { x: number; y: number; col: string; t0: number }[] = [];
   private last = 0;
   shakeUntil = 0;
   shakeAmp = 0;
@@ -65,6 +69,11 @@ export class Fx {
     if (this.floats.length > 30) this.floats.shift();
   }
 
+  flash(x: number, y: number, col: string, now: number): void {
+    this.flashes.push({ x, y, col, t0: now });
+    if (this.flashes.length > 24) this.flashes.shift();
+  }
+
   shake(amp: number, ms: number, now: number): void {
     if (reducedMotion()) return; // M5-02: no screen shake when motion is reduced
     this.shakeAmp = amp;
@@ -87,6 +96,19 @@ export class Fx {
 
   /** Floating numbers above the light, so they always read. */
   drawOverlay(ctx: CanvasRenderingContext2D, now: number): void {
+    this.flashes = this.flashes.filter((f) => now - f.t0 < FLASH_MS);
+    for (const f of this.flashes) {
+      const k = (now - f.t0) / FLASH_MS;
+      const r = 8 + Math.round(k * 8);
+      ctx.globalAlpha = 0.7 * (1 - k);
+      ctx.strokeStyle = f.col;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(Math.round(f.x) - r + 0.5, Math.round(f.y) - r + 0.5, r * 2 - 1, r * 2 - 1);
+      ctx.fillStyle = f.col;
+      ctx.globalAlpha = 0.35 * (1 - k);
+      ctx.fillRect(Math.round(f.x) - 8, Math.round(f.y) - 8, 16, 16);
+    }
+    ctx.globalAlpha = 1;
     this.floats = this.floats.filter((f) => now - f.t0 < f.life);
     ctx.font = '8px Silkscreen, monospace';
     ctx.textAlign = 'center';

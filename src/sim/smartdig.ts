@@ -30,6 +30,34 @@ export function snapToOre(g: Game, x: number, y: number): Tile {
   return best ?? { x, y };
 }
 
+/**
+ * M8-02: the tiles of material `m` connected (8-way) to (x, y), not counting (x, y), that the pick can break,
+ * nearest first, up to `max`.
+ */
+export function veinAround(g: Game, x: number, y: number, m: number, max: number): Tile[] {
+  const w = g.world;
+  if (!canDig(m, g.state.pickTier)) return [];
+  const seen = new Set<number>([w.idx(x, y)]);
+  const ring: Tile[] = [{ x, y }];
+  const out: Tile[] = [];
+  for (let i = 0; i < ring.length && out.length < max; i++) {
+    const t = ring[i]!;
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        const nx = t.x + dx;
+        const ny = t.y + dy;
+        if (nx < 0 || ny < 0 || nx >= w.w || ny >= w.h) continue;
+        const k = w.idx(nx, ny);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (w.get(nx, ny) !== m || out.length >= max) continue;
+        out.push({ x: nx, y: ny });
+        ring.push({ x: nx, y: ny });
+      }
+  }
+  return out;
+}
+
 /** Every ore tile of the vein through (x, y) that the pick can break, nearest first (8-way), up to the dig queue. */
 export function veinTiles(g: Game, x: number, y: number): Tile[] {
   if (!isOreAt(g, x, y) || !canDig(g.world.get(x, y), g.state.pickTier)) return [];

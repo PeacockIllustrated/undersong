@@ -22,6 +22,7 @@ import { Renderer } from './render/renderer';
 import { Camera } from './render/camera';
 import { HOLD_MS, Input, buzz } from './render/input';
 import { HAPTICS } from './data/touch';
+import { sampleRates } from './ui/rates';
 import { loadLocal, saveLocal, wipeLocal } from './save/storage';
 import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
@@ -254,6 +255,7 @@ function boot(): void {
     const p0 = input.path[0];
     const h = input.hold;
     renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
+    sampleRates(game.g.state);
     renderer.touch = input.touch;
     renderer.hover = input.hover;
     renderer.aimTile = input.aimTile;
@@ -267,13 +269,13 @@ function boot(): void {
 }
 
 /** ADR-020: every purchase says, in one big line, what it just did for you. */
-function announce(g: Game, what: string): void {
+function announce(g: Game, what: string, k = 1): void {
   const s = g.state;
   const ratio = (a: number, b: number): string => `×${(a / b).toFixed(2).replace(/\.?0+$/, '')}`;
   if (what === 'pick') {
     const p = PICKS[s.pickTier]!;
     toast(p.name, `${ratio(p.power, PICKS[s.pickTier - 1]!.power)} dig speed for you and every miner`);
-  } else if (what === 'miner') toast(`+1 miner`, `${s.miners.length} at work`);
+  } else if (what === 'miner') toast(k > 1 ? `+${k} miners` : '+1 miner', `${s.miners.length} at work`);
   else if (what === 'whetstone')
     toast(
       `Whetstone · level ${s.whetstone}`,
@@ -289,8 +291,9 @@ function announce(g: Game, what: string): void {
   } else if (what === 'kiln' || what === 'lampworks' || what === 'songloom') {
     const b = BUILDINGS.find((x) => x.id === what)!;
     toast(s.buildings[b.id] > 1 ? `${b.name} · level ${s.buildings[b.id]}` : b.name, b.text);
-  } else if (what === 'plot') toast('+1 plot', `${s.surface.plots.length} of ${FIELDS.maxPlots} in barley`);
-  else if (what === 'sapling') toast('A sapling', 'Rook plants it out');
+  } else if (what === 'plot')
+    toast(k > 1 ? `+${k} plots` : '+1 plot', `${s.surface.plots.length} of ${FIELDS.maxPlots} in barley`);
+  else if (what === 'sapling') toast(k > 1 ? `${k} saplings` : 'A sapling', 'Rook plants them out');
   else if (what === 'paddy') toast('A cress paddy', 'Flooded from the pumps');
   else if (what === 'hotbed') toast('A hot-bed', 'Each pepper harvest burns one ember ore');
   else if (what === 'cellar') toast('The root cellar', 'Seed it with spores');
@@ -395,7 +398,19 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       );
       if (golden) for (let i = 0; i < 8; i++) r.fx.sparkle(e.x * TILE_PX + 8, y + 8, '#FFF2A8');
     } else if (e.kind === 'bought') {
-      announce(g, e.what);
+      announce(g, e.what, e.n);
+    } else if (e.kind === 'veinBreak') {
+      // M8-02: the vein gives way
+      r.fx.shake(2, 400, now);
+      toast('Vein Break', `${e.n + 1} tiles of ore at once`);
+      hum = Math.max(hum, HAPTICS.rushOre);
+    } else if (e.kind === 'shatter') {
+      const cx = e.x * TILE_PX + 8;
+      const cy = e.y * TILE_PX + 8;
+      const n = e.flash || e.ring ? 6 : 3;
+      const col = e.flash ? '#5FF0D8' : e.ring ? '#C4F0FF' : '#FFF2A8';
+      for (let i = 0; i < n; i++) r.fx.sparkle(cx, cy, col);
+      if (e.flash) r.fx.flash(cx, cy, '#5FF0D8', now);
     } else if (e.kind === 'record') {
       r.fx.shake(1, 300, now);
       toast(`New record · ${e.ft} ft`, 'Deeper than any cycle before');

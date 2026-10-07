@@ -9,6 +9,8 @@ import { rushMult } from '../src/sim/dig';
 import { mineTile } from '../src/sim/dig';
 import { M } from '../src/data/materials';
 import { TICK_MS } from '../src/data/constants';
+import { MINER_BASE } from '../src/data/economy';
+import { PICKS } from '../src/data/items';
 
 const run = (g: ReturnType<typeof createGame>, secs: number): void => {
   for (let i = 0; i < (secs * 1000) / TICK_MS; i++) step(g, TICK_MS);
@@ -39,9 +41,9 @@ describe('village', () => {
   it('miner cost grows by 1.15 per miner (canon §4.1)', () => {
     const g = createGame(1);
     g.state.res.copperBar = D(1000);
-    expect(minerCost(g.state).amount.toNumber()).toBe(15);
+    expect(minerCost(g.state).amount.toNumber()).toBe(MINER_BASE.n);
     apply(g, { type: 'hireMiner' });
-    expect(minerCost(g.state).amount.toNumber()).toBe(Math.ceil(15 * 1.15));
+    expect(minerCost(g.state).amount.toNumber()).toBe(Math.ceil(MINER_BASE.n * 1.15));
     expect(g.state.miners).toHaveLength(1);
   });
   it('miners dig and their ore is hauled up at the canon §4.9 rate', () => {
@@ -54,7 +56,7 @@ describe('village', () => {
   });
   it('buys picks in order', () => {
     const g = createGame(1);
-    g.state.res.copperBar = D(10);
+    g.state.res.copperBar = D(PICKS[1]!.cost[0]!.n);
     g.state.res.bronzeBar = D(25);
     apply(g, { type: 'buyPick' });
     apply(g, { type: 'buyPick' });

@@ -6,7 +6,7 @@ import type { Cost } from './items';
 export const COST_GROWTH = 1.15;
 
 /** canon §9 Miner (Bunkhouse). */
-export const MINER_BASE: Cost = { res: 'copperBar', n: 15 };
+export const MINER_BASE: Cost = { res: 'copperBar', n: 12 };
 
 /** canon §9 Forge: 5 ore → 1 bar every 2 s. Bronze is 2 copper bars + 1 tin bar. */
 export const FORGE = {
@@ -131,13 +131,16 @@ export const HAULS: readonly HaulDef[] = [
 ];
 
 /** canon §9.2 Whetstone (ADR-020): a cheap, always-there buy. Each level sharpens the Foreman's hand-mining. */
-export const WHETSTONE = { base: 2, growth: 1.45, perLevel: 0.12 };
+export const WHETSTONE = { base: 1, growth: 1.4, perLevel: 0.12 };
 
 /** canon §9 Torch: 1 copper bar makes 3. */
-export const TORCH_CRAFT = { cost: { res: 'copperBar', n: 1 } as Cost, makes: 3 };
+export const TORCH_CRAFT = { cost: { res: 'copperBar', n: 1 } as Cost, makes: 5 };
 
 /** canon §4.7 Vein Rush. */
 export const VEIN_RUSH = { step: 0.25, max: 5, windowMs: 1200 };
+
+/** canon §4.9.1 Vein Break (M8-02): at the Rush cap, breaking ore shatters up to `max` more of that vein, one every `gapMs`. */
+export const VEIN_BREAK = { max: 12, gapMs: 90 };
 
 /** canon §4.10 Cave-in unlock. */
 export const CAVE_IN = { minFt: 300, verse: 1 };

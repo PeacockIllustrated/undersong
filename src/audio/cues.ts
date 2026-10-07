@@ -1,7 +1,14 @@
 // Which sounds a sim event makes (ADR-027). Pure, so it can be tested without a browser.
 import { M } from '../data/materials';
 import { MATERIALS } from '../data/materials';
-import { RUSH_SEMITONES, RUSH_SEMITONES_MAX, VERSE_MOTIF, VERSE_PHRASE, type CueId } from '../data/sounds';
+import {
+  RUSH_SEMITONES,
+  RUSH_SEMITONES_MAX,
+  SHATTER_SEMITONES,
+  VERSE_MOTIF,
+  VERSE_PHRASE,
+  type CueId,
+} from '../data/sounds';
 import type { SimEvent } from '../sim/game';
 
 export interface Play {
@@ -59,6 +66,16 @@ export function cuesFor(e: SimEvent, seen: boolean, chain: number): Play[] {
     case 'verse':
     case 'rush':
       return [];
+    // M8-02: a vein gives way like a find, then each tile pops higher; Geode veins ring instead of crunch
+    case 'veinBreak':
+      return [{ id: 'chest' }];
+    case 'shatter':
+      return [
+        {
+          id: e.ring ? 'breakCrystal' : 'breakOre',
+          pitch: semis(Math.min(RUSH_SEMITONES_MAX, e.i * SHATTER_SEMITONES)),
+        },
+      ];
   }
 }
 

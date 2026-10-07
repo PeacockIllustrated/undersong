@@ -1,5 +1,9 @@
 // Draws the world, objects, characters and light. Reads game state; never writes it. dev-bible §1.6
 import { AIM, ZOOM } from '../data/touch';
+import { HEAP } from '../data/ui';
+import { HAULED, RES_KEYS } from '../data/resources';
+
+const BAR_KEYS = RES_KEYS.filter((k) => k.endsWith('Bar'));
 import { MountainView } from './mountain';
 import { CHUNK, SHAFT_X, SKY_ROWS, TILE_PX } from '../data/constants';
 import { LIGHT } from '../data/light';
@@ -432,6 +436,17 @@ export class Renderer {
       if (b.key && game.state.buildings[b.key] <= 0) continue;
       drawSprite(this.ctx, b.sprite, frame, b.x * T + T / 2, surfY(b.x));
     }
+    // M8-04: ore waiting for the forge piles up by the headframe; bars stack by the forge
+    const res = game.state.res;
+    let ore = 0;
+    let bars = 0;
+    for (const k of HAULED) ore += res[k].toNumber();
+    for (const k of BAR_KEYS) bars += res[k].toNumber();
+    const step = (n: number, steps: readonly number[]): number => steps.filter((v) => n >= v).length - 1;
+    const h = step(ore, HEAP.oreSteps);
+    if (h >= 0) drawSprite(this.ctx, 'ore-heap', h, HEAP.heapX * T, surfY(HEAP.heapX));
+    const b = step(bars, HEAP.barSteps);
+    if (b >= 0) drawSprite(this.ctx, 'bar-stack', b, HEAP.barsX * T, surfY(HEAP.barsX));
     this.drawSurface(game, now, surfY);
   }
 
