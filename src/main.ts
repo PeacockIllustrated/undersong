@@ -12,6 +12,9 @@ import {
 import { MATERIALS, isMineable } from './data/materials';
 import { apply, queued, type Action } from './sim/actions';
 import { createGame, loadGame, type Game } from './sim/game';
+import { snapToOre, veinTiles } from './sim/smartdig';
+import { workable } from './sim/reach';
+import { settings } from './settings';
 import { step } from './sim/step';
 import { loadSprites } from './render/sprites';
 import { buildTileTextures } from './render/tiles';
@@ -72,9 +75,23 @@ function boot(): void {
   const input = new Input(canvas, cam, {
     scale: () => renderer.scale,
     isDiggable: (x, y) => ui.tool === 'dig' && isMineable(game.g.world.get(x, y)),
-    onTap: (x, y) => {
+    onTap: (x, y, touch) => {
       if (ui.tool === 'dig') following = true;
+      // M7-02: a finger's tap beside ore digs the ore; so does a click on rock that can't be dug yet
+      if (
+        ui.tool === 'dig' &&
+        settings().smartDig &&
+        !queued(game.g, x, y) &&
+        (touch || !workable(game.g, x, y))
+      )
+        ({ x, y } = snapToOre(game.g, x, y));
       dispatch({ type: 'tap', x, y, tool: ui.tool });
+    },
+    isOre: (x, y) => ui.tool === 'dig' && !!MATERIALS[game.g.world.get(x, y)]?.isOre,
+    onVein: (x, y) => {
+      following = true;
+      const tiles = veinTiles(game.g, x, y);
+      if (tiles.length) dispatch({ type: 'digPath', tiles });
     },
     onPath: (tiles) => {
       following = true;
@@ -198,6 +215,8 @@ function boot(): void {
     const p0 = input.path[0];
     const h = input.hold;
     renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
+    renderer.touch = input.touch;
+    renderer.aimTile = input.aimTile;
     renderer.previewCancel = input.mode === 'dig' && !!p0 && queued(game.g, p0.x, p0.y);
     const t0 = performance.now();
     renderer.draw(game.g, cam, now);

@@ -3,13 +3,20 @@ import { TILE_PX } from '../data/constants';
 import type { Tile } from '../sim/state';
 import type { Camera } from './camera';
 import { line4 } from '../sim/geom';
+import { settings } from '../settings';
+import { AIM, HAPTICS, SMART_DIG } from '../data/touch';
 
 export interface InputHooks {
   /** Screen → art pixels. */
   scale(): number;
   /** Is this tile one a drag should start digging from (rather than panning)? */
   isDiggable(x: number, y: number): boolean;
-  onTap(x: number, y: number): void;
+  /** `touch` is true for a finger or pen, where aim is rough. */
+  onTap(x: number, y: number, touch: boolean): void;
+  /** M7-02: is this an ore tile a long press can take the whole vein from? */
+  isOre(x: number, y: number): boolean;
+  /** M7-02: a long press on ore with Smart dig on. */
+  onVein(x: number, y: number): void;
   onPath(tiles: Tile[]): void;
   /** The player moved the camera themselves. */
   onPan(): void;
@@ -26,12 +33,17 @@ export class Input {
   path: Tile[] = [];
   /** A touch held on a diggable tile: where, and when it started (polish item 10: a ring fills until dig mode). */
   hold: { x: number; y: number; t0: number } | null = null;
+  /** M7-01: the finger, in CSS px from the canvas's top left, while a touch is aiming at rock. */
+  touch: { x: number; y: number } | null = null;
+  /** M7-01: the tile a touch is aiming at (under the finger, or under the crosshair above it). */
+  aimTile: Tile | null = null;
   private sx = 0;
   private sy = 0;
   private lx = 0;
   private ly = 0;
   private t0 = 0;
   private holdTimer = 0;
+  private veinTimer = 0;
   private id = -1;
   private keys = new Set<string>();
 
@@ -52,6 +64,27 @@ export class Input {
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
     window.addEventListener('blur', () => this.keys.clear());
+  }
+
+  /** Crosshair aim lifts a touch's target above the finger (CSS px). */
+  private lift(e: PointerEvent): number {
+    return e.pointerType !== 'mouse' && settings().aim === 'crosshair' ? AIM.crossLift : 0;
+  }
+
+  private aimAt(e: PointerEvent): Tile {
+    return this.tileAt(e.clientX, e.clientY - this.lift(e));
+  }
+
+  /** Keep the loupe or crosshair on the finger while a touch is on rock. */
+  private track(e: PointerEvent): void {
+    if (e.pointerType === 'mouse' || settings().aim === 'off') {
+      this.touch = null;
+      this.aimTile = null;
+      return;
+    }
+    const r = this.el.getBoundingClientRect();
+    this.touch = { x: e.clientX - r.left, y: e.clientY - r.top };
+    this.aimTile = this.aimAt(e);
   }
 
   private tileAt(clientX: number, clientY: number): Tile {
@@ -76,7 +109,7 @@ export class Input {
     this.sx = this.lx = e.clientX;
     this.sy = this.ly = e.clientY;
     this.t0 = e.timeStamp;
-    const t = this.tileAt(e.clientX, e.clientY);
+    const t = this.aimAt(e);
     if (e.pointerType === 'mouse') {
       if (e.button === 0 && this.hooks.isDiggable(t.x, t.y)) {
         this.mode = 'dig';
@@ -87,15 +120,31 @@ export class Input {
     // touch and pen: a quick drag pans, a press-and-hold then drag digs
     this.mode = 'pending';
     this.path = [t];
-    this.hold = this.hooks.isDiggable(t.x, t.y) ? { x: t.x, y: t.y, t0: performance.now() } : null;
+    const onRock = this.hooks.isDiggable(t.x, t.y);
+    this.hold = onRock ? { x: t.x, y: t.y, t0: performance.now() } : null;
+    if (onRock) this.track(e);
     window.clearTimeout(this.holdTimer);
+    window.clearTimeout(this.veinTimer);
     this.holdTimer = window.setTimeout(() => {
       this.hold = null;
       if (this.mode === 'pending' && this.hooks.isDiggable(t.x, t.y)) {
         this.mode = 'dig';
-        navigator.vibrate?.(12);
+        buzz(HAPTICS.hold);
       }
     }, HOLD_MS);
+    // M7-02: hold still on ore a little longer and the whole vein is queued
+    if (settings().smartDig && this.hooks.isOre(t.x, t.y))
+      this.veinTimer = window.setTimeout(() => {
+        const p = this.path;
+        if (this.mode === 'dig' && p.length === 1 && p[0]!.x === t.x && p[0]!.y === t.y) {
+          this.hooks.onVein(t.x, t.y);
+          buzz(HAPTICS.rushOre);
+          this.mode = 'idle';
+          this.path = [];
+          this.touch = null;
+          this.aimTile = null;
+        }
+      }, SMART_DIG.veinHoldMs);
   };
 
   private move = (e: PointerEvent): void => {
@@ -103,7 +152,10 @@ export class Input {
     const moved = Math.hypot(e.clientX - this.sx, e.clientY - this.sy);
     if (this.mode === 'pending' && moved > SLOP_PX) {
       window.clearTimeout(this.holdTimer);
+      window.clearTimeout(this.veinTimer);
       this.hold = null;
+      this.touch = null;
+      this.aimTile = null;
       this.mode = 'pan';
     }
     if (this.mode === 'pan') {
@@ -112,7 +164,8 @@ export class Input {
       this.cam.y -= (e.clientY - this.ly) * k;
       this.hooks.onPan();
     } else if (this.mode === 'dig') {
-      const t = this.tileAt(e.clientX, e.clientY);
+      if (this.touch) this.track(e);
+      const t = this.aimAt(e);
       const last = this.path[this.path.length - 1]!;
       if (t.x !== last.x || t.y !== last.y) {
         for (const p of line4(last, t).slice(1)) {
@@ -128,14 +181,19 @@ export class Input {
   private up = (e: PointerEvent): void => {
     if (e.pointerId !== this.id) return;
     window.clearTimeout(this.holdTimer);
+    window.clearTimeout(this.veinTimer);
+    // M7-01: lifting a touch off the edge of the view cancels the dig
+    const r = this.el.getBoundingClientRect();
+    const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    if (outside && e.pointerType !== 'mouse') return this.cancel(e);
     const quick =
       e.timeStamp - this.t0 < 500 && Math.hypot(e.clientX - this.sx, e.clientY - this.sy) <= SLOP_PX;
     if (this.mode === 'dig') {
       if (this.path.length > 1) this.hooks.onPath(this.path);
-      else this.hooks.onTap(this.path[0]!.x, this.path[0]!.y);
+      else this.hooks.onTap(this.path[0]!.x, this.path[0]!.y, e.pointerType !== 'mouse');
     } else if (this.mode === 'pending' || (this.mode === 'pan' && quick)) {
-      const t = this.tileAt(e.clientX, e.clientY);
-      this.hooks.onTap(t.x, t.y);
+      const t = this.aimAt(e);
+      this.hooks.onTap(t.x, t.y, e.pointerType !== 'mouse');
     }
     this.cancel(e);
   };
@@ -143,7 +201,10 @@ export class Input {
   private cancel = (e: PointerEvent): void => {
     if (e.pointerId !== this.id) return;
     window.clearTimeout(this.holdTimer);
+    window.clearTimeout(this.veinTimer);
     this.hold = null;
+    this.touch = null;
+    this.aimTile = null;
     this.id = -1;
     this.mode = 'idle';
     this.path = [];
@@ -172,4 +233,9 @@ export class Input {
     const moved = dx !== 0 || dy !== 0;
     if (moved) this.hooks.onPan();
   }
+}
+
+/** M7-06: a short buzz where the device can and the player wants it. */
+export function buzz(ms: number): void {
+  if (settings().haptics) navigator.vibrate?.(ms);
 }

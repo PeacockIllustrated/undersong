@@ -4,6 +4,8 @@ import { MUSIC_DEFAULT, SOUND_DEFAULT, SOUND_LEVELS } from './data/sounds';
 
 export type Motion = 'auto' | 'full' | 'reduced';
 export type Numbers = 'short' | 'scientific';
+/** M7-01: how a touch shows what it is aiming at. */
+export type Aim = 'loupe' | 'crosshair' | 'off';
 
 export interface Settings {
   /** 'auto' follows the system's reduced-motion setting. */
@@ -17,6 +19,12 @@ export interface Settings {
   sound: number;
   /** The drone under the mountain, one of SOUND_LEVELS. */
   music: number;
+  /** M7-01: a magnifier above the finger, a crosshair floating above it, or neither. */
+  aim: Aim;
+  /** M7-02: taps snap to nearby ore, and a long press on ore takes the whole vein. */
+  smartDig: boolean;
+  /** M7-06: a short buzz on a break, where the device can. */
+  haptics: boolean;
 }
 
 export const SETTINGS_KEY = 'undersong.settings';
@@ -28,6 +36,9 @@ export const DEFAULTS: Settings = {
   numbers: 'short',
   sound: SOUND_DEFAULT,
   music: MUSIC_DEFAULT,
+  aim: 'loupe',
+  smartDig: true,
+  haptics: true,
 };
 const level = (v: unknown, d: number): number =>
   SOUND_LEVELS.includes(v as (typeof SOUND_LEVELS)[number]) ? (v as number) : d;
@@ -53,6 +64,9 @@ export function clean(p: Partial<Settings>): Settings {
     numbers: p.numbers === 'scientific' ? 'scientific' : 'short',
     sound: level(p.sound, SOUND_DEFAULT),
     music: level(p.music, MUSIC_DEFAULT),
+    aim: p.aim === 'crosshair' || p.aim === 'off' ? p.aim : 'loupe',
+    smartDig: typeof p.smartDig === 'boolean' ? p.smartDig : true,
+    haptics: typeof p.haptics === 'boolean' ? p.haptics : true,
   };
 }
 

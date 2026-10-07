@@ -25,7 +25,16 @@ describe('settings', () => {
       numbers: 'scientific',
       sound: 0,
       music: 1,
+      aim: 'loupe',
+      smartDig: true,
+      haptics: true,
     });
+    expect(clean({ aim: 'crosshair', smartDig: false, haptics: false })).toMatchObject({
+      aim: 'crosshair',
+      smartDig: false,
+      haptics: false,
+    });
+    expect(clean({ aim: 'sideways' as never }).aim).toBe('loupe');
   });
 
   it('reduced motion can be chosen whatever the system says', () => {

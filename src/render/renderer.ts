@@ -1,4 +1,5 @@
 // Draws the world, objects, characters and light. Reads game state; never writes it. dev-bible §1.6
+import { AIM } from '../data/touch';
 import { CHUNK, SHAFT_X, SKY_ROWS, TILE_PX } from '../data/constants';
 import { LIGHT } from '../data/light';
 import { M, MATERIALS, isMineable } from '../data/materials';
@@ -85,6 +86,10 @@ export class Renderer {
   refused: { x: number; y: number; until: number } | null = null;
   /** Device pixels per art pixel (whole number). */
   scale = 2;
+  /** M7-01: the finger (CSS px in the canvas) while a touch aims at rock, and the tile it aims at. */
+  touch: { x: number; y: number } | null = null;
+  aimTile: { x: number; y: number } | null = null;
+  private loupeBuf: HTMLCanvasElement | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -263,6 +268,65 @@ export class Renderer {
     this.drawLight(w, tx0, ty0, tx1, ty1, now);
     this.drawHeat(game, tx0, ty0, tx1, ty1, now);
     this.fx.drawOverlay(ctx, now);
+    const a = this.aimTile;
+    if (a) {
+      // M7-01: the tile a touch is aiming at, drawn over the dark so it always shows
+      ctx.strokeStyle = '#FFD65A';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(a.x * T + 0.5, a.y * T + 0.5, T - 1, T - 1);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (this.touch) this.drawAim(this.touch);
+  }
+
+  /** M7-01: a magnifier above the finger (or a crosshair dot, with Aim set to Crosshair). Screen space. */
+  private drawAim(f: { x: number; y: number }): void {
+    const { ctx, canvas } = this;
+    const dpr = canvas.clientWidth ? canvas.width / canvas.clientWidth : 1;
+    const fx = f.x * dpr;
+    const fy = f.y * dpr;
+    if (settings().aim === 'crosshair') {
+      const y = fy - AIM.crossLift * dpr;
+      ctx.fillStyle = '#FFD65A';
+      const u = Math.max(1, Math.round(dpr));
+      ctx.fillRect(Math.round(fx - 5 * u), Math.round(y), 10 * u, u);
+      ctx.fillRect(Math.round(fx), Math.round(y - 5 * u), u, 10 * u);
+      return;
+    }
+    const z = AIM.loupeZoom;
+    const R = Math.round(AIM.loupeR * dpr);
+    const src = Math.round(R / z);
+    // above the finger, or beside it when there is no room above
+    let cx = fx;
+    let cy = fy - AIM.loupeLift * dpr;
+    if (cy - R < AIM.loupeTopGap * dpr) {
+      cy = Math.max(R + AIM.loupeTopGap * dpr, fy);
+      cx = fx + (fx < canvas.width / 2 ? 1 : -1) * AIM.loupeLift * dpr;
+    }
+    cx = Math.round(cx);
+    cy = Math.round(cy);
+    const b = (this.loupeBuf ??= document.createElement('canvas'));
+    if (b.width !== src * 2) {
+      b.width = src * 2;
+      b.height = src * 2;
+    }
+    const bg = b.getContext('2d')!;
+    bg.clearRect(0, 0, b.width, b.height);
+    bg.drawImage(canvas, Math.round(fx) - src, Math.round(fy) - src, src * 2, src * 2, 0, 0, src * 2, src * 2);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.fillStyle = '#141A33';
+    ctx.fill();
+    ctx.clip();
+    ctx.drawImage(b, 0, 0, src * 2, src * 2, cx - src * z, cy - src * z, src * 2 * z, src * 2 * z);
+    ctx.restore();
+    ctx.strokeStyle = '#5FF0D8';
+    ctx.lineWidth = Math.max(2, Math.round(2 * dpr));
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   private drawSky(camY: number): void {

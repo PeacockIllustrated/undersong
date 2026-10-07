@@ -34,6 +34,21 @@ export const SETTINGS_TEXT = {
   muted: 'Sound off',
   unmuted: 'Sound on',
   mutedSub: 'Press M again to bring it back',
+  aim: {
+    label: 'Aim on touch',
+    hint: 'What shows the tile under your finger: a magnifier above it, a crosshair floating above it, or nothing.',
+    loupe: 'Magnifier',
+    crosshair: 'Crosshair',
+    off: 'Off',
+  },
+  smartDig: {
+    label: 'Smart dig',
+    hint: 'A tap beside ore digs the ore. A long press on ore takes the whole vein you can see.',
+  },
+  haptics: {
+    label: 'Vibration',
+    hint: 'A short buzz when you break rock, stronger on ore during a Vein Rush. Phones that can vibrate only.',
+  },
   numbers: {
     label: 'Numbers',
     hint: 'Big numbers as 1.5M, or as 1.50e6.',
