@@ -57,10 +57,32 @@ def idle2(c):
     g[0]=['.']*16
     return d
 
+def walk(base, phase, legs=('l','m'), boots='a'):
+    """Walk frame `phase` (0-3): the legs swing from the hip, the back leg in shadow; the passing frames bob up."""
+    c=base.copy(); g=c.g; lg,ll=legs
+    lt=16
+    for y in range(lt,23):
+        for x in range(2,14): g[y][x]='.'
+    s=[2,0,-2,0][phase]
+    # leg A starts at x 5, leg B at x 8; a positive swing puts B's foot forward
+    for (x0,sign) in ((5,-1),(8,1)):
+        back = (sign*s) < 0 or (s==0 and sign<0)
+        col = ll if back else lg
+        for y in range(lt,21):
+            off=round((y-lt)/(20-lt)*s*sign)
+            c.hline(x0+off,x0+off+2,y,col)
+        bo=s*sign
+        c.hline(x0+bo-1,x0+bo+2,21,boots); c.hline(x0+bo-1,x0+bo+2,22,boots)
+    if phase in (1,3):
+        rows=[r[:] for r in g]
+        for y in range(0,23): g[y]=rows[y+1][:]
+        g[23]=['.']*16
+    return c
+
 fore=body()
-write('chars','foreman',[fore,idle2(fore),with_pick(fore,0),with_pick(fore,1),with_pick(fore,2)],anchor=(8,23),comment='frames: idle 1-2, swing 3-5')
+write('chars','foreman',[fore,idle2(fore),with_pick(fore,0),with_pick(fore,1),with_pick(fore,2)]+[walk(fore,i) for i in range(4)],anchor=(8,23),comment='frames: idle 1-2, swing 3-5, walk 6-9')
 miner=body(hat='cap',hatc=('t','v','W'),shirt=('c','d'),legs=('l','m'))
-write('chars','miner',[miner,idle2(miner),with_pick(miner,0),with_pick(miner,1),with_pick(miner,2)],anchor=(8,23),comment='frames: idle 1-2, swing 3-5')
+write('chars','miner',[miner,idle2(miner),with_pick(miner,0),with_pick(miner,1),with_pick(miner,2)]+[walk(miner,i) for i in range(4)],anchor=(8,23),comment='frames: idle 1-2, swing 3-5, walk 6-9')
 wren=body(hat='bald',hair='W',shirt=('m','n'),legs=('l','m'),skirt=True)
 wren.hline(5,9,5,'W'); wren.hline(5,10,6,'W'); wren.px(4,7,'W'); wren.px(4,8,'W')
 wren.vline(13,8,22,'b'); wren.grid(12,4,['.a.','aYa','aza','.a.'])

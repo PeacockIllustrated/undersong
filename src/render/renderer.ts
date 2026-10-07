@@ -34,6 +34,11 @@ import { settings } from '../settings';
 import { CAIRN, FIELDS, ROOTS, WOODLOT } from '../data/surface';
 import { feasting, growing, isElder, treeStage } from '../sim/surface';
 
+/** Parking lot: the walk cycle (sprite frames 6 to 9), its pace, and how far a miner walks rather than snaps. */
+/** Render-only lamp falloff per tile: through open air, and through rock (ADR-010). */
+const LAMP = { fall: LIGHT.decayAir * 1.6, rock: LIGHT.decaySolid * 2, sweeps: 4 };
+const WALK = { first: 5, frameMs: 110, minerPx: 2.5, snapTiles: 12 } as const;
+
 const T = TILE_PX;
 const CPX = CHUNK * T;
 /** Light blocks per tile edge: 4 gives 4-pixel steps, soft but still pixel art (ADR-018). */
@@ -786,12 +791,42 @@ export class Renderer {
     }
   }
 
+  /** Parking lot: miners walk between faces. Where each is drawn (px, feet), eased toward the sim's tile. */
+  private minerPos = new Map<number, { x: number; y: number; flip: boolean; moving: boolean }>();
+  private easeMiner(m: { id: number; x: number; y: number; target: { x: number } | null }) {
+    const tx = m.x * T + T / 2;
+    const ty = m.y * T + T - 1;
+    let p = this.minerPos.get(m.id);
+    if (!p) this.minerPos.set(m.id, (p = { x: tx, y: ty, flip: false, moving: false }));
+    const dx = tx - p.x;
+    const dy = ty - p.y;
+    const dist = Math.hypot(dx, dy);
+    p.moving = dist > 0.5 && dist <= T * WALK.snapTiles;
+    if (!p.moving) {
+      p.x = tx;
+      p.y = ty;
+      if (m.target) p.flip = m.target.x < m.x;
+    } else {
+      const k = Math.min(1, WALK.minerPx / dist);
+      p.x += dx * k;
+      p.y += dy * k;
+      if (Math.abs(dx) > 0.5) p.flip = dx < 0;
+    }
+    return p;
+  }
+
   private drawVillagers(game: Game, now: number): void {
     const s = game.state;
+    if (this.minerPos.size > s.miners.length * 2 + 8) this.minerPos.clear();
     for (const m of s.miners) {
       const working = m.target && m.stalledBy === null;
-      const f = working ? 2 + (Math.floor(now / 120 + m.id) % 3) : Math.floor(now / 700 + m.id) % 2;
-      drawSprite(this.ctx, 'miner', f, m.x * T + T / 2, m.y * T + T - 1, !!m.target && m.target.x < m.x);
+      const p = this.easeMiner(m);
+      const f = p.moving
+        ? WALK.first + (Math.floor(now / WALK.frameMs + m.id) % 4)
+        : working
+          ? 2 + (Math.floor(now / 120 + m.id) % 3)
+          : Math.floor(now / 700 + m.id) % 2;
+      drawSprite(this.ctx, 'miner', f, Math.round(p.x), Math.round(p.y), p.flip);
       const ctx = this.ctx;
       if (working && m.target) {
         // teal corner brackets on the face a miner is working
@@ -852,8 +887,9 @@ export class Renderer {
     const pulse = 0.35 + 0.25 * Math.sin(now / 260);
     for (const m of game.state.miners) {
       if (!m.target || m.stalledBy !== null || !ledByForeman(game, m)) continue;
-      const x = m.x * T;
-      const y = m.y * T;
+      const p = this.minerPos.get(m.id);
+      const x = p ? Math.round(p.x) - T / 2 : m.x * T;
+      const y = p ? Math.round(p.y) - T + 1 : m.y * T;
       ctx.fillStyle = `rgba(255,214,90,${pulse.toFixed(2)})`;
       // a pixel halo round the miner and a spark over his head
       ctx.fillRect(x + 3, y - 1, T - 6, 1);
@@ -929,8 +965,14 @@ export class Renderer {
       p.x += dx * k;
       p.y += dy * k;
     }
-    if (f.target) p.flip = f.target.x < f.x;
-    const swing = f.target ? 2 + (Math.floor(now / 90) % 3) : Math.floor(now / 600) % 2;
+    const walking = dist > 0.5 && dist <= T * 12;
+    if (walking && Math.abs(dx) > 0.5) p.flip = dx < 0;
+    else if (f.target) p.flip = f.target.x < f.x;
+    const swing = walking
+      ? WALK.first + (Math.floor(now / WALK.frameMs) % 4)
+      : f.target
+        ? 2 + (Math.floor(now / 90) % 3)
+        : Math.floor(now / 600) % 2;
     drawSprite(this.ctx, 'foreman', swing, Math.round(p.x), Math.round(p.y), p.flip);
   }
 
@@ -939,6 +981,55 @@ export class Renderer {
    * eased over time, then sampled bilinearly between tile centres at LIGHT_SUB blocks per tile, so
    * light falls off in soft steps instead of whole-tile squares. Render only; the sim never sees it.
    */
+  private lampV = new Float32Array(0);
+
+  /** The Foreman's lamp per tile around him: spread from his tile, dimming fast through anything solid. */
+  private lampGrid(w: World): { x0: number; y0: number; n: number; v: Float32Array } {
+    const r = Math.ceil(LIGHT.foremanLamp / LAMP.fall) + 1;
+    const n = r * 2 + 1;
+    if (this.lampV.length !== n * n) this.lampV = new Float32Array(n * n);
+    const v = this.lampV;
+    v.fill(0);
+    const cx = Math.floor(this.lampX);
+    const cy = Math.floor(this.lampY);
+    const x0 = cx - r;
+    const y0 = cy - r;
+    const cost = (x: number, y: number): number => {
+      const wx = x0 + x;
+      const wy = y0 + y;
+      if (!w.inside(wx, wy) || wy < w.surf[wx]!) return LAMP.fall;
+      return w.get(wx, wy) === M.AIR ? LAMP.fall : LAMP.rock;
+    };
+    v[r * n + r] = Math.max(
+      0,
+      LIGHT.foremanLamp - Math.hypot(cx + 0.5 - this.lampX, cy + 0.5 - this.lampY) * LAMP.fall,
+    );
+    // a few relaxation sweeps settle a grid this small; each alternates direction
+    for (let pass = 0; pass < LAMP.sweeps; pass++) {
+      const rev = pass % 2 === 1;
+      for (let j = 0; j < n; j++) {
+        const y = rev ? n - 1 - j : j;
+        for (let k = 0; k < n; k++) {
+          const x = rev ? n - 1 - k : k;
+          const c = cost(x, y);
+          let best = v[y * n + x]!;
+          for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+              if (!dx && !dy) continue;
+              const nx = x + dx;
+              const ny = y + dy;
+              if (nx < 0 || ny < 0 || nx >= n || ny >= n) continue;
+              const step = dx && dy ? Math.SQRT2 : 1;
+              const got = v[ny * n + nx]! - c * step;
+              if (got > best) best = got;
+            }
+          v[y * n + x] = best;
+        }
+      }
+    }
+    return { x0, y0, n, v };
+  }
+
   private lampX = 0;
   private lampY = 0;
   private dispW: Float32Array | null = null;
@@ -1009,6 +1100,21 @@ export class Renderer {
       const bot = arr[y1 * w.w + x0]! * (1 - ax) + arr[y1 * w.w + x1]! * ax;
       return top * (1 - ay) + bot * ay;
     };
+    // the lamp spreads through open tiles and stops a tile or so into rock, so it never lights the far side of a wall
+    const lg = this.lampGrid(w);
+    const lampAt = (fx: number, fy: number): number => {
+      const gx = fx - lg.x0;
+      const gy = fy - lg.y0;
+      const x0 = Math.floor(gx);
+      const y0 = Math.floor(gy);
+      const ax = gx - x0;
+      const ay = gy - y0;
+      const at = (x: number, y: number): number =>
+        x < 0 || y < 0 || x >= lg.n || y >= lg.n ? 0 : lg.v[y * lg.n + x]!;
+      const top = at(x0, y0) * (1 - ax) + at(x0 + 1, y0) * ax;
+      const bot = at(x0, y0 + 1) * (1 - ax) + at(x0 + 1, y0 + 1) * ax;
+      return top * (1 - ay) + bot * ay;
+    };
     for (let sy = 0; sy < ch * S; sy++) {
       const py = ty0 + (sy + 0.5) / S; // world position in tiles
       const ty = Math.floor(py);
@@ -1022,7 +1128,7 @@ export class Renderer {
         }
         // the Foreman's own lamp: render-only, so the player can always see where they are digging (ADR-010)
         const ld = Math.hypot(px - this.lampX, py - this.lampY);
-        const lamp = Math.max(0, LIGHT.foremanLamp - ld * LIGHT.decayAir * 1.6);
+        const lamp = Math.min(Math.max(0, LIGHT.foremanLamp - ld * LAMP.fall), lampAt(px - 0.5, py - 0.5));
         const warm = Math.max(sample(dW, px - 0.5, py - 0.5), lamp) * flick;
         const cool = sample(dC, px - 0.5, py - 0.5);
         const L = Math.min(1, warm + cool);

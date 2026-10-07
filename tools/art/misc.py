@@ -123,11 +123,12 @@ t1=from_rows([
 '................','................','................','................'])
 t2=t1.copy(); t2.g[2]=list('......T.........'); t2.g[3]=list('.....TzzT.......'); t2.g[4]=list('......SzS.......')
 write('objects','obj-torch',[t1,t2])
+# a brass lantern hung from an iron wall bracket, bright enough to read against dark rock at x2
 l1=from_rows([
-'................','.......a........','......a.a.......','.....aaaaa......','.....aYzYa......','.....aYWYa......',
-'.....aYzYa......','.....aaaaa......','......aaa.......','................','................','................',
+'................','vvvvvvvv........','uu.....v........','.u.....v........','......yYy.......','.....yyyyy......',
+'.....yzYzy......','.....yYWYy......','.....yzYzy......','.....yyyyy......','......yyy.......','.......y........',
 '................','................','................','................'])
-l2=l1.copy(); l2.g[5]=list('.....azWza......')
+l2=l1.copy(); l2.g[6]=list('.....yYzYy......'); l2.g[7]=list('.....yzWzy......'); l2.g[8]=list('.....yYzYy......')
 write('objects','obj-lantern',[l1,l2])
 write('objects','obj-support',[from_rows([
 'cccccccccccccccc','bdddddddddddddcb','.bc..........cb.','..c..........c..','..c..........c..','..c..........c..',

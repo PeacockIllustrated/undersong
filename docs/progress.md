@@ -10,6 +10,12 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M13-08 (Walking, lamplight and lanterns)
+Done: the Foreman and miners walk with a four-frame cycle, and miners ease between faces instead of jumping. The Foreman's lamp now spreads through open tiles and dims fast in rock, so it no longer shines through walls. The lantern is redrawn as a brass lantern on an iron bracket so it reads against dark rock.
+State: `npm run check` is green. Render and art only; no save or sim change. Checked in Playwright at both sizes.
+Next: the bot's torch plan is still parked (it moves balance-sim timings).
+Questions for Tom: none.
+
 ## 2026-10-07 · M13-04 to M13-06 (Pin, ledger, Keep buying)
 Done (ADR-042, canon §23, save v11):
 - Pin: any Village buy has a pin. The pinned goal sits on the HUD with a bar for how much of its price is in hand and "ready in". Tapping it opens its card, even on another tab. One-off goals clear once bought and toast when they become affordable.
