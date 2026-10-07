@@ -6,6 +6,7 @@ import { PICKS } from '../data/items';
 import { HOMECOMING, VERSE_POWER } from '../data/helpers';
 import type { GameState } from './state';
 import { feastMult, handFood, minerFood } from './surface';
+import { boostMult, curioMult } from './finds';
 
 /** An equipped Song-loom charm's multiplier, or 1. canon §13 */
 export function charm(s: GameState, id: CharmId): number {
@@ -53,7 +54,9 @@ export function minerMult(s: GameState): number {
     (s.upgrades.strongBacks ? UPGRADE_FX.strongBacks : 1) *
     charm(s, 'name') *
     minerFood(s) *
-    metalworkMult(s, 'miners')
+    metalworkMult(s, 'miners') *
+    curioMult(s, 'miners') *
+    boostMult(s, 'miners')
   );
 }
 
@@ -71,7 +74,9 @@ export function handsMult(s: GameState): number {
     (1 + WHETSTONE.perLevel * s.whetstone) *
     charm(s, 'hush') *
     handFood(s) *
-    metalworkMult(s, 'hands')
+    metalworkMult(s, 'hands') *
+    curioMult(s, 'hands') *
+    boostMult(s, 'hands')
   );
 }
 

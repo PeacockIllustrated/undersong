@@ -269,7 +269,7 @@ function spendEchoes(g: Game): void {
 /** Helpers (ADR-020): an engaged player hires each one soon after its chore turns up. */
 function hireHelpers(g: Game): void {
   const s = g.state;
-  for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents', 'tansy', 'rook'] as const) {
+  for (const id of ['lamps', 'pell', 'dog', 'props', 'pumps', 'vents', 'tansy', 'rook'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
     if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 3) continue;
@@ -328,6 +328,8 @@ function sharpen(g: Game): void {
 /** M9-02: the deep metals' repeatable buys, from spare metal only (a fifth of what is in hand). */
 function polish(g: Game): void {
   const s = g.state;
+  // M10-01: the bot takes the tinker's first offer
+  if (s.cart.offers) apply(g, { type: 'cart', i: 0 });
   for (const m of METALWORK) {
     for (;;) {
       if (!metalworkOffered(s, m.id)) break;
@@ -751,7 +753,8 @@ let ok = true;
 for (const [k, name, target, atMost] of TARGETS) {
   const vals = runs.map((r) => r[k]).filter((v): v is number => v !== undefined);
   const med = vals.length === runs.length ? median(vals) / 60000 : NaN;
-  const within = atMost ? med <= target : Math.abs(med - target) <= target * 0.15;
+  // ADR-035: arriving early is fine; only a milestone more than 15% late is a miss
+  const within = atMost ? med <= target : med <= target * 1.15;
   if (!within) ok = false;
   console.log(
     `${name.padEnd(28)} ${((atMost ? '≤' : '') + target).padStart(5)}m  ${Number.isNaN(med) ? '  never' : med.toFixed(1).padStart(6) + 'm'}  ${runs.map((r) => mins(r[k])).join(' ')} ${within ? '✓' : '✗'}`,
@@ -785,6 +788,8 @@ if (!ACT2)
 console.log(
   `\nDepth reached (ft): ${runs.map((r) => r.depth).join(', ')} · miners: ${runs.map((r) => r.miners).join(', ')}`,
 );
-console.log(ok ? '\nAll pacing targets within ±15%.' : '\nSome pacing targets are outside ±15%.');
+console.log(
+  ok ? '\nNo pacing target is more than 15% late.' : '\nSome pacing targets are more than 15% late.',
+);
 // --strict makes a miss fail the run, so CI catches pacing regressions
 if (!ok && args.strict === 'true') process.exitCode = 1;

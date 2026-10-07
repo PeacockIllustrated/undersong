@@ -81,7 +81,7 @@ describe('saves', () => {
     expect(() => fromJSON('{"hello":1}')).toThrow(/Undersong/);
   });
 
-  for (const v of [1, 2, 3, 4, 5, 6, 7, 8]) {
+  for (const v of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
     it(`loads the v${v} fixture`, () => {
       const text = readFileSync(new URL(`./fixtures/saves/v${v}.json`, import.meta.url), 'utf8');
       const g = loadGame(fromJSON(text));
@@ -102,6 +102,11 @@ describe('saves', () => {
       expect(Array.isArray(g.state.runDepth)).toBe(true);
       expect(g.state.lastRun.miners).toBe(0);
       expect(g.state.metalwork).toEqual({});
+      // v9 (M10): the tinker's cart, its boons, the curio shelf and the rain
+      expect(g.state.cart.offers).toBeNull();
+      expect(g.state.boosts.miners).toBe(0);
+      expect(Array.isArray(g.state.curios)).toBe(true);
+      expect(typeof g.state.surface.rainNext).toBe('number');
     });
   }
 });

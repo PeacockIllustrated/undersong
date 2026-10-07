@@ -14,6 +14,7 @@ import { stepSurface } from './surface';
 import { stepAchievements } from './achievements';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
 import { stepMemory } from './memory';
+import { stepCart, stepDog } from './finds';
 
 export { mineTile } from './dig';
 
@@ -36,6 +37,8 @@ export function step(g: Game, dtMs: number): void {
   stepLanterns(g, dt);
   stepHelpers(g, dt);
   stepSurface(g, dt);
+  stepCart(g);
+  stepDog(g, dt);
   stepGlints(g);
   stepMemory(g);
   stepStory(g);
@@ -49,12 +52,14 @@ export function step(g: Game, dtMs: number): void {
 function stepGlints(g: Game): void {
   const s = g.state;
   s.glints = s.glints.filter((gl) => gl.until > s.t);
-  if (!s.upgrades.pellsHum || g.offline || s.t % 1000 !== 0) return;
+  // M10-01: the tinker's map shows the way to the nearest verse from anywhere
+  const map = s.t < s.boosts.map;
+  if ((!s.upgrades.pellsHum && !map) || g.offline || s.t % 1000 !== 0) return;
   let best = null as null | { x: number; y: number; d: number };
   for (const c of g.world.carvings) {
     if (s.verses.run[c.verse]) continue;
     const d = Math.hypot(c.x - s.foreman.x, c.y - s.foreman.y);
-    if (d <= UPGRADE_FX.pellsHumRange && (!best || d < best.d)) best = { x: c.x, y: c.y, d };
+    if ((map || d <= UPGRADE_FX.pellsHumRange) && (!best || d < best.d)) best = { x: c.x, y: c.y, d };
   }
   if (best) s.glints.push({ x: best.x, y: best.y, until: s.t + 1000, kind: 'hum' });
 }

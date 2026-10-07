@@ -24,6 +24,7 @@ import type { Game } from './game';
 import { makeRng, hash3 } from './rng';
 import type { GameState, Tree } from './state';
 import { first, say } from './story';
+import { RAIN } from '../data/finds';
 
 type Costs = { res: ResKey; amount: Decimal }[];
 
@@ -290,6 +291,9 @@ export function supportFromTimber(s: GameState, brickCost: number): boolean {
 
 // ---------- the tick ----------
 
+/** M10-04: a shower is falling over Holloway. */
+export const raining = (s: GameState): boolean => s.t < s.surface.rainUntil;
+
 export function stepSurface(g: Game, dt: number): void {
   const s = g.state;
   const sf = s.surface;
@@ -309,9 +313,17 @@ export function stepSurface(g: Game, dt: number): void {
     say(g, 'rookArrives');
     if (sf.trees.some(isElder)) say(g, 'elder');
   }
-  // crops ripen; a ripe ear may come up golden
-  const grow = (dt * (feasting(s) ? FEAST.grow : 1)) / FIELDS.ripenS;
+  // M10-04: a shower now and then. It never starts while you are away, so it waits for you to come back
   let rng: ReturnType<typeof makeRng> | null = null;
+  if (!g.offline && sf.tansy && s.t >= sf.rainNext && !raining(s)) {
+    rng = makeRng(s.rng);
+    sf.rainUntil = s.t + RAIN.lastsMs;
+    sf.rainNext = sf.rainUntil + RAIN.gapMinMs + Math.floor(rng.next() * (RAIN.gapMaxMs - RAIN.gapMinMs));
+    g.events.push({ kind: 'rain' });
+    say(g, 'rain');
+  }
+  // crops ripen; a ripe ear may come up golden
+  const grow = (dt * (feasting(s) ? FEAST.grow : 1) * (raining(s) ? RAIN.grow : 1)) / FIELDS.ripenS;
   for (let i = 0; i < sf.plots.length; i++) {
     const p = sf.plots[i]!;
     if (p.t >= 1 || !growing(s, i)) continue;
@@ -393,6 +405,8 @@ export function resetSurface(s: GameState): void {
   sf.feasts = 0;
   sf.feastUntil = 0;
   sf.tansyAcc = 0;
+  sf.rainUntil = 0;
+  sf.rainNext = RAIN.firstMs;
 }
 
 // ---------- elder roots ----------

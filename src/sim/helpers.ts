@@ -29,6 +29,7 @@ export function helperOffered(s: GameState, id: HelperId): boolean {
   if (id === 'lamps') return s.miners.length > 0 || s.stats.caveIns > 0;
   if (id === 'pell')
     return s.story.ever.some((l) => l === 'beetle' || l === 'moth' || l === 'eel' || l === 'wisp');
+  if (id === 'dog') return s.story.ever.includes('chest');
   if (id === 'pumps') return s.story.ever.includes('flooded');
   if (id === 'vents') return s.story.ever.includes('tooHot');
   if (id === 'tansy') return s.surface.harvestsEver >= FIELDS.handsAfter;

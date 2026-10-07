@@ -1,6 +1,5 @@
 // Everything the player can ask for. The UI dispatches these; only the sim applies them. dev-bible §1.2
-import { tally } from './tally';
-import { CHEST_LOOT, TORCH_CRAFT, type BuildingId, type CraftId, type Recipe } from '../data/economy';
+import { TORCH_CRAFT, type BuildingId, type CraftId, type Recipe } from '../data/economy';
 import { DIG_QUEUE_MAX } from '../data/constants';
 import { MIN_PICK, canDig, isMineable } from '../data/materials';
 import { PICKS } from '../data/items';
@@ -26,9 +25,9 @@ import {
 } from './economy';
 import type { MetalworkId } from '../data/economy';
 import { syncWorld, type Game } from './game';
+import { openChest, takeCart } from './finds';
 import { reachable, workable } from './reach';
 import { coolCache } from './heat';
-import { makeRng } from './rng';
 import type { Tile } from './state';
 import { first, say } from './story';
 import { buyBuilding, craft } from './village';
@@ -91,7 +90,9 @@ export type Action =
   /** Remember, for good, that the player has seen something: a tip (`tip:<id>`) or a Village tab (`tab:<id>`). */
   | { type: 'note'; key: string }
   /** M8-03: buy several of a repeatable thing at once (a count, or as many as can be paid for). */
-  | { type: 'buyMany'; of: BulkKind; n: number | 'max' };
+  | { type: 'buyMany'; of: BulkKind; n: number | 'max' }
+  /** M10-01: take one of the tinker's offers. */
+  | { type: 'cart'; i: number };
 
 export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
@@ -130,7 +131,7 @@ function tap(g: Game, x: number, y: number, tool: Tool): void {
   const key = String(g.world.idx(x, y));
   const obj = s.world.objects[key];
   if (obj === 'chest' && reachable(g, x, y)) {
-    openChest(g, x, y, key);
+    openChest(g, x, y);
     return;
   }
   if (tool !== 'dig') {
@@ -181,22 +182,6 @@ function place(
     first(g, kind);
     if (!s.story.ever.includes(`used:${kind}`)) s.story.ever.push(`used:${kind}`);
   }
-}
-
-function openChest(g: Game, x: number, y: number, key: string): void {
-  const s = g.state;
-  const rng = makeRng(s.rng);
-  const loot = CHEST_LOOT[rng.int(0, CHEST_LOOT.length - 1)]!;
-  const n = rng.int(loot.lo, loot.hi);
-  s.rng = rng.state();
-  delete s.world.objects[key];
-  s.res[loot.res] = s.res[loot.res].add(n);
-  s.stats.chests++;
-  tally(g, 'chests', n);
-  s.story.events.push({ kind: 'chest', res: loot.res, n: String(n) });
-  g.events.push({ kind: 'chest', x, y });
-  g.world.touch(x, y);
-  say(g, 'chest');
 }
 
 export function apply(g: Game, a: Action): void {
@@ -266,6 +251,9 @@ export function apply(g: Game, a: Action): void {
       g.events.push({ kind: 'bought', what: 'pick' });
       return;
     }
+    case 'cart':
+      takeCart(g, a.i);
+      return;
     case 'metalwork':
       if (!metalworkOffered(s, a.id) || !pay(s, metalworkCost(s, a.id))) return;
       s.metalwork[a.id] = (s.metalwork[a.id] ?? 0) + 1;

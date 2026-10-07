@@ -39,6 +39,9 @@ import { toast } from './ui/feedback';
 import { Ears } from './audio/ears';
 import { SETTINGS_TEXT } from './story/settings';
 import { aheadText } from './story/memory';
+import { CART_TEXT, CART_UI, CURIO_TEXT, CURIO_UI, DOG_TEXT, RAIN_TEXT } from './story/finds';
+import { CURIOS } from './data/finds';
+import { RES_NAMES } from './data/resources';
 import { RES_ICON } from './ui/icons';
 import type { ResKey } from './data/resources';
 import './ui/style.css';
@@ -291,6 +294,8 @@ function announce(g: Game, what: string, k = 1): void {
     const h = HAULS[s.haulTier]!;
     const o = HAULS[s.haulTier - 1]!;
     toast(h.name, `${ratio(h.speed * h.capacity, o.speed * o.capacity)} haulage`);
+  } else if (what.startsWith('cart:')) {
+    toast(...CART_UI.took(CART_TEXT[what.slice(5) as keyof typeof CART_TEXT].name));
   } else if (what.startsWith('helper:')) {
     const h = HELPERS.find((x) => x.id === what.slice(7))!;
     toast(h.name, 'One less chore');
@@ -421,6 +426,26 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       // M9-05: past last run's ghost
       const [h, sub] = aheadText(e.min);
       toast(h, sub);
+    } else if (e.kind === 'cart') {
+      // M10-01: the tinker parks by the shaft
+      toast(...CART_UI.arrived);
+    } else if (e.kind === 'curio') {
+      // M10-02: a curio for the shelf, and a full set is a bigger moment
+      const c = CURIOS.find((k) => k.id === e.id);
+      const cx = e.x * TILE_PX + 8;
+      const cy = e.y * TILE_PX + 8;
+      const col = c?.rarity === 'singing' ? '#5FF0D8' : c?.rarity === 'fine' ? '#FFD65A' : '#E8F4F0';
+      for (let i = 0; i < (c?.rarity === 'singing' ? 16 : 8); i++) r.fx.sparkle(cx, cy, col);
+      if (c?.rarity === 'singing') r.fx.flash(cx, cy, col, now);
+      if (c) toast(...CURIO_UI.found(CURIO_TEXT[c.id]!.name, c.rarity));
+      if (e.set !== undefined) toast(...CURIO_UI.setFound(BIOMES[e.set]!.name));
+      hum = Math.max(hum, HAPTICS.rushOre);
+    } else if (e.kind === 'fetched') {
+      for (let i = 0; i < 6; i++) r.fx.sparkle(e.x * TILE_PX + 8, e.y * TILE_PX + 4, '#FFD65A');
+      r.fx.float(e.x * TILE_PX + 12, e.y * TILE_PX, `+${e.n}`, '#FFD65A', now, RES_ICON[e.res as ResKey]);
+      toast(...DOG_TEXT.fetched(`${e.n} ${RES_NAMES[e.res as ResKey]}`));
+    } else if (e.kind === 'rain') {
+      toast(...RAIN_TEXT);
     } else if (e.kind === 'record') {
       r.fx.shake(1, 300, now);
       toast(`New record · ${e.ft} ft`, 'Deeper than any cycle before');

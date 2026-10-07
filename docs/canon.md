@@ -81,7 +81,7 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 
 ## §5 Pacing targets
 
-These are for an engaged player mixing active and idle play. The balance sim must land within ±15% of each target.
+These are for an engaged player mixing active and idle play. The balance sim must reach each one no more than 15% late; earlier is fine (ADR-035).
 
 | Milestone                                                            | Target                              |
 | -------------------------------------------------------------------- | ----------------------------------- |
@@ -304,16 +304,17 @@ Three branches: six in Hands and Lamps, seven in Memory (Bunkhouse Roll, ADR-034
 
 Each helper takes over a chore soon after it first appears, and stays through a Cave-in.
 
-| Helper                     | Cost                        | Effect                                                                                                                                                      |
-| -------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lamplighters (Wren)        | 8 Copper bars               | Miners light their own dark faces from stock. The village keeps 3 torches in hand, and 2 lanterns once there is a Lamp-works (only while Lumen is above 30) |
-| Pell’s rounds I            | 12 Copper bars              | Pell clears the oldest pest every 4 s: beetles, moths, eels, cinder wisps, and one tap of a shard golem                                                     |
-| Pell’s rounds II           | 12 Bronze bars              | Every 1.5 s                                                                                                                                                 |
-| Bram’s props               | 10 Bricks                   | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand                                                        |
-| Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12)                                                                                                        |
-| Wren’s cold lamps (Act IV) | 6 Gold bars + 20 Bricks     | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot                                       |
-| Tansy’s hands              | 10 Copper bars              | Tansy reaps one ripe plot every 2 s, and can ring the feast bell when it is full (§17). Offered after the 5th harvest                                       |
-| Rook’s axe                 | 12 Copper bars              | Rook fells old trees and replants, about once a second. He leaves any tree that has stood through a Cave-in (§17). Offered after the first felling          |
+| Helper                     | Cost                        | Effect                                                                                                                                                                                        |
+| -------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lamplighters (Wren)        | 8 Copper bars               | Miners light their own dark faces from stock. The village keeps 3 torches in hand, and 2 lanterns once there is a Lamp-works (only while Lumen is above 30)                                   |
+| Pell’s rounds I            | 12 Copper bars              | Pell clears the oldest pest every 4 s: beetles, moths, eels, cinder wisps, and one tap of a shard golem                                                                                       |
+| Pell’s rounds II           | 12 Bronze bars              | Every 1.5 s                                                                                                                                                                                   |
+| Bram’s props               | 10 Bricks                   | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand                                                                                          |
+| Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12)                                                                                                                                          |
+| Wren’s cold lamps (Act IV) | 6 Gold bars + 20 Bricks     | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot                                                                         |
+| Tansy’s hands              | 10 Copper bars              | Tansy reaps one ripe plot every 2 s, and can ring the feast bell when it is full (§17). Offered after the 5th harvest                                                                         |
+| Rook’s axe                 | 12 Copper bars              | Rook fells old trees and replants, about once a second. He leaves any tree that has stood through a Cave-in (§17). Offered after the first felling                                            |
+| Pell’s dog (M10-03)        | 15 Copper bars              | Biscuit trots to the nearest unopened chest in the dug mine within 30 tiles of the Foreman (8 tiles a second), opens it, and rests 3 s. Offered once a chest has been opened in any run (§21) |
 
 ### 14.1 Feedback
 
@@ -434,6 +435,14 @@ Each act's crop hangs off a system that act already has. Paddies and hot-beds ar
 
 The cellar, paddies, hot-beds, soup and broth reset on a Cave-in.
 
+### 17.7 The sky and the rain (M10-04, ADR-036)
+
+| Thing | Value                                                                                                                                                                      |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Day   | an 8-minute cycle on the total play clock, render only: dusk from 50%, full night 60–88%, dawn to 98%; the surface darkens to 62% at night, fading out over 5 rows of soil |
+| Night | windows of the village's buildings and cottages light up, 14 fireflies over the fields and woodlot, stars over the hills                                                   |
+| Rain  | the first shower 4 min into a run once Tansy is here, then every 5–9 min; it lasts 60 s and crops grow ×3 while it falls. A shower never starts while you are away         |
+
 ## §18 Touch, aim and zoom (v0, ADR-031, ADR-032)
 
 Values live in `src/data/touch.ts`.
@@ -476,3 +485,29 @@ Values live in `src/data/memory.ts`, `src/data/economy.ts` (`METALWORK`), `src/d
 | Foreman's lead    | miners within 6 tiles of the Foreman (Chebyshev) dig ×1.25, shown as a gold halo                                                                                                                                                          |
 | Cave-in ceremony  | shaft folds 0–1.6 s · Echoes count up to 4.0 s, over this run's verse notes (start 1.6 s, 0.3 s apart) · stone drops on the cairn 4.9 s · "Last cycle you reached N ft" 5.0 s · ends 6.6 s · tap skips; reduced motion shows a still card |
 | Act wait gate     | the Act II sim fails when any act's median longest wait with nothing to buy is over 10 minutes                                                                                                                                            |
+
+## §21 Finds (v0, ADR-036)
+
+Values live in `src/data/finds.ts`; names and notes in `src/story/finds.ts`.
+
+### 21.1 The tinker's cart
+
+| Thing      | Value                                                                                                                                                            |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Visits     | first at 6 min into a run, then 6–10 min after you take an offer. The cart parks at column 43 and waits, away or not, until you take one; it leaves on a Cave-in |
+| Offers     | three different ones, drawn by weight: crate 4, tonic 3, grindstone 3, lamps 2, map 2, echo 1. The map is only offered while a verse is unfound this run         |
+| Crate      | 12 bars of the deepest biome's metal this run (copper, iron, silver, gold), × (1 + 0.5 × Cave-ins)                                                               |
+| Lamps      | 15 torches, or 5 lanterns from the Glowroot down                                                                                                                 |
+| Tonic      | miners dig ×2 for 2 min                                                                                                                                          |
+| Grindstone | you dig ×2 for 2 min                                                                                                                                             |
+| Map        | the nearest unfound verse glints, wherever the Foreman is, for 3 min                                                                                             |
+| Echo       | +1 Echo                                                                                                                                                          |
+
+### 21.2 The curio shelf
+
+| Thing   | Value                                                                                                                                        |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drop    | about 1 tile in 350, by anyone, gives a curio of the tile's biome still missing from the shelf (odds by rarity: common 6, fine 3, singing 1) |
+| Sets    | four per biome below Holloway (two common, one fine, one singing), six sets, 24 curios                                                       |
+| Bonus   | each curio: miners or your hands +2% (common), +4% (fine), +8% (singing). A full set: miners and hands +10% more                             |
+| Keeping | the shelf stays through every Cave-in. Each rarity has its own sound; a full set also plays the record fanfare                               |

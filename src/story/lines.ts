@@ -303,6 +303,26 @@ export const LINES: Record<string, Line> = {
     who: 'wren',
     text: 'Leave the lights to me and the miners. You dig.',
   },
+  helper_dog: {
+    id: 'helper_dog',
+    who: 'pell',
+    text: 'This is Biscuit. She can smell an old chest through ten feet of rock. Don’t let her eat the torches.',
+  },
+  tinker: {
+    id: 'tinker',
+    who: 'bram',
+    text: 'That’s the tinker’s cart. Comes up the valley every so often. Take one thing, he says, and leave him the rest.',
+  },
+  curio: {
+    id: 'curio',
+    who: 'wren',
+    text: 'Put that on the shelf with the others. Things come up from down there that remember who held them.',
+  },
+  rain: {
+    id: 'rain',
+    who: 'tansy',
+    text: 'Rain! Look at the barley drink it.',
+  },
   helper_pell: {
     id: 'helper_pell',
     who: 'pell',

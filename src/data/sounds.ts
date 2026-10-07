@@ -153,6 +153,43 @@ export const CUES = {
     tones: [t('sine', 44, 3, 0.55, { to: 26, a: 0.1 })],
     gap: 3000,
   },
+  /** M10-02: a common curio: a dry clink. */
+  curioCommon: {
+    tones: [t('triangle', 1397, 0.12, 0.09), t('triangle', 1760, 0.18, 0.06, { at: 0.05 })],
+    gap: 200,
+  },
+  /** M10-02: a fine curio: a small bell. */
+  curioFine: {
+    tones: [
+      t('sine', 1760, 0.6, 0.09),
+      t('sine', 2637, 0.5, 0.05, { at: 0.02 }),
+      t('triangle', 2217, 0.4, 0.05, { at: 0.12 }),
+    ],
+    gap: 300,
+  },
+  /** M10-02: a singing curio: it sings back, a rising fifth with a shimmer. */
+  curioSinging: {
+    tones: [
+      t('sine', 659, 0.9, 0.1),
+      t('sine', 988, 1.0, 0.09, { at: 0.18 }),
+      t('sine', 1319, 1.2, 0.08, { at: 0.36 }),
+      t('triangle', 2637, 0.8, 0.03, { at: 0.36 }),
+    ],
+    noise: [n(7000, 0.9, 0.025, { at: 0.36, q: 0.8 })],
+    gap: 800,
+  },
+  /** M10-01: the tinker's cart: wheels and a jingle of pans. */
+  cart: {
+    tones: [
+      t('triangle', 880, 0.1, 0.07),
+      t('triangle', 1175, 0.1, 0.07, { at: 0.12 }),
+      t('triangle', 880, 0.1, 0.07, { at: 0.24 }),
+    ],
+    noise: [n(400, 0.5, 0.08, { q: 0.9 })],
+    gap: 1500,
+  },
+  /** M10-04: rain starting: a soft hiss. */
+  rain: { noise: [n(5000, 2.2, 0.06, { q: 0.4, a: 0.6 })], gap: 5000 },
   /** A button press in the panels. */
   ui: { tones: [t('triangle', 1250, 0.03, 0.035)], gap: 30 },
 } as const satisfies Record<string, Cue>;

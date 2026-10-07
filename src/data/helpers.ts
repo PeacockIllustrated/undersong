@@ -2,7 +2,7 @@
 import type { Cost } from './items';
 import type { ResKey } from './resources';
 
-export type HelperId = 'lamps' | 'pell' | 'props' | 'pumps' | 'vents' | 'tansy' | 'rook';
+export type HelperId = 'lamps' | 'pell' | 'dog' | 'props' | 'pumps' | 'vents' | 'tansy' | 'rook';
 
 export interface HelperDef {
   id: HelperId;
@@ -29,6 +29,13 @@ export const HELPERS: readonly HelperDef[] = [
     who: 'pell',
     text: 'Pell walks the mine and shoos pests for you.',
     levels: [[{ res: 'copperBar', n: 12 }], [{ res: 'bronzeBar', n: 12 }]],
+  },
+  {
+    id: 'dog',
+    name: 'Pell’s dog',
+    who: 'pell',
+    text: 'Biscuit sniffs out any old chest near you, fetches it up and drops what was in it at your feet.',
+    levels: [[{ res: 'copperBar', n: 15 }]],
   },
   {
     id: 'props',
