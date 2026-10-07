@@ -10,6 +10,12 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · Holloway & Co. (hybrid branch, playable build)
+Done: Holloway & Co., the Undersong × Coal LLC hybrid, is playable at `/`, and Undersong moves to `/undersong.html`. You play the Foreman directly (WASD, mouse aim, hold to dig) to fill a rising daily coal quota before dusk. Nights are spent in the Company Store, and a missed quota is the Cave-in, which pays Echoes for the Survey Book. Touch controls are included. Docs are in `docs/hybrid/` (ADR-H001 to H007, hybrid canon). The new `ore-coal` sprite is in.
+State: `npm run check` and `npm run smoke` are green, with 11 new sim tests. Played in Playwright at 1280×800 and 390×844 through title, day, dusk, night, buying, day 2, Cave-in, a new contract and pause. Deferred: bars and the forge, Foremen and Seams, and real art for the store icons (they borrow Undersong items).
+Next: tune feel from Tom's play. Then M-H2: bars and the forge, and more relics.
+Questions for Tom: does it feel enough like Coal LLC?
+
 ## 2026-10-07 · M13-08 (Walking, lamplight and lanterns)
 Done: the Foreman and miners walk with a four-frame cycle, and miners ease between faces instead of jumping. The Foreman's lamp now spreads through open tiles and dims fast in rock, so it no longer shines through walls. The lantern is redrawn as a brass lantern on an iron bracket so it reads against dark rock.
 State: `npm run check` is green. Render and art only; no save or sim change. Checked in Playwright at both sizes.

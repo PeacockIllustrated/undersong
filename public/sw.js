@@ -3,7 +3,7 @@
 // dependency: Vite copies it as is. Pages come from the network first, so a new deploy is picked up at once;
 // everything else (the hashed scripts, sprites, fonts) is served from the cache and refreshed behind the scenes.
 // All paths are relative, so it works at the site root on Vercel and in a subfolder on itch.io.
-const CACHE = 'undersong-v1';
+const CACHE = 'hollowayco-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 const FONTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 

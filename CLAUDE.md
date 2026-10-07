@@ -2,6 +2,8 @@
 
 Undersong is a browser incremental mining game. It is shown in side-on pixel cross-section, in the style of Terraria. A village digs toward a song under the mountain. Prestige is the **Cave-in**: the village forgets, and the player keeps Echoes and verses.
 
+> **Hybrid branch:** this branch line (`hybrid/main`) also carries **Holloway & Co.**, an Undersong × Coal LLC hybrid in `src/co/`, served at `/` (Undersong is at `/undersong.html`). Its decisions and numbers are in `docs/hybrid/`. Never merge it into `main`.
+
 This file is the entry point. Read it at the start of every session, and do not skip the session protocol.
 
 ## Source-of-truth hierarchy

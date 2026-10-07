@@ -1,0 +1,277 @@
+// Holloway & Co. boot: load or start, run the 60 Hz loop, draw, play sounds, save at dawn and at night.
+import { render, h } from 'preact';
+import { SHAFT_X, SKY_ROWS, TILE_PX } from '../data/constants';
+import { MATERIALS } from '../data/materials';
+import { loadSprites } from '../render/sprites';
+import { buildTileTextures } from '../render/tiles';
+import { Sound } from '../audio/sound';
+import { breakCue } from '../audio/cues';
+import { VERSES } from '../story/verses';
+import { MAX_STEPS_PER_FRAME, RELICS, STEP_S, type BookId, type ShopId } from './data/co';
+import { Input } from './input';
+import { View } from './render/view';
+import { idleControl } from './sim/body';
+import { awayPay, buy, buyBook, duskDone, nextDay, settleDusk, signContract } from './sim/contract';
+import { startDay, stepDay } from './sim/day';
+import { newGame, type CoEvent, type Game } from './sim/state';
+import { loadGame, saveGame, wipeGame } from './save';
+import { App, type Bridge } from './ui/App';
+import { toast } from './ui/toasts';
+import { fmt } from '../ui/format';
+import './ui/co.css';
+
+loadSprites();
+buildTileTextures();
+
+const T = TILE_PX;
+const newSeed = (): number => (Math.floor(Math.random() * 0x7fffffff) ^ Date.now()) >>> 0;
+
+function boot(): void {
+  const loaded = loadGame(newSeed());
+  const g: Game = newGame(newSeed());
+  if (loaded) g.s = loaded.s;
+  // a day cut short by closing the page starts again at dawn
+  if (g.s.phase === 'day' || g.s.phase === 'dusk') startDay(g);
+  const awayS = loaded && loaded.savedAt ? (Date.now() - loaded.savedAt) / 1000 : 0;
+  const pay = awayPay(g, awayS);
+
+  const canvas = document.getElementById('view') as HTMLCanvasElement;
+  const view = new View(canvas);
+  const input = new Input(canvas);
+  const sound = new Sound(0.55, 0);
+  let muted = false;
+  let paused = false;
+  const fit = (): void => view.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
+  fit();
+  window.addEventListener('resize', fit);
+  view.fx.calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const unlock = (): void => sound.unlock();
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', unlock);
+  document.addEventListener('visibilitychange', () => {
+    sound.pause(document.hidden);
+    if (document.hidden) {
+      input.reset();
+      if (g.s.phase !== 'day') saveGame(g.s);
+    }
+  });
+  window.addEventListener('beforeunload', () => {
+    if (g.s.phase !== 'day') saveGame(g.s);
+  });
+
+  const play = (id: Parameters<Sound['play']>[0], pitch = 1): void => {
+    if (!muted) sound.play(id, performance.now(), pitch);
+  };
+
+  const bridge: Bridge = {
+    g,
+    input,
+    get paused() {
+      return paused;
+    },
+    get muted() {
+      return muted;
+    },
+    setPaused: (p) => {
+      paused = p;
+      input.reset();
+    },
+    setMuted: (m) => {
+      muted = m;
+    },
+    buy: (id: ShopId) => {
+      if (buy(g, id)) {
+        play('bought');
+        saveGame(g.s);
+        return true;
+      }
+      play('refused');
+      return false;
+    },
+    buyBook: (id: BookId) => {
+      if (buyBook(g, id)) {
+        play('bought');
+        saveGame(g.s);
+        return true;
+      }
+      play('refused');
+      return false;
+    },
+    nextDay: () => {
+      nextDay(g);
+      input.reset();
+      play('biome');
+      saveGame(g.s);
+    },
+    sign: () => {
+      signContract(g, newSeed());
+      input.reset();
+      play('biome');
+      saveGame(g.s);
+    },
+    startOver: () => {
+      wipeGame();
+      location.reload();
+    },
+  };
+  input.onPause = () => {
+    if (g.s.phase === 'day') bridge.setPaused(!paused);
+  };
+  input.onKey = (k) => {
+    // Enter or Space at night starts the next day; on the title or after a Cave-in it signs on
+    if (g.s.phase === 'night' && (k === 'enter' || k === ' ')) {
+      bridge.nextDay();
+      return true;
+    }
+    if ((g.s.phase === 'title' || g.s.phase === 'cavein') && k === 'enter') {
+      bridge.sign();
+      return true;
+    }
+    return false;
+  };
+
+  render(h(App, { bridge }), document.getElementById('ui')!);
+  // a handle for the smoke test and the console, dev builds only
+  if (import.meta.env.DEV) (window as unknown as { __co: Bridge }).__co = bridge;
+  if (pay.gt(0)) toast(`Night-shift pay while you were away: +${fmt(pay)} scrip`, 'gold');
+
+  const onEvent = (e: CoEvent, now: number): void => {
+    const fx = view.fx;
+    switch (e.t) {
+      case 'chip': {
+        play('chip');
+        const col = MATERIALS[e.m]?.ramp[1] ?? '#878E9A';
+        fx.debris((e.x + 0.5) * T, (e.y + 0.5) * T, [col], 2, 0.5);
+        break;
+      }
+      case 'break': {
+        play(breakCue(e.m), e.rush > 1 ? 1 + (e.rush - 1) * 0.15 : 1);
+        const def = MATERIALS[e.m];
+        const host = def?.host !== undefined ? MATERIALS[def.host] : def;
+        fx.debris((e.x + 0.5) * T, (e.y + 0.5) * T, host?.ramp ?? ['#878E9A'], 9);
+        if (e.coal > 0)
+          fx.float(
+            (e.x + 0.5) * T,
+            e.y * T,
+            `+${e.coal} coal${e.rush > 1 ? `  RUSH ×${e.rush.toFixed(2).replace(/\.?0+$/, '')}` : ''}`,
+            '#E8F4F0',
+            now,
+          );
+        if (e.ore > 0)
+          fx.float((e.x + 0.5) * T, e.y * T, `+${e.ore} ${def?.name.toLowerCase() ?? 'ore'}`, '#F2A35E', now);
+        break;
+      }
+      case 'refused':
+        play('refused');
+        fx.float((e.x + 0.5) * T, e.y * T, 'too hard', '#E0532F', now);
+        break;
+      case 'full':
+        toast('Pack full: take it up to the kibble', 'warn');
+        play('refused');
+        break;
+      case 'deposit':
+        play('drop');
+        if (e.coal.gt(0)) {
+          fx.float(e.x * T, (e.y - 2) * T, `+${fmt(e.coal)} coal`, '#FFF2A8', now, true);
+          fx.sparkle(e.x * T, (e.y - 1) * T, '#FFD65A', 10);
+        }
+        if (e.scrip.gt(0)) fx.float(e.x * T, (e.y - 3) * T, `+${fmt(e.scrip)} scrip`, '#F2A35E', now, true);
+        break;
+      case 'chest':
+        play('chest');
+        fx.sparkle((e.x + 0.5) * T, e.y * T, '#FFD65A', 14);
+        fx.float((e.x + 0.5) * T, e.y * T, `+${fmt(e.scrip)} scrip`, '#FFD65A', now, true);
+        if (e.relic) toast(`Relic: ${RELICS[e.relic].name}. ${RELICS[e.relic].blurb}`, 'gold');
+        break;
+      case 'verse': {
+        const v = VERSES[e.verse];
+        if (v) {
+          sound.verse(e.verse, performance.now());
+          toast(`Verse ${v.n}: ${v.lines[0]} ${v.lines[1]}`, 'verse');
+        }
+        break;
+      }
+      case 'boom':
+        play('collapse');
+        fx.kick(4, 380, now);
+        fx.debris(e.x * T, e.y * T, ['#FF9A3C', '#FFD65A', '#E0532F', '#878E9A'], 26, 1.6);
+        break;
+      case 'lastBell':
+        play('record');
+        toast('Last bell: twenty seconds to dusk', 'warn');
+        break;
+      case 'quotaMet':
+        play('record');
+        toast('Quota met. Everything more is scrip', 'gold');
+        break;
+      case 'dusk':
+        play('caveIn', 1.4);
+        break;
+      case 'jump':
+        break;
+      case 'land':
+        if (e.speed > 14) fx.kick(2, 160, now);
+        break;
+      case 'ladder':
+        play('ui');
+        break;
+    }
+  };
+
+  let last = performance.now();
+  let acc = 0;
+  let crewPopT = 0;
+  let savedDay = -1;
+  let ctl = idleControl();
+  const frame = (now: number): void => {
+    const dt = Math.min(0.25, (now - last) / 1000);
+    last = now;
+    const inDay = g.s.phase === 'day' && !paused;
+    if (inDay || g.s.phase === 'dusk') {
+      if (savedDay !== g.s.contract.day && g.s.phase === 'day') {
+        saveGame(g.s);
+        savedDay = g.s.contract.day;
+      }
+      acc += dt;
+      let steps = 0;
+      ctl = input.control(view, g.day?.body ?? null);
+      while (acc >= STEP_S && steps < MAX_STEPS_PER_FRAME) {
+        stepDay(g, ctl, STEP_S);
+        ctl = { ...ctl, jumpPressed: false, throwPressed: false, ladderPressed: false };
+        acc -= STEP_S;
+        steps++;
+      }
+      if (steps === MAX_STEPS_PER_FRAME) acc = 0;
+      for (const e of g.events) onEvent(e, now);
+      g.events.length = 0;
+      // the crew's coal shows as pops over the kibble about once a second
+      crewPopT += dt;
+      if (g.day && g.day.crewPop >= 1 && crewPopT > 1) {
+        const w = g.world!;
+        const n = Math.floor(g.day.crewPop);
+        g.day.crewPop -= n;
+        crewPopT = 0;
+        view.fx.float(
+          (SHAFT_X + 2) * T,
+          ((w.surf[SHAFT_X + 2] ?? SKY_ROWS) - 1.5) * T,
+          `+${n} crew`,
+          '#B9FFF3',
+          now,
+        );
+      }
+      if (duskDone(g)) {
+        settleDusk(g);
+        saveGame(g.s);
+        if (g.s.phase === 'cavein') play('caveIn');
+      }
+    } else {
+      acc = 0;
+      if (g.day) ctl = input.control(view, g.day.body);
+    }
+    view.draw(g, ctl, now, dt, input.usingTouch);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+}
+
+boot();
