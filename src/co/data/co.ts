@@ -116,6 +116,9 @@ export const DROPS: Partial<Record<number, Drop>> = {
   [M.HEART]: { kind: 'ore', ore: 'heart', n: 1 },
 };
 
+/** Hot rock: the cold lance cuts it fast, and heat (H5) rises from it. */
+export const HOT: readonly number[] = [M.EMBER, M.BASALT, M.GOLD, M.HEART, M.HEARTWALL];
+
 /** Gold sells at the kibble for this much scrip each. Each heartstone banked pays this many Echoes at the Cave-in. */
 export const GOLD_SCRIP = 60;
 export const HEART_ECHOES = 1;
@@ -339,7 +342,11 @@ export type ShopId =
   | 'putter'
   | 'shotfirer'
   | 'lampman'
-  | 'pumpman';
+  | 'pumpman'
+  | 'scatter'
+  | 'mortar'
+  | 'drill'
+  | 'lance';
 
 export const SHOP: readonly ShopDef[] = [
   { id: 'hand', name: 'Hire a hand', blurb: 'Digs coal all day and sends it up', base: 18, growth: 1.22 },
@@ -499,6 +506,46 @@ export const SHOP: readonly ShopDef[] = [
     fromDay: 4,
     ore: { id: 'aqua', base: 8, growth: 1.8 },
   },
+  {
+    id: 'scatter',
+    name: 'Scatter pick',
+    blurb: 'Hits a cone of rock (2). Aim down in the air to rocket-jump',
+    base: 120,
+    growth: 1.9,
+    max: 5,
+    fromDay: 3,
+    ore: { id: 'iron', base: 6, growth: 1.5 },
+  },
+  {
+    id: 'mortar',
+    name: 'Mortar',
+    blurb: 'Lobs a shell at a far face (3). Bursts through water',
+    base: 260,
+    growth: 1.9,
+    max: 5,
+    fromDay: 4,
+    ore: { id: 'silver', base: 5, growth: 1.5 },
+  },
+  {
+    id: 'drill',
+    name: 'Drill rig',
+    blurb: 'Set it down (4) and it drills straight down on its own',
+    base: 400,
+    growth: 2,
+    max: 5,
+    fromDay: 5,
+    ore: { id: 'iron', base: 15, growth: 1.5 },
+  },
+  {
+    id: 'lance',
+    name: 'Cold lamp lance',
+    blurb: 'Cuts hot rock fast (5) and keeps the heat off you',
+    base: 900,
+    growth: 2.2,
+    max: 3,
+    fromDay: 6,
+    ore: { id: 'aqua', base: 6, growth: 1.6 },
+  },
 ];
 
 /** hybrid canon §8.1: the promotion ladder. A promotion turns one hand into a role; roles never outnumber hands. */
@@ -520,13 +567,43 @@ export const UPGRADE = {
   boots: 0.1,
   pack: 0.4,
   ladders: 10,
+  platforms: 4,
   charges: 3,
 } as const;
+
+/** hybrid canon §18: the tool belt (H3). Keys 1 to 5 pick a tool; the pick is always on the belt. */
+export type ToolId = 'pick' | 'scatter' | 'mortar' | 'drill' | 'lance';
+export const TOOLS: readonly { id: ToolId; name: string; sprite: string }[] = [
+  { id: 'pick', name: 'Pick', sprite: 'copick-wood' },
+  { id: 'scatter', name: 'Scatter pick', sprite: 'scatter-pick' },
+  { id: 'mortar', name: 'Mortar', sprite: 'mortar' },
+  { id: 'drill', name: 'Drill rig', sprite: 'drill-rig' },
+  { id: 'lance', name: 'Cold lance', sprite: 'cold-lance' },
+];
+/** Scatter: every `cooldownS` it deals `shot` seconds of pick work (× 1 + perLevel × (level − 1)) to each tile in a cone. */
+export const SCATTER = {
+  cooldownS: 0.42,
+  shot: 0.55,
+  perLevel: 0.4,
+  range: 3.2,
+  halfAngle: 0.62,
+  kick: 15,
+} as const;
+/** Mortar: shells a day = perLevel × level; flight speed, gravity, burst radius. */
+export const MORTAR = { perLevel: 2, speed: 22, gravity: 26, radius: 2, cooldownS: 0.6 } as const;
+/** Drill rig: rigs a day = level; seconds per tile = pick seconds × secsMult / (1 + perLevel × (level − 1)). */
+export const DRILL = { secsMult: 1.6, perLevel: 0.35, maxDepth: 60 } as const;
+/** Cold lance: digs as the pick, `hot` times faster on hot rock (+ perLevel a level); heat-proof while held. */
+export const LANCE = { hot: 3, perLevel: 1 } as const;
+/** Vein Break: when the Vein Rush chain reaches `at`, the rest of that vein (up to `max` tiles) shatters into the pack. */
+export const VEIN_BREAK = { at: 6, max: 24 } as const;
 
 /** hybrid canon §10: the Foreman's kit at dawn before upgrades. */
 export const KIT = {
   pack: 24,
   ladders: 8,
+  /** One-way platforms dropped with G; the ladder bundle adds `UPGRADE.platforms` a level. */
+  platforms: 6,
   charges: 0,
   blastRadius: 1,
   fuseS: 1.1,
@@ -534,7 +611,7 @@ export const KIT = {
 } as const;
 
 /** hybrid canon §11: chests. Scrip = base × (1 + depthTiles / depthDiv); relic chance. */
-export const CHEST = { base: 15, depthDiv: 12, relic: 0.3 } as const;
+export const CHEST = { base: 15, depthDiv: 12, relic: 0.3, firstD: 6 } as const;
 
 export type RelicId = 'wick' | 'ring' | 'button' | 'flask' | 'collar' | 'pen' | 'boots' | 'lamp';
 export const RELICS: Record<RelicId, { name: string; blurb: string }> = {

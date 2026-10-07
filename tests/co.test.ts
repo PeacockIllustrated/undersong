@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SHAFT_X } from '../src/data/constants';
 import { M } from '../src/data/materials';
+import { biomeAt } from '../src/data/biomes';
 import { D } from '../src/sim/decimal';
 import { CO_PICKS, DAY, GOLD_SCRIP, STEP_S } from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
@@ -322,5 +323,127 @@ describe('crews and promotions (H2)', () => {
     const gangs = g.day!.gangs;
     expect(gangs.length).toBeGreaterThan(8);
     expect(gangs.reduce((a, x) => a + x.count, 0)).toBe(123);
+  });
+});
+
+describe('tools and finds (H3)', () => {
+  const armed = (): Game => {
+    const g = started();
+    Object.assign(g.s.contract.levels, { scatter: 1, mortar: 1, drill: 1, lance: 1 });
+    startDay(g);
+    run(g, {}, 0.3);
+    return g;
+  };
+
+  it('swaps tools by number and only to tools on the belt', () => {
+    const g = started();
+    run(g, { toolSel: 1 }, 0.05);
+    expect(g.day!.tool).toBe('pick');
+    const h = armed();
+    run(h, { toolSel: 2 }, 0.05);
+    expect(h.day!.tool).toBe('mortar');
+    run(h, { toolCycle: 1 }, STEP_S);
+    expect(h.day!.tool).toBe('drill');
+  });
+
+  it('the scatter pick breaks rock in a cone and rocket-jumps when fired down in the air', () => {
+    const g = armed();
+    const w = g.world!;
+    const b = g.day!.body;
+    g.day!.tool = 'scatter';
+    const fx = Math.floor(b.x) + 1;
+    const fy = Math.floor(b.y) - 1;
+    for (let y = fy - 1; y <= fy + 1; y++) w.set(fx, y, M.DIRT);
+    run(g, { fire: true, aimX: fx + 0.5, aimY: fy + 0.5 }, 3);
+    expect(g.day!.toolTiles.scatter ?? 0).toBeGreaterThan(1);
+    // in the air, fired down: thrown upward
+    b.y -= 3;
+    b.onGround = false;
+    b.vy = 2;
+    g.day!.toolCd = 0;
+    run(g, { fire: true, aimX: b.x, aimY: b.y + 3 }, STEP_S);
+    expect(b.vy).toBeLessThan(0);
+  });
+
+  it('a mortar shell bursts on rock and drains the water around it', () => {
+    const g = armed();
+    const w = g.world!;
+    const b = g.day!.body;
+    g.day!.tool = 'mortar';
+    const tx = Math.floor(b.x) + 5;
+    const ty = Math.floor(b.y) - 1;
+    for (let x = Math.floor(b.x) + 1; x < tx; x++) w.set(x, ty, M.AIR);
+    w.set(tx, ty, M.STONE);
+    run(g, { fire: true, aimX: tx + 0.5, aimY: ty + 0.5 }, STEP_S);
+    expect(g.day!.shells.length).toBe(1);
+    run(g, {}, 1.5);
+    expect(g.day!.shells.length).toBe(0);
+    expect(g.day!.toolTiles.mortar ?? 0).toBeGreaterThan(0);
+  });
+
+  it('a drill rig digs straight down on its own', () => {
+    const g = armed();
+    g.day!.tool = 'drill';
+    run(g, { fire: true, aimX: g.day!.body.x, aimY: g.day!.body.y + 0.5 }, STEP_S);
+    expect(g.day!.rigs.length).toBe(1);
+    run(g, {}, 20);
+    expect(g.day!.rigs[0]!.depth).toBeGreaterThan(2);
+  });
+
+  it('platforms hold the Foreman up and S drops through', () => {
+    const g = started();
+    run(g, {}, 0.3);
+    const b = g.day!.body;
+    b.y -= 2;
+    b.onGround = false;
+    run(g, { platformPressed: true }, STEP_S);
+    expect(Object.keys(g.day!.plat).length).toBe(1);
+    const row = Number(Object.keys(g.day!.plat)[0]) / g.world!.w;
+    b.y -= 1;
+    run(g, {}, 0.6);
+    expect(b.onGround).toBe(true);
+    expect(b.y).toBe(Math.floor(row));
+    run(g, { down: true }, 0.4);
+    expect(b.y).toBeGreaterThan(Math.floor(row));
+  });
+
+  it('a long Vein Rush breaks the rest of the vein', () => {
+    const g = started();
+    run(g, {}, 0.3);
+    const w = g.world!;
+    const b = g.day!.body;
+    // a corridor well away from the kibble: air above, a coal seam at the feet's row, stone below
+    const fy = 40;
+    const x0 = 8;
+    for (let x = x0 - 2; x < x0 + 16; x++) {
+      w.set(x, fy - 2, M.AIR);
+      w.set(x, fy - 3, M.STONE);
+      w.set(x, fy - 1, x < x0 ? M.AIR : M.COAL);
+      w.set(x, fy, M.STONE);
+    }
+    g.s.contract.levels.pack = 10;
+    g.s.contract.levels.pick = 5;
+    b.y = fy;
+    let broke = false;
+    for (let k = 0; k < 30; k++) {
+      let x = x0;
+      while (x < x0 + 14 && w.get(x, fy - 1) !== M.COAL) x++;
+      if (x >= x0 + 14) break;
+      b.x = x - 0.6;
+      b.vx = 0;
+      run(g, { fire: true, aimX: x + 0.5, aimY: fy - 0.5 }, 0.5);
+      if (g.events.some((e) => e.t === 'veinBreak')) broke = true;
+      g.events.length = 0;
+    }
+    expect(broke).toBe(true);
+    expect(w.get(x0 + 13, fy - 1)).toBe(M.AIR);
+  });
+
+  it('every biome band has a chest', () => {
+    const w = makeMine(daySeed(3, 1), 8);
+    const bands = new Set<number>();
+    for (const [k, v] of Object.entries(w.objects))
+      if (v === 'chest') bands.add(biomeAt(w.depth(Math.floor(Number(k) / w.w))).id);
+    for (const id of [1, 2, 3, 4, 5, 6]) expect(bands.has(id)).toBe(true);
   });
 });

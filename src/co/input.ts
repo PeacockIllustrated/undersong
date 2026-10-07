@@ -18,6 +18,9 @@ export class Input {
   private jumpEdgeUp = false;
   private throwEdge = false;
   private ladderEdge = false;
+  private platformEdge = false;
+  private toolSel: number | null = null;
+  private toolCycle = 0;
   readonly touch: TouchState = { stick: null, aim: null, jump: false };
   /** True once a finger has touched the game: shows the touch controls and hides the mouse aim. */
   usingTouch = false;
@@ -54,6 +57,14 @@ export class Input {
       if (e.button === 0) this.mouse.left = false;
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    canvas.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        if (Math.abs(e.deltaY) > 2) this.toolCycle = e.deltaY > 0 ? 1 : -1;
+      },
+      { passive: false },
+    );
   }
 
   private down = (e: KeyboardEvent): void => {
@@ -77,6 +88,8 @@ export class Input {
     }
     if (k === 'e' || k === 'q') this.throwEdge = true;
     if (k === 'f') this.ladderEdge = true;
+    if (k === 'g') this.platformEdge = true;
+    if (k >= '1' && k <= '5') this.toolSel = Number(k) - 1;
   };
 
   private up = (e: KeyboardEvent): void => {
@@ -92,6 +105,15 @@ export class Input {
   }
   pressLadder(): void {
     this.ladderEdge = true;
+  }
+  pressPlatform(): void {
+    this.platformEdge = true;
+  }
+  cycleTool(): void {
+    this.toolCycle = 1;
+  }
+  selectTool(i: number): void {
+    this.toolSel = i;
   }
 
   /** Build this step's control. Edge presses are handed out once, then cleared. */
@@ -114,7 +136,12 @@ export class Input {
     c.jumpIsUp = this.jumpEdgeUp;
     c.throwPressed = this.throwEdge;
     c.ladderPressed = this.ladderEdge;
-    this.jumpEdge = this.jumpEdgeUp = this.throwEdge = this.ladderEdge = false;
+    c.platformPressed = this.platformEdge;
+    c.toolSel = this.toolSel;
+    c.toolCycle = this.toolCycle;
+    this.jumpEdge = this.jumpEdgeUp = this.throwEdge = this.ladderEdge = this.platformEdge = false;
+    this.toolSel = null;
+    this.toolCycle = 0;
 
     if (body) {
       const o = chest(body);

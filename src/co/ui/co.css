@@ -742,7 +742,7 @@ button.danger {
 }
 .pad-right {
   right: 0;
-  bottom: 120px;
+  bottom: 180px;
 }
 .pad-base {
   position: absolute;
@@ -782,8 +782,9 @@ button.danger {
   position: absolute;
   right: 10px;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 58px);
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px;
   pointer-events: auto;
 }
 .tbtn {
@@ -859,6 +860,14 @@ button.danger {
     width: 24px;
     height: 24px;
   }
+  /* on a phone the touch buttons carry the counts and the tool swap; the kit shows the tool in hand */
+  .kit-slot.keyed,
+  .kit-slot.tool:not(.on) {
+    display: none;
+  }
+  .kit-slot .key {
+    display: none;
+  }
   .toasts {
     top: auto;
     bottom: 190px;
@@ -884,4 +893,18 @@ button.danger {
 .pct {
   color: var(--ink-dim);
   font-size: 11px;
+}
+
+.kit-slot.tool {
+  pointer-events: auto;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.kit-slot.tool.on {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+.kit-slot.tool b {
+  color: var(--gold);
 }

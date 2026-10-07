@@ -3,8 +3,9 @@ import { useState } from 'preact/hooks';
 import { spriteURL } from '../../render/sprites';
 import { D } from '../../sim/decimal';
 import { fmt } from '../../ui/format';
-import { CO_PICKS, DAY, ORES, ORE_IDS, RELICS } from '../data/co';
+import { CO_PICKS, DAY, ORES, ORE_IDS, RELICS, TOOLS } from '../data/co';
 import { packOre } from '../sim/day';
+import { owned } from '../sim/tools';
 import { CONTROLS, HINTS, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
 import { crewRate, isAudit, packCap, pickIndex } from '../sim/stats';
@@ -89,20 +90,43 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
         )}
       </div>
       <div class="kit">
-        <div class="kit-slot">
-          <img src={spriteURL(pick.sprite)} alt="" />
-          <span>{pick.name}</span>
-        </div>
-        <div class={`kit-slot ${d.charges ? '' : 'dim'}`}>
+        {owned(s).map((id) => {
+          const t = TOOLS.find((x) => x.id === id)!;
+          const n = TOOLS.indexOf(t) + 1;
+          const left = id === 'mortar' ? d.shellsLeft : id === 'drill' ? d.rigsLeft : null;
+          return (
+            <button
+              key={id}
+              class={`kit-slot tool ${d.tool === id ? 'on' : ''} ${left === 0 ? 'dim' : ''}`}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                bridge.input.selectTool(n - 1);
+              }}
+              title={t.name}
+            >
+              <span class="key">{n}</span>
+              <img src={spriteURL(id === 'pick' ? pick.sprite : t.sprite)} alt="" />
+              {id === 'pick' && <span>{pick.name}</span>}
+              {left !== null && <b>{left}</b>}
+            </button>
+          );
+        })}
+        <div class={`kit-slot keyed ${d.charges ? '' : 'dim'}`}>
           <span class="key">E</span>
           <span>
             Charges <b>{d.charges}</b>
           </span>
         </div>
-        <div class={`kit-slot ${d.ladders ? '' : 'dim'}`}>
+        <div class={`kit-slot keyed ${d.ladders ? '' : 'dim'}`}>
           <span class="key">F</span>
           <span>
             Ladders <b>{d.ladders}</b>
+          </span>
+        </div>
+        <div class={`kit-slot keyed ${d.platforms ? '' : 'dim'}`}>
+          <span class="key">G</span>
+          <span>
+            Platforms <b>{d.platforms}</b>
           </span>
         </div>
         {d.rush.chain > 0 && (

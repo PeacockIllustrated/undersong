@@ -12,19 +12,23 @@ import {
   GEM,
   GEMS,
   GOLD_SCRIP,
+  HOT,
   KIT,
+  MORTAR,
   ORE_IDS,
   RELICS,
   ROLE_FX,
   SHAFT,
+  VEIN_BREAK,
   hardnessAt,
   type GemId,
   type OreId,
   type RelicId,
 } from '../data/co';
 import { chest as chestOf, newBody, stepBody, type Control } from './body';
+import { lanceMult, placePlatform, selectTool, stepTools, useTool } from './tools';
 import { daySeed, makeMine, shaftFoot } from './mine';
-import { zeroOres, type DayRun, type Game, type Gang } from './state';
+import { zeroOres, type DayRun, type Game, type Gang, type ToolUse } from './state';
 import {
   blastRadius,
   charges,
@@ -39,6 +43,7 @@ import {
   packCap,
   pickPower,
   pickTier,
+  platforms,
   quota,
   role,
   runMult,
@@ -75,6 +80,16 @@ export function startDay(g: Game): void {
     charges: charges(s),
     dig: null,
     rush: { chain: 0, x: -9, y: -9, idle: 0 },
+    tool: 'pick',
+    toolCd: 0,
+    shells: [],
+    shellsLeft: MORTAR.perLevel * s.contract.levels.mortar,
+    rigs: [],
+    rigsLeft: s.contract.levels.drill,
+    platforms: platforms(s),
+    plat: {},
+    toolTiles: {},
+    cracks: {},
     bombs: [],
     gangs: makeGangs(g, depth),
     crewPop: 0,
@@ -165,11 +180,12 @@ function take(g: Game, m: number, mult: number): { coal: number; ore: number; or
   return { coal: 0, ore: n, oreId: drop.ore };
 }
 
-/** Break a tile: verses, drops and the world. */
-function breakTile(g: Game, x: number, y: number, byHand: boolean): void {
+/** Break a tile: verses, drops and the world. `by` names the tool, for the tool-share count. */
+export function breakTile(g: Game, x: number, y: number, byHand: boolean, by: ToolUse = 'pick'): void {
   const w = g.world!;
   const d = g.day!;
   const m = w.get(x, y);
+  d.toolTiles[by] = (d.toolTiles[by] ?? 0) + 1;
   if (m === M.CARVING) {
     const c = w.carvings.find((k) => k.x === x && k.y === y);
     if (c) findVerse(g, c.verse);
@@ -186,6 +202,45 @@ function breakTile(g: Game, x: number, y: number, byHand: boolean): void {
   const got = take(g, m, rush);
   w.set(x, y, M.AIR);
   g.events.push({ t: 'break', x, y, m, coal: got.coal, ore: got.ore, oreId: got.oreId, rush });
+  if (byHand && DROPS[m] && d.rush.chain === VEIN_BREAK.at) veinBreak(g, x, y, m, rush);
+}
+
+/** Vein Break: a long enough Vein Rush shatters the rest of the vein it is in, straight into the pack. */
+function veinBreak(g: Game, x0: number, y0: number, m: number, rush: number): void {
+  const w = g.world!;
+  const tier = pickTier(g.s);
+  const seen = new Set<number>([w.idx(x0, y0)]);
+  const queue = [[x0, y0] as const];
+  const hit: [number, number][] = [];
+  while (queue.length && hit.length < VEIN_BREAK.max) {
+    const [x, y] = queue.shift()!;
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ] as const) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (!w.inside(nx, ny) || seen.has(w.idx(nx, ny))) continue;
+      seen.add(w.idx(nx, ny));
+      if (w.get(nx, ny) !== m || !canDig(m, tier)) continue;
+      hit.push([nx, ny]);
+      queue.push([nx, ny]);
+      if (hit.length >= VEIN_BREAK.max) break;
+    }
+  }
+  if (!hit.length) return;
+  let coal = 0;
+  let ore = 0;
+  for (const [x, y] of hit) {
+    const got = take(g, m, rush);
+    coal += got.coal;
+    ore += got.ore;
+    w.set(x, y, M.AIR);
+    g.events.push({ t: 'chip', x, y, m });
+  }
+  g.events.push({ t: 'veinBreak', x: x0, y: y0, m, n: hit.length, coal, ore });
 }
 
 function findVerse(g: Game, v: number): void {
@@ -222,7 +277,8 @@ export function aimTile(g: Game, c: Control): { x: number; y: number } | null {
 export function digSeconds(g: Game, x: number, y: number): number {
   const w = g.world!;
   const h = hardnessAt(w.hardnessOf(x, y), ftFromDepthTiles(w.depth(y)));
-  return h / (pickPower(g.s) * DIG.k * handMult(g.s));
+  const lance = g.day?.tool === 'lance' && HOT.includes(w.get(x, y)) ? lanceMult(g.s) : 1;
+  return h / (pickPower(g.s) * DIG.k * handMult(g.s) * lance);
 }
 
 function dig(g: Game, c: Control, dt: number): void {
@@ -230,7 +286,7 @@ function dig(g: Game, c: Control, dt: number): void {
   const w = g.world!;
   d.rush.idle += dt;
   if (d.rush.idle > DIG.rushIdleS) d.rush.chain = 0;
-  if (!c.fire) {
+  if (!c.fire || (d.tool !== 'pick' && d.tool !== 'lance')) {
     d.dig = null;
     return;
   }
@@ -255,7 +311,7 @@ function dig(g: Game, c: Control, dt: number): void {
   if (Math.floor((d.dig.t - dt) / 0.16) !== Math.floor(d.dig.t / 0.16))
     g.events.push({ t: 'chip', x: t.x, y: t.y, m });
   if (d.dig.t >= d.dig.need) {
-    breakTile(g, t.x, t.y, true);
+    breakTile(g, t.x, t.y, true, d.tool === 'lance' ? 'lance' : 'pick');
     d.dig = null;
   }
 }
@@ -311,7 +367,7 @@ function stepBombs(g: Game, dt: number): void {
         const m = w.get(x, y);
         if (m === M.AIR || m === M.BEDROCK || !canDig(m, tier)) continue;
         if (x === SHAFT_X && w.objects[String(w.idx(x, y))] === 'rope') continue;
-        breakTile(g, x, y, false);
+        breakTile(g, x, y, false, 'charge');
       }
     g.events.push({ t: 'boom', x: bm.x, y: bm.y, r });
   }
@@ -463,7 +519,7 @@ function findVein(g: Game, gang: Gang, tier: number): { x: number; y: number } |
 }
 
 /** A gang breaks a tile: coal goes up with the crew's coal, ore goes into stock. */
-function gangBreak(g: Game, x: number, y: number): void {
+export function gangBreak(g: Game, x: number, y: number): void {
   const w = g.world!;
   const d = g.day!;
   const m = w.get(x, y);
@@ -576,15 +632,24 @@ export function stepDay(g: Game, c: Control, dt: number): void {
     g.world,
     d.body,
     c,
-    { runMult: runMult(s), doubleJump: s.contract.levels.doubleJump > 0, jetFuelS: jetFuel(s) },
+    {
+      runMult: runMult(s),
+      doubleJump: s.contract.levels.doubleJump > 0,
+      jetFuelS: jetFuel(s),
+      platform: (x, y) => !!d.plat[g.world!.idx(x, y)],
+    },
     dt,
   );
   if (r === 'jump') g.events.push({ t: 'jump' });
   else if (typeof r === 'number') g.events.push({ t: 'land', speed: r });
   if (c.ladderPressed) placeLadder(g);
+  if (c.platformPressed) placePlatform(g);
   if (c.throwPressed) throwCharge(g, c);
+  selectTool(g, c);
   dig(g, c, dt);
+  useTool(g, c, dt);
   stepBombs(g, dt);
+  stepTools(g, dt);
   openChests(g);
   if (atKibble(g)) deposit(g);
 

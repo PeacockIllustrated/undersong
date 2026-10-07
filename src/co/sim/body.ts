@@ -38,12 +38,17 @@ export interface Control {
   aimY: number;
   throwPressed: boolean;
   ladderPressed: boolean;
+  platformPressed: boolean;
+  /** A tool picked by number this step (0-based), and a scroll through the belt (−1, 0, 1). */
+  toolSel: number | null;
+  toolCycle: number;
 }
 
 export interface Mobility {
   runMult: number;
   doubleJump: boolean;
   jetFuelS: number;
+  platform?: PlatformAt;
 }
 
 export const idleControl = (): Control => ({
@@ -58,6 +63,9 @@ export const idleControl = (): Control => ({
   aimY: 0,
   throwPressed: false,
   ladderPressed: false,
+  platformPressed: false,
+  toolSel: null,
+  toolCycle: 0,
 });
 
 export function newBody(x: number, y: number): Body {
@@ -105,6 +113,19 @@ export function onLadder(w: World, b: Body): boolean {
     if (w.inside(tx, ty) && w.objects[String(w.idx(tx, ty))] === 'rope') return true;
   }
   return false;
+}
+
+/** One-way platforms, by tile: they hold you up from above and let you through from below. */
+export type PlatformAt = (x: number, y: number) => boolean;
+
+function landsOnPlatform(isPlatform: PlatformAt, x: number, y0: number, y1: number): number | null {
+  // the feet cross the top of a platform row while falling
+  const row = Math.ceil(y0 - 1e-4);
+  if (y1 <= row) return null;
+  const xa = Math.floor(x - BODY.w / 2);
+  const xb = Math.floor(x + BODY.w / 2 - EPS);
+  for (let tx = xa; tx <= xb; tx++) if (isPlatform(tx, row)) return row;
+  return null;
 }
 
 function inWater(w: World, b: Body): boolean {
@@ -220,7 +241,13 @@ export function stepBody(w: World, b: Body, c: Control, mob: Mobility, dt: numbe
   const wasGround = b.onGround;
   const fallSpeed = b.vy;
   b.onGround = false;
-  if (!boxHits(w, b.x, ny)) b.y = ny;
+  const isPlat = mob.platform ?? ((): boolean => false);
+  const plat = b.vy > 0 && !c.down && !b.climbing ? landsOnPlatform(isPlat, b.x, b.y, ny) : null;
+  if (plat !== null) {
+    b.y = plat;
+    b.vy = 0;
+    b.onGround = true;
+  } else if (!boxHits(w, b.x, ny)) b.y = ny;
   else if (b.vy > 0) {
     b.y = Math.floor(ny - EPS);
     if (boxHits(w, b.x, b.y)) b.y = ny - b.vy * dt;
@@ -232,7 +259,13 @@ export function stepBody(w: World, b: Body, c: Control, mob: Mobility, dt: numbe
     b.vy = 0;
   }
   // standing still on the ground: check the tiles under the feet
-  if (!b.onGround && b.vy >= 0 && Math.abs(b.y - Math.round(b.y)) < 0.002 && boxHits(w, b.x, b.y + 0.01)) {
+  const standing =
+    boxHits(w, b.x, b.y + 0.01) ||
+    (!c.down &&
+      [Math.floor(b.x - BODY.w / 2), Math.floor(b.x + BODY.w / 2 - EPS)].some((tx) =>
+        isPlat(tx, Math.round(b.y)),
+      ));
+  if (!b.onGround && b.vy >= 0 && Math.abs(b.y - Math.round(b.y)) < 0.002 && standing) {
     b.y = Math.round(b.y);
     b.onGround = true;
     b.vy = 0;

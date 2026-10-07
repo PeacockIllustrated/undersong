@@ -8,7 +8,7 @@ import { hash3 } from '../../sim/rng';
 import type { World } from '../../world/world';
 import { drawSprite } from '../../render/sprites';
 import { tileTexture, wallTexture } from '../../render/tiles';
-import { BODY, DAY } from '../data/co';
+import { BODY, DAY, TOOLS } from '../data/co';
 import { aimTile, packOre } from '../sim/day';
 import { shaftFoot } from '../sim/mine';
 import { deputies, role, shaftDepth } from '../sim/stats';
@@ -224,6 +224,7 @@ export class View {
     this.drawKibbles(g, now);
     this.drawGangs(g, now);
     this.drawBombs(g, now);
+    this.drawTools(g, tx0, ty0, tx1, ty1, now);
     this.drawForeman(g, c, now, dt);
     this.fx.drawWorld(ctx, now);
     this.drawLight(g, tx0, ty0, tx1, ty1, now);
@@ -475,6 +476,36 @@ export class View {
       ctx.fillRect(x - 2, y - 3, 2, 1);
       ctx.fillStyle = Math.floor(now / (bm.fuse < 0.4 ? 50 : 120)) % 2 ? '#E0532F' : '#FFD65A';
       ctx.fillRect(x, y - 5, 1, 2);
+    }
+  }
+
+  /** Platforms, drill rigs, mortar shells, and the tool in the Foreman's hand. */
+  private drawTools(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
+    const { ctx } = this;
+    const d = g.day!;
+    const w = g.world!;
+    for (const k of Object.keys(d.plat)) {
+      const i = Number(k);
+      const x = i % w.w;
+      const y = Math.floor(i / w.w);
+      if (x < tx0 || x > tx1 || y < ty0 || y > ty1) continue;
+      drawSprite(ctx, 'platform', 0, x * T + T / 2, y * T + T);
+    }
+    for (const rig of d.rigs)
+      drawSprite(ctx, 'drill-rig', rig.done ? 0 : Math.floor(now / 90) % 2, rig.x * T + T / 2, rig.y * T);
+    for (const sh of d.shells)
+      drawSprite(ctx, 'mortar-shell', 0, Math.round(sh.x * T), Math.round(sh.y * T + 8));
+    if (d.tool !== 'pick') {
+      const b = d.body;
+      const t = TOOLS.find((x) => x.id === d.tool)!;
+      drawSprite(
+        ctx,
+        t.sprite,
+        0,
+        Math.round(b.x * T + b.facing * 7),
+        Math.round((this.fy - 0.35) * T),
+        b.facing < 0,
+      );
     }
   }
 

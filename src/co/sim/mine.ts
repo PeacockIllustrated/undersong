@@ -2,11 +2,12 @@
 // the shaft sunk to the village's depth with a ladder down it. The stone forgets every night (ADR-H002).
 import { SHAFT_X, SKY_ROWS } from '../../data/constants';
 import { M } from '../../data/materials';
-import { hash3 } from '../../sim/rng';
+import { hash3, makeRng } from '../../sim/rng';
+import { BIOMES } from '../../data/biomes';
 import { generateWorld } from '../../world/generator';
 import { fbm } from '../../world/noise';
 import type { World } from '../../world/world';
-import { SEAMS } from '../data/co';
+import { CHEST, SEAMS } from '../data/co';
 
 /** The seed of a given day of a contract. */
 export const daySeed = (contractSeed: number, day: number): number =>
@@ -25,8 +26,32 @@ export function makeMine(seed: number, shaftDepth: number): World {
       if (n > SEAMS.threshold) w.mat[i] = M.COAL;
     }
   sinkShaft(w, shaftDepth);
+  bandChests(w, seed);
   w.touchAll();
   return w;
+}
+
+/** Every biome band holds at least one chest a day (plan H3). One is carved into the band's rock if none is there. */
+export function bandChests(w: World, seed: number): void {
+  const rng = makeRng(seed ^ 0x5eed);
+  for (const band of BIOMES) {
+    if (band.d0 < 0) continue;
+    const y0 = SKY_ROWS + Math.max(band.d0, CHEST.firstD);
+    const y1 = Math.min(w.h - 3, SKY_ROWS + band.d1);
+    if (y0 >= y1) continue;
+    let has = false;
+    for (const k of Object.keys(w.objects)) {
+      const y = Math.floor(Number(k) / w.w);
+      if (w.objects[k] === 'chest' && y >= y0 && y < y1) has = true;
+    }
+    if (has) continue;
+    let x = rng.int(3, w.w - 4);
+    if (Math.abs(x - SHAFT_X) < 2) x = SHAFT_X + 3;
+    const y = rng.int(y0, Math.max(y0, y1 - 2));
+    w.mat[y * w.w + x] = M.AIR;
+    if (w.mat[(y + 1) * w.w + x] === M.AIR) w.mat[(y + 1) * w.w + x] = M.STONE;
+    w.objects[String(y * w.w + x)] = 'chest';
+  }
 }
 
 /** The shaft below the headframe: open, with a ladder all the way down and solid walls beside it near the top. */

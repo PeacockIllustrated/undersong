@@ -14,6 +14,7 @@ import {
   ORES,
   RELICS,
   STEP_S,
+  TOOLS,
   type BookId,
   type RelicId,
   type ShopId,
@@ -202,7 +203,12 @@ function boot(): void {
 
   render(h(App, { bridge }), document.getElementById('ui')!);
   // a handle for the smoke test and the console, dev builds only
-  if (import.meta.env.DEV) (window as unknown as { __co: Bridge }).__co = bridge;
+  if (import.meta.env.DEV) {
+    // play-test hooks for the dev server only
+    const win = window as unknown as { __co: Bridge; __coDev: { startDay(): void } };
+    win.__co = bridge;
+    win.__coDev = { startDay: () => startDay(g) };
+  }
   if (pay.gt(0)) toast(`Night-shift pay while you were away: +${fmt(pay)} scrip`, 'gold');
 
   const onEvent = (e: CoEvent, now: number): void => {
@@ -308,7 +314,37 @@ function boot(): void {
         if (e.speed > 14) fx.kick(2, 160, now);
         break;
       case 'ladder':
+      case 'platform':
         play('ui');
+        break;
+      case 'tool':
+        play('ui', 1.3);
+        toast(TOOLS.find((t) => t.id === e.tool)!.name, 'gold');
+        break;
+      case 'veinBreak': {
+        play('record', 1.1);
+        play('breakOre', 0.8);
+        fx.kick(3, 260, now);
+        fx.debris((e.x + 0.5) * T, (e.y + 0.5) * T, ['#FFD65A', '#FFF2A8', '#F2A35E'], 22, 1.4);
+        const what = e.coal > 0 ? `+${e.coal} coal` : `+${e.ore} ore`;
+        fx.float((e.x + 0.5) * T, (e.y - 1) * T, `VEIN BREAK! ${what}`, '#FFD65A', now, true);
+        break;
+      }
+      case 'scatter':
+        play('breakStone', 1.4);
+        for (let i = 0; i < 5; i++)
+          fx.sparkle((e.x + e.ax * (1 + i * 0.5)) * T, (e.y + e.ay * (1 + i * 0.5)) * T, '#FFD65A', 2);
+        if (e.kick) {
+          fx.kick(2, 140, now);
+          fx.debris(e.x * T, e.y * T, ['#FF9A3C', '#FFD65A'], 10, 1.2);
+        }
+        break;
+      case 'mortar':
+        play('collapse', 1.6);
+        fx.kick(1, 120, now);
+        break;
+      case 'rig':
+        play(e.placed ? 'cart' : 'ui', e.placed ? 1 : 0.7);
         break;
     }
   };

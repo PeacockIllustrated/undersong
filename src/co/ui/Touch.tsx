@@ -1,5 +1,6 @@
 // Phone controls (ADR-H006): a left thumb stick to move, a right pad to aim and dig, and three buttons.
 import { useRef } from 'preact/hooks';
+import { TOOLS } from '../data/co';
 import type { Bridge } from './App';
 
 const RADIUS = 46;
@@ -95,6 +96,28 @@ export function TouchControls({ bridge }: { bridge: Bridge }) {
         }}
       />
       <div class="touch-btns">
+        <button
+          class="tbtn"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            inp.usingTouch = true;
+            inp.cycleTool();
+          }}
+        >
+          Tool
+          <small>{TOOLS.find((x) => x.id === d?.tool)?.name.split(' ')[0] ?? 'Pick'}</small>
+        </button>
+        <button
+          class="tbtn"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            inp.usingTouch = true;
+            inp.pressPlatform();
+          }}
+        >
+          Step
+          <small>{d?.platforms ?? 0}</small>
+        </button>
         <button
           class="tbtn"
           onPointerDown={(e) => {

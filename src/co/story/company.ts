@@ -40,6 +40,8 @@ export const CONTROLS: readonly [string, string][] = [
   ['Hold left click', 'Dig'],
   ['Right click  or  E', 'Throw a blast charge'],
   ['F', 'Drop a ladder'],
+  ['G', 'Drop a platform (S to drop through)'],
+  ['1 to 5  or  wheel', 'Swap tools'],
   ['Esc', 'Pause'],
 ];
 

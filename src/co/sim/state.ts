@@ -10,6 +10,7 @@ import {
   type OreId,
   type RelicId,
   type ShopId,
+  type ToolId,
 } from '../data/co';
 import type { Body } from './body';
 
@@ -95,6 +96,26 @@ export interface Bomb {
   fuse: number;
 }
 
+/** What broke a tile, for the tool share (plan H3: no tool above 60%). */
+export type ToolUse = ToolId | 'charge';
+
+export interface Shell {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+}
+
+export interface Rig {
+  x: number;
+  /** The row the bit is working on. */
+  y: number;
+  work: number;
+  depth: number;
+  done: boolean;
+}
+
 export interface Gang {
   /** Where the gang stands (feet row y, head row y−1), its home row, and the side of the shaft it works. */
   x: number;
@@ -122,6 +143,12 @@ export type CoEvent =
       rush: number;
     }
   | { t: 'crewOre'; x: number; y: number; ore: OreId; n: number }
+  | { t: 'veinBreak'; x: number; y: number; m: number; n: number; coal: number; ore: number }
+  | { t: 'scatter'; x: number; y: number; ax: number; ay: number; kick: boolean }
+  | { t: 'mortar'; x: number; y: number }
+  | { t: 'rig'; x: number; y: number; placed: boolean }
+  | { t: 'platform'; x: number; y: number }
+  | { t: 'tool'; tool: ToolId }
   | { t: 'chip'; x: number; y: number; m: number }
   | { t: 'refused'; x: number; y: number }
   | { t: 'full' }
@@ -160,6 +187,20 @@ export interface DayRun {
   charges: number;
   dig: { x: number; y: number; t: number; need: number } | null;
   rush: { chain: number; x: number; y: number; idle: number };
+  /** The tool in hand and its cooldown (H3). */
+  tool: ToolId;
+  toolCd: number;
+  shells: Shell[];
+  shellsLeft: number;
+  rigs: Rig[];
+  rigsLeft: number;
+  /** Platforms left to drop today, and where they are (tile index → true). */
+  platforms: number;
+  plat: Record<number, true>;
+  /** Tiles broken today by each tool. */
+  toolTiles: Partial<Record<ToolUse, number>>;
+  /** Seconds of pick work the scatter pick has put into a tile so far (tile index → seconds). */
+  cracks: Record<number, number>;
   bombs: Bomb[];
   gangs: Gang[];
   /** Coal from the crew not yet shown as a pop at the kibble (render only reads it). */

@@ -74,6 +74,7 @@ export function dayLength(s: CoState): number {
 
 export const shaftDepth = (s: CoState): number => SHAFT.baseDepth + SHAFT.depthStep * lvl(s, 'shaft');
 export const ladders = (s: CoState): number => KIT.ladders + UPGRADE.ladders * lvl(s, 'ladders');
+export const platforms = (s: CoState): number => KIT.platforms + UPGRADE.platforms * lvl(s, 'ladders');
 export const charges = (s: CoState): number => KIT.charges + UPGRADE.charges * lvl(s, 'charges');
 export const blastRadius = (s: CoState): number => KIT.blastRadius + lvl(s, 'blast');
 export const jetFuel = (s: CoState): number => BODY.jetFuelS * lvl(s, 'jetpack');

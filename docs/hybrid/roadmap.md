@@ -11,14 +11,14 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Dusk tally sheet shows who did the work as shares that add to 100%
 
 ## H3 · Tools and finds
-- [ ] Tool belt: 1 to 5 and the scroll wheel swap tools; a tool ring on phones
-- [ ] Scatter pick: hits a cone; aimed down in the air it rocket-jumps
-- [ ] Mortar: lobs a shell far, bursts through water
-- [ ] Drill rig: placed, digs straight down on its own
-- [ ] Cold lamp lance: digs ember and basalt fast, and keeps the heat off
-- [ ] One guaranteed chest per biome band per day
-- [ ] Vein Break: a long Vein Rush shatters the rest of the vein into the pack
-- [ ] Platforms (G): one-way, drop through with S
+- [x] Tool belt: 1 to 5 and the scroll wheel swap tools; a tool ring on phones
+- [x] Scatter pick: hits a cone; aimed down in the air it rocket-jumps
+- [x] Mortar: lobs a shell far, bursts through water
+- [x] Drill rig: placed, digs straight down on its own
+- [x] Cold lamp lance: digs ember and basalt fast, and keeps the heat off
+- [x] One guaranteed chest per biome band per day
+- [x] Vein Break: a long Vein Rush shatters the rest of the vein into the pack
+- [x] Platforms (G): one-way, drop through with S
 
 ## H4 · The Contract
 - [ ] Foremen 1 to 4 chosen at signing: Apprentice, Smith's Hand, Lamplighter, Fieldhand
