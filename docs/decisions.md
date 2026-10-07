@@ -316,3 +316,9 @@ Decision:
 **Context.** M12-03: every UI ticket must be checked at 1280×800 and 390×844, so far by hand. Golden rule 7 needs an ADR for a new dependency.
 **Decision.** Add `playwright` (the library, not the test runner) as a dev dependency, pinned to 1.56.1 to match the browsers in the cloud sandbox. `tools/smoke.ts` (`npm run smoke`) serves `dist/` with a small Node server, boots a new game and every save fixture at both sizes, and fails on any page error or horizontal overflow. Screenshots go to `smoke-shots/` (git-ignored). CI installs Chromium, runs it after the build, and keeps the screenshots as an artifact even when it fails. It is not part of `npm run check`, which stays browser-free; set `PW_CHROMIUM` to use a local Chromium.
 **Consequences.** CI takes longer (a browser install and 22 boots). Console warnings are not failures; only uncaught page errors are.
+
+## ADR-040 · Aquamarine from the cart, not from the generator
+
+**Context.** M12-04 found that 4 of 45 sim mountains hold fewer than the 15 aquamarine tiles the aquamarine pick needs, so a village there must cave in to finish Act III.
+**Decision.** Fix it with the tinker's cart, not the world generator. A saved mountain is rebuilt from its seed with the player's diffs on top, so changing the generator would move tiles under every existing save. While the village has the silver pick and too little aquamarine for the next, every cart carries a crate, and the crate holds aquamarine (the usual crate amount, which grows with Cave-ins). Once the aquamarine is in hand, crates are bars again.
+**Consequences.** The longest stall in the Act III sim is gone (seed 48514: 306 to 238 min). A player in a thin mountain waits at most one cart visit, which is 6 to 10 minutes.

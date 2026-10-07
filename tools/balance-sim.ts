@@ -1,6 +1,7 @@
 // Headless balance sim: a bot plays like an engaged player and reports time to each canon §5 milestone.
 // Usage: npm run sim -- [--seeds=5] [--until=first-cavein] [--minutes=90] [--strict]
 import type { GameState } from '../src/sim/state';
+import { needsAqua } from '../src/sim/finds';
 import { TICK_MS, SHAFT_X } from '../src/data/constants';
 import { MATERIALS, canDig, isMineable } from '../src/data/materials';
 import { lightFactor } from '../src/data/light';
@@ -375,8 +376,9 @@ function sharpen(g: Game): void {
 /** M9-02: the deep metals' repeatable buys, from spare metal only (a fifth of what is in hand). */
 function polish(g: Game): void {
   const s = g.state;
-  // M10-01: the bot takes the tinker's first offer
-  if (s.cart.offers) apply(g, { type: 'cart', i: 0 });
+  // M10-01: the bot takes the tinker's first offer; M12-05: or the aquamarine crate, when the next pick waits on it
+  if (s.cart.offers)
+    apply(g, { type: 'cart', i: needsAqua(s) ? Math.max(0, s.cart.offers.indexOf('crate')) : 0 });
   for (const m of METALWORK) {
     for (;;) {
       if (!metalworkOffered(s, m.id)) break;

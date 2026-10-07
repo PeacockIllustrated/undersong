@@ -1,6 +1,17 @@
 // M10 Finds: the tinker's cart, curios, Pell's dog and the cart's boons. Pure. canon §21, §14
-import { CART, CART_FX, CART_OFFERS, CRATE_METAL, CURIO, CURIOS, DOG, type CartOfferId } from '../data/finds';
+import {
+  AQUA_CRATE,
+  CART,
+  CART_FX,
+  CART_OFFERS,
+  CRATE_METAL,
+  CURIO,
+  CURIOS,
+  DOG,
+  type CartOfferId,
+} from '../data/finds';
 import { CHEST_LOOT } from '../data/economy';
+import { PICKS } from '../data/items';
 import { BIOMES, biomeAt } from '../data/biomes';
 import type { ResKey } from '../data/resources';
 import { D } from './decimal';
@@ -27,10 +38,19 @@ export function stepCart(g: Game): void {
     picks.push(pool.splice(k < 0 ? pool.length - 1 : k, 1)[0]!.id);
   }
   s.rng = rng.state();
+  // M12-05: an aquamarine crate is always on the cart while the next pick waits on aquamarine
+  if (needsAqua(s) && !picks.includes('crate')) picks[picks.length - 1] = 'crate';
   s.cart.offers = picks;
   g.events.push({ kind: 'cart' });
   first(g, 'cart');
   say(g, 'tinker');
+}
+
+/** M12-05: the silver pick is in hand and the aquamarine for the next pick is not. */
+export function needsAqua(s: GameState): boolean {
+  if (s.pickTier !== AQUA_CRATE.pickTier) return false;
+  const need = PICKS[s.pickTier + 1]?.cost.find((c) => c.res === AQUA_CRATE.res);
+  return !!need && s.res[AQUA_CRATE.res].lt(need.n);
 }
 
 /** The map is only worth carrying while a verse is still to find this run. */
@@ -43,7 +63,7 @@ function offerable(s: GameState, id: CartOfferId): boolean {
 export function offerValue(s: GameState, id: CartOfferId): { res?: ResKey; n: number; ms?: number } {
   switch (id) {
     case 'crate': {
-      const res = CRATE_METAL[biomeAt(s.stats.maxDepthD).id] ?? 'copperBar';
+      const res = needsAqua(s) ? AQUA_CRATE.res : (CRATE_METAL[biomeAt(s.stats.maxDepthD).id] ?? 'copperBar');
       return { res, n: Math.round(CART_FX.crate.bars * (1 + CART_FX.crate.perCaveIn * s.stats.caveIns)) };
     }
     case 'torches':
@@ -79,7 +99,7 @@ export function takeCart(g: Game, i: number): boolean {
   s.cart.nextAt = s.t + CART.gapMinMs + Math.floor(rng.next() * (CART.gapMaxMs - CART.gapMinMs));
   s.rng = rng.state();
   s.cart.offers = null;
-  g.events.push({ kind: 'bought', what: `cart:${id}` });
+  g.events.push({ kind: 'bought', what: v.res === AQUA_CRATE.res ? 'cart:aqua' : `cart:${id}` });
   return true;
 }
 

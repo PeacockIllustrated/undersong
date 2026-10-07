@@ -42,7 +42,7 @@ import { toast } from './ui/feedback';
 import { Ears } from './audio/ears';
 import { SETTINGS_TEXT } from './story/settings';
 import { aheadText } from './story/memory';
-import { CART_TEXT, CART_UI, CURIO_TEXT, CURIO_UI, DOG_TEXT, RAIN_TEXT } from './story/finds';
+import { CART_AQUA_NAME, CART_TEXT, CART_UI, CURIO_TEXT, CURIO_UI, DOG_TEXT, RAIN_TEXT } from './story/finds';
 import { CURIOS } from './data/finds';
 import { RES_NAMES } from './data/resources';
 import { RES_ICON } from './ui/icons';
@@ -307,6 +307,8 @@ function announce(g: Game, what: string, k = 1): void {
     toast(h.name, `${ratio(h.speed * h.capacity, o.speed * o.capacity)} haulage`);
   } else if (what === 'deepPick') {
     toast(DEEP_PICK_TEXT.name(s.deepPick), `×${DEEP_PICK.mult} dig speed for you and every miner`);
+  } else if (what === 'cart:aqua') {
+    toast(...CART_UI.took(CART_AQUA_NAME));
   } else if (what.startsWith('cart:')) {
     toast(...CART_UI.took(CART_TEXT[what.slice(5) as keyof typeof CART_TEXT].name));
   } else if (what.startsWith('helper:')) {
