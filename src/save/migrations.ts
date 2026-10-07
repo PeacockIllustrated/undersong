@@ -68,6 +68,15 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 7;
     return o as Raw;
   },
+  // v7 → v8 (M9-03, M9-05): what the last run left behind, and this run's depth by minute.
+  7: (s) => {
+    const o = s as Record<string, any>;
+    o.runDepth = [];
+    o.lastRun = { miners: 0, depthByMin: [] };
+    o.metalwork = {};
+    o.v = 8;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

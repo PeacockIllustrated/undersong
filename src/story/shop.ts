@@ -10,3 +10,7 @@ export function readyText(r: { secs: number } | { needs: ResKey }): string {
 }
 
 export const BULK_LABEL: Record<string, string> = { '1': '×1', '10': '×10', max: 'Max' };
+
+/** M9-02: what each level of a deep metal's buy does, as the button says it. */
+export const metalFx = (fx: 'miners' | 'hands', per: number): string =>
+  `+${Math.round(per * 100)}% ${fx === 'miners' ? 'miners' : 'hand-mining'}`;

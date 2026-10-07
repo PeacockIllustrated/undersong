@@ -4,13 +4,15 @@ import type { MealId, WoodBuyId } from '../data/surface';
 import type { ResKey } from '../data/resources';
 import type { Decimal } from './decimal';
 import type { Action } from './actions';
-import { minerCost, whetstoneCost } from './economy';
+import { metalworkCost, minerCost, whetstoneCost } from './economy';
+import type { MetalworkId } from '../data/economy';
 import { mealCost, plotCost, saplingCost, woodCost } from './surface';
 import type { GameState } from './state';
 
 export type BulkKind =
   | { k: 'miner' }
   | { k: 'whetstone' }
+  | { k: 'metal'; id: MetalworkId }
   | { k: 'plot' }
   | { k: 'sapling' }
   | { k: 'meal'; id: MealId }
@@ -27,6 +29,8 @@ function next(s: GameState, b: BulkKind): Costs | null {
     }
     case 'whetstone':
       return whetstoneCost(s);
+    case 'metal':
+      return metalworkCost(s, b.id);
     case 'plot':
       return plotCost(s);
     case 'sapling':
@@ -42,6 +46,7 @@ function next(s: GameState, b: BulkKind): Costs | null {
 function grow(t: GameState, b: BulkKind): void {
   if (b.k === 'miner') t.miners.push(t.miners[0]!);
   else if (b.k === 'whetstone') t.whetstone++;
+  else if (b.k === 'metal') t.metalwork[b.id] = (t.metalwork[b.id] ?? 0) + 1;
   else if (b.k === 'plot') t.surface.plots.push({ t: 0, golden: false });
   else if (b.k === 'sapling') t.surface.trees.push(t.surface.trees[0]!);
   else if (b.k === 'meal') t.surface.meals[b.id]++;
@@ -52,6 +57,7 @@ function scratch(s: GameState): GameState {
   return {
     ...s,
     miners: [...s.miners],
+    metalwork: { ...s.metalwork },
     surface: {
       ...s.surface,
       plots: [...s.surface.plots],
@@ -98,6 +104,8 @@ export function bulkAction(b: BulkKind): Action {
       return { type: 'hireMiner' };
     case 'whetstone':
       return { type: 'whetstone' };
+    case 'metal':
+      return { type: 'metalwork', id: b.id };
     case 'plot':
       return { type: 'buyPlot' };
     case 'sapling':

@@ -224,28 +224,29 @@ Topsoil: copper `n1 > 0.7`, tin `n2 > 0.76`. Glowroot: iron `n1 > 0.7`, copper `
 
 ## §10 Echo upgrades (v1)
 
-Three branches of six. Each needs the one above it in its branch.
+Three branches: six in Hands and Lamps, seven in Memory (Bunkhouse Roll, ADR-034). Each needs the one above it in its branch.
 
-| Branch | Upgrade         | Cost | Effect                                                                          |
-| ------ | --------------- | ---- | ------------------------------------------------------------------------------- |
-| Hands  | Steady Hands    | 1    | Hand-mining +25%                                                                |
-| Hands  | Cheap Bunks     | 2    | Miner cost −10%                                                                 |
-| Hands  | Strong Backs    | 6    | Miners dig 30% faster                                                           |
-| Hands  | Old Calluses    | 12   | Vein Rush step 0.25 → 0.35                                                      |
-| Hands  | Heirloom Pick   | 25   | Start each run with the pick one below your best                                |
-| Hands  | Deep Hands      | 60   | Everyone digs 50% faster below 1000 ft                                          |
-| Lamps  | Lamplit         | 2    | Torchlight 15% stronger                                                         |
-| Lamps  | Steady Flame    | 5    | Torches no longer gutter below 150 ft                                           |
-| Lamps  | Wren’s Wicks    | 8    | Lanterns burn 40% less Lumen                                                    |
-| Lamps  | Glowcap Gardens | 14   | Glowcaps give twice the spores                                                  |
-| Lamps  | Moth Ward       | 22   | Beetles, moths and wisps come half as often                                     |
-| Lamps  | Bright Pages    | 45   | The Lamp-works makes 50% more Lumen                                             |
-| Memory | Pell’s Hum      | 2    | The nearest unfound verse glints within 20 tiles (first in the branch, ADR-020) |
-| Memory | Remembered Rope | 3    | Start each run with the Winch lift                                              |
-| Memory | Bram’s Ledger   | 9    | Start each run with 30 copper bars and 10 tin bars                              |
-| Memory | Old Shafts      | 16   | The shaft is already dug to half your best depth                                |
-| Memory | Long Shift      | 28   | Away time counts for 16 h at 75% (§4.8)                                         |
-| Memory | Survey Instinct | 50   | Cave-ins give 25% more Echoes                                                   |
+| Branch | Upgrade         | Cost | Effect                                                                                                            |
+| ------ | --------------- | ---- | ----------------------------------------------------------------------------------------------------------------- |
+| Hands  | Steady Hands    | 1    | Hand-mining +25%                                                                                                  |
+| Hands  | Cheap Bunks     | 2    | Miner cost −10%                                                                                                   |
+| Hands  | Strong Backs    | 6    | Miners dig 30% faster                                                                                             |
+| Hands  | Old Calluses    | 12   | Vein Rush step 0.25 → 0.35                                                                                        |
+| Hands  | Heirloom Pick   | 25   | Start each run with the pick one below your best                                                                  |
+| Hands  | Deep Hands      | 60   | Everyone digs 50% faster below 1000 ft                                                                            |
+| Lamps  | Lamplit         | 2    | Torchlight 15% stronger                                                                                           |
+| Lamps  | Steady Flame    | 5    | Torches no longer gutter below 150 ft                                                                             |
+| Lamps  | Wren’s Wicks    | 8    | Lanterns burn 40% less Lumen                                                                                      |
+| Lamps  | Glowcap Gardens | 14   | Glowcaps give twice the spores                                                                                    |
+| Lamps  | Moth Ward       | 22   | Beetles, moths and wisps come half as often                                                                       |
+| Lamps  | Bright Pages    | 45   | The Lamp-works makes 50% more Lumen                                                                               |
+| Memory | Pell’s Hum      | 2    | The nearest unfound verse glints within 20 tiles (first in the branch, ADR-020)                                   |
+| Memory | Remembered Rope | 3    | Start each run with the Winch lift                                                                                |
+| Memory | Bram’s Ledger   | 9    | Start each run with 30 copper bars and 10 tin bars                                                                |
+| Memory | Bunkhouse Roll  | 12   | After a Cave-in, miners hire themselves as bars come in, up to last run’s count, one every 1.5 s (M9-03, ADR-034) |
+| Memory | Old Shafts      | 16   | The shaft is already dug to half your best depth                                                                  |
+| Memory | Long Shift      | 28   | Away time counts for 16 h at 75% (§4.8)                                                                           |
+| Memory | Survey Instinct | 50   | Cave-ins give 25% more Echoes                                                                                     |
 
 ## §11 Buildings and items: Act II (v0)
 
@@ -461,3 +462,17 @@ Values live in `src/data/ui.ts`.
 | Ore heap     | ore waiting at the forge: sizes from 1, 15, 60, 200 ore; drawn at tile column 36.5 beside the headframe                                                                                                                                                                      |
 | Bar stack    | bars in hand: heights from 1, 6, 25, 80 bars; drawn at tile column 16.6 beside the forge                                                                                                                                                                                     |
 | Chip colours | copper #D9823B · tin #878E9A · bronze #B8902A · iron #A46D48 · silver #E8F4F0 · aquamarine #7FD6FF · crystal #C4F0FF · ember #E0532F · gold #FFD65A · heartstone #FF9A3C · spores #5FF0D8 · Lumen #FFF2A8 · rubble #6D7480 · brick #7A2A1E · barley #F2A35E · timber #6B4329 |
+
+## §20 Memory and the deep game (v0, ADR-034)
+
+Values live in `src/data/memory.ts`, `src/data/economy.ts` (`METALWORK`), `src/data/ui.ts` (`CEREMONY`) and `src/data/sounds.ts` (`CAVEIN_SONG`).
+
+| Thing             | Value                                                                                                                                                                                                                                     |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Metalwork         | repeatable, resets on a Cave-in, cost `base × 1.6^n` · Silvered bits: 1 silver bar, miners +5% each · Tuning fork: 2 crystal, hands +10% · Banked embers: 2 ember ore, miners +5% · Gilded handles: 1 gold bar, hands +10%                |
+| Metalwork shown   | once the resource has been seen this run, or a level is bought                                                                                                                                                                            |
+| Bunkhouse Roll    | Memory upgrade, 12 Echoes, after Bram's Ledger: after a Cave-in, one miner hires himself every 1.5 s while bars allow, up to last run's miner count                                                                                       |
+| Ghost of last run | the run's deepest depth is kept once a minute, at most 480 minutes; the depth ruler marks where you were at this minute last run; passing it says "N min ahead of last cycle"                                                             |
+| Foreman's lead    | miners within 6 tiles of the Foreman (Chebyshev) dig ×1.25, shown as a gold halo                                                                                                                                                          |
+| Cave-in ceremony  | shaft folds 0–1.6 s · Echoes count up to 4.0 s, over this run's verse notes (start 1.6 s, 0.3 s apart) · stone drops on the cairn 4.9 s · "Last cycle you reached N ft" 5.0 s · ends 6.6 s · tap skips; reduced motion shows a still card |
+| Act wait gate     | the Act II sim fails when any act's median longest wait with nothing to buy is over 10 minutes                                                                                                                                            |

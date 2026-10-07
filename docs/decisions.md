@@ -260,3 +260,15 @@ Decision:
 - The ore heap and bar stack are render-only and read `res`, so they cost nothing in the save.
 - Alerts carry where their fix is (`Fix` in `src/ui/feedback.ts`): a Village card, scrolled to and lit, or a place in the mine. The haulage alert now compares ore a second with ore a second (it used to compare hardness with ore).
 **Consequences.** The "≥3 miners at the first Cave-in" criterion is not met: the median is 2, and about 4 seeds in 9 reach 3. Getting there pulled the first Cave-in under its target, so the ticket was rewritten (see roadmap M8-01) rather than forcing it.
+
+## ADR-034 · Memory: metalwork, a rehiring bunkhouse, a ghost, a ceremony and the Foreman's lead
+
+**Context.** M9 asks that no act leaves the player more than 10 minutes with nothing to buy, and that the Cave-in feels like a payout. The probe in M7 planning found 83–157 minute dead stretches in Acts III and IV.
+**Decision.**
+- Metalwork (canon §20): one cheap repeatable buy for each of silver bars, crystal, ember ore and gold bars, like the whetstone, reset on a Cave-in. Growth is 1.6 (1.45 brought the ending in about 30% early on the first runs).
+- Bunkhouse Roll is a Memory upgrade between Bram's Ledger and Old Shafts, so the rehire never fires in a first run.
+- The ghost keeps one number a minute (at most 480), so the save grows by at most a few KB. `lastRun` and `runDepth` are save v8.
+- The ceremony is UI only; the sim moves to the new run at once, as before. Its sound plays the notes of the verses learned this run, carried on the `caveIn` event.
+- The Foreman's lead is ×1.25 inside 6 tiles, not the ticket's ×1.5 starting point: at ×1.5 together with metalwork, the ending came in around 520 minutes against 690.
+- The balance bot buys metalwork from spare (at most 20% of holdings) and reports the longest wait per act. The 10-minute gate runs on Act II runs.
+**Consequences.** Long-act sims stay noisy (±10% between runs of 9 seeds); see the M9 progress entry for the medians at merge.

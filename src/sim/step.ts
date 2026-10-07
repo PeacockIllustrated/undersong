@@ -13,6 +13,7 @@ import { stepHelpers } from './helpers';
 import { stepSurface } from './surface';
 import { stepAchievements } from './achievements';
 import { stepKiln, stepLampworks, stepLanterns } from './village';
+import { stepMemory } from './memory';
 
 export { mineTile } from './dig';
 
@@ -36,6 +37,7 @@ export function step(g: Game, dtMs: number): void {
   stepHelpers(g, dt);
   stepSurface(g, dt);
   stepGlints(g);
+  stepMemory(g);
   stepStory(g);
   if (s.t % 1000 === 0 || dt >= 1) {
     stepEndless(g);

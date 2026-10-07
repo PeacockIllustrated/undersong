@@ -17,6 +17,7 @@ import { deepMult, minerMult, pestMult, pickPower } from './power';
 import { heatAt, heatFactor } from './heat';
 import { brothCool } from './surface';
 import { HEAT, WISPS } from '../data/heat';
+import { LEAD } from '../data/memory';
 
 function taken(g: Game, x: number, y: number, self: Miner): boolean {
   const f = g.state.foreman;
@@ -137,8 +138,15 @@ export function minerRate(g: Game, m: Miner): number {
     lightFactor(g.world.faceLight(t.x, t.y)) *
     minerMult(s) *
     deepMult(s, g.world.depth(t.y)) *
-    heatFactor(heatAt(g, t.x, t.y) - brothCool(s))
+    heatFactor(heatAt(g, t.x, t.y) - brothCool(s)) *
+    (ledByForeman(g, m) ? LEAD.mult : 1)
   );
+}
+
+/** M9-06: a miner working within LEAD.radius tiles of the Foreman (either way) digs faster. */
+export function ledByForeman(g: Game, m: Miner): boolean {
+  const f = g.state.foreman;
+  return Math.max(Math.abs(m.x - f.x), Math.abs(m.y - f.y)) <= LEAD.radius;
 }
 
 /** M8-05: ore a second the miners send up from the faces they are working now (for the Village sheet). */

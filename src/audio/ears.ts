@@ -59,6 +59,7 @@ export class Ears {
         this.sound.verse(e.verse, now);
         continue;
       }
+      if (e.kind === 'caveIn') this.sound.song(e.verses, now);
       const at = 'x' in e ? e.x : f.x;
       const y = 'y' in e ? e.y : f.y;
       for (const p of cuesFor(e, seen(at, y), f.chain)) this.sound.play(p.id, now, p.pitch, pan(at) * 0.6);

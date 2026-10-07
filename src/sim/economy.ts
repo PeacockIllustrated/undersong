@@ -4,11 +4,13 @@ import {
   COST_GROWTH,
   FORGE,
   HAULS,
+  METALWORK,
   MINER_BASE,
   RAIL_MAX_LOTS,
   SMELT,
   TORCH_CRAFT,
   WHETSTONE,
+  type MetalworkId,
 } from '../data/economy';
 import type { Cost } from '../data/items';
 import { PICKS } from '../data/items';
@@ -46,6 +48,25 @@ export const flat = (cs: readonly Cost[]): { res: ResKey; amount: Decimal }[] =>
 
 export function whetstoneCost(s: GameState): { res: ResKey; amount: Decimal }[] {
   return [{ res: 'copperBar', amount: D(WHETSTONE.base).mul(D(WHETSTONE.growth).pow(s.whetstone)).ceil() }];
+}
+
+/** M9-02: the next level of a deep metal's repeatable buy. */
+export function metalworkCost(s: GameState, id: MetalworkId): { res: ResKey; amount: Decimal }[] {
+  const m = METALWORK.find((x) => x.id === id)!;
+  return [
+    {
+      res: m.res,
+      amount: D(m.base)
+        .mul(D(m.growth).pow(s.metalwork[id] ?? 0))
+        .ceil(),
+    },
+  ];
+}
+
+/** Offered once the run has had some of that metal. */
+export function metalworkOffered(s: GameState, id: MetalworkId): boolean {
+  const m = METALWORK.find((x) => x.id === id)!;
+  return (s.metalwork[id] ?? 0) > 0 || s.res[m.res].gt(0);
 }
 
 export function nextPick(s: GameState): { res: ResKey; amount: Decimal }[] | null {

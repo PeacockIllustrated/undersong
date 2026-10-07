@@ -28,7 +28,8 @@ import { catchUp } from './save/offline';
 import { App, type UiBridge } from './ui/App';
 import { Atlas } from './ui/Atlas';
 import type { GameState } from './sim/state';
-import { BUILDINGS, HAULS, WHETSTONE } from './data/economy';
+import { BUILDINGS, HAULS, METALWORK, WHETSTONE } from './data/economy';
+import { metalFx } from './story/shop';
 import { PICKS } from './data/items';
 import { BIOMES, biomeAt } from './data/biomes';
 import { HELPERS } from './data/helpers';
@@ -37,6 +38,7 @@ import { mealFx } from './ui/Surface';
 import { toast } from './ui/feedback';
 import { Ears } from './audio/ears';
 import { SETTINGS_TEXT } from './story/settings';
+import { aheadText } from './story/memory';
 import { RES_ICON } from './ui/icons';
 import type { ResKey } from './data/resources';
 import './ui/style.css';
@@ -275,6 +277,10 @@ function announce(g: Game, what: string, k = 1): void {
   if (what === 'pick') {
     const p = PICKS[s.pickTier]!;
     toast(p.name, `${ratio(p.power, PICKS[s.pickTier - 1]!.power)} dig speed for you and every miner`);
+  } else if (what.startsWith('metal:')) {
+    const m = METALWORK.find((x) => `metal:${x.id}` === what)!;
+    const lv = s.metalwork[m.id] ?? 0;
+    toast(k > 1 ? `${m.name} ×${k}` : m.name, `Level ${lv} · ${metalFx(m.fx, m.per * lv)}`);
   } else if (what === 'miner') toast(k > 1 ? `+${k} miners` : '+1 miner', `${s.miners.length} at work`);
   else if (what === 'whetstone')
     toast(
@@ -411,6 +417,10 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       const col = e.flash ? '#5FF0D8' : e.ring ? '#C4F0FF' : '#FFF2A8';
       for (let i = 0; i < n; i++) r.fx.sparkle(cx, cy, col);
       if (e.flash) r.fx.flash(cx, cy, '#5FF0D8', now);
+    } else if (e.kind === 'ahead') {
+      // M9-05: past last run's ghost
+      const [h, sub] = aheadText(e.min);
+      toast(h, sub);
     } else if (e.kind === 'record') {
       r.fx.shake(1, 300, now);
       toast(`New record · ${e.ft} ft`, 'Deeper than any cycle before');

@@ -14,7 +14,17 @@ import type { HelperId } from '../data/helpers';
 import { hireHelper, hitPest } from './helpers';
 import { D } from './decimal';
 import { bulkAction, bulkCost, type BulkKind } from './bulk';
-import { minerCost, nextHaul, nextPick, pay, torchCost, whetstoneCost } from './economy';
+import {
+  metalworkCost,
+  metalworkOffered,
+  minerCost,
+  nextHaul,
+  nextPick,
+  pay,
+  torchCost,
+  whetstoneCost,
+} from './economy';
+import type { MetalworkId } from '../data/economy';
 import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
 import { coolCache } from './heat';
@@ -53,6 +63,7 @@ export type Action =
   | { type: 'buyPick' }
   | { type: 'buyHaul' }
   | { type: 'whetstone' }
+  | { type: 'metalwork'; id: MetalworkId }
   | { type: 'craftTorches' }
   | { type: 'craft'; id: CraftId }
   | { type: 'buyBuilding'; id: BuildingId }
@@ -255,6 +266,11 @@ export function apply(g: Game, a: Action): void {
       g.events.push({ kind: 'bought', what: 'pick' });
       return;
     }
+    case 'metalwork':
+      if (!metalworkOffered(s, a.id) || !pay(s, metalworkCost(s, a.id))) return;
+      s.metalwork[a.id] = (s.metalwork[a.id] ?? 0) + 1;
+      g.events.push({ kind: 'bought', what: `metal:${a.id}` });
+      return;
     case 'whetstone':
       if (!pay(s, whetstoneCost(s))) return;
       s.whetstone++;
