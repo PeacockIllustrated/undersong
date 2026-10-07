@@ -555,17 +555,22 @@ Acceptance:
   2. On a phone the panel is a bottom sheet with a grab handle that can be dragged between half and full height, and swiped down to close. Panels slide in and out (still for reduced motion), and switching between Village, Survey and Menu doesn't close and reopen the frame.
   3. Checked at 1280×800 and 390×844 with before-and-after screenshots; the smoke test stays green.
 
+### [x] M13-08 · Walking, lamplight and lanterns · S · PR #29
+From the Parking lot.
+Acceptance:
+  1. The Foreman and miners have a four-frame walk, used while they move; miners ease between faces instead of jumping.
+  2. The Foreman's render-only lamp spreads through open tiles and stops about a tile into rock, so it no longer lights the far side of a wall (ADR-010 unchanged: it never enters the sim).
+  3. The lantern reads at ×2: a brass frame on an iron wall bracket.
+Out of scope: the bot's torch plan (it changes balance-sim timings; stays parked).
+
 ---
 
 ## Parking lot
 
 - Holloway Above ideas still open: none (the cart, curio shelf, Pell's dog, day and night, rain and the ore heap are now M8 and M10 tickets).
 
-- The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.
 
-- Foreman 4-frame walk cycle, rope-coil and winch item sprites (finishes M0-07; do with M1 haulage).
-- Render-only lamp glow passes through rock; consider occluding it by solid tiles.
-- Miners walk between faces instantly; animate the walk.
+- Rope-coil and winch item sprites (the haul card shows the headframe for every tier for now).
