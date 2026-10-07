@@ -16,7 +16,8 @@ Questions for Tom: anything blocking or worth a decision (or "none").
 
 Done: the root cellar under the cookhouse (dig with iron and bricks, seed with spores, then a spore every 5 s), cress paddies (a barley plot flooded, 2 watered per pump, cress soup gives haul +20% a level), firepepper hot-beds (from the Ember Deep, each harvest burns an ember ore, pepper broth takes 0.1 off a face's heat for miners a level). Save v7 with a migration and fixture. canon §17.6, ADR-030. Five new sprites. The sim bot uses all three.
 State: `npm run check` green (95 tests). Checked at 1280×800 and 390×844, no overflow.
-Next: run the act3 and ending sims against the new crops and tune if they run fast; then the Parking lot's M7 ideas.
+Pacing with act crops (9 seeds, `--minutes=1000`): Act III median 364 min against 390 (−7%); ending median 709 against 690 (+3%; 531 to 887, one seed past 1000). Both inside ±15%, so no retune. The bot never places pumps, so paddies are untested by the sim.
+Next: the Parking lot's M7 ideas.
 Questions for Tom: none.
 
 ---
