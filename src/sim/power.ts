@@ -7,6 +7,8 @@ import { HOMECOMING, VERSE_POWER } from '../data/helpers';
 import type { GameState } from './state';
 import { feastMult, handFood, minerFood } from './surface';
 import { boostMult, curioMult } from './finds';
+import { deepPickMult } from './beyond';
+import { KEY_FX } from '../data/beyond';
 
 /** An equipped Song-loom charm's multiplier, or 1. canon §13 */
 export function charm(s: GameState, id: CharmId): number {
@@ -15,7 +17,7 @@ export function charm(s: GameState, id: CharmId): number {
 
 /** The village's pick power, with the Old Pick charm. */
 export function pickPower(s: GameState): number {
-  return (PICKS[s.pickTier]?.power ?? 1) * charm(s, 'oldPick');
+  return (PICKS[s.pickTier]?.power ?? 1) * deepPickMult(s) * charm(s, 'oldPick');
 }
 
 /** canon §4.11: every Echo ever earned speeds the whole village a little. */
@@ -36,7 +38,9 @@ export const homeUntilD = (s: GameState): number => Math.floor(s.stats.bestDepth
 
 /** Everything that speeds every worker at once. */
 export function villageMult(s: GameState): number {
-  return echoMult(s) * verseMult(s) * homecoming(s) * feastMult(s);
+  return (
+    echoMult(s) * verseMult(s) * homecoming(s) * feastMult(s) * (s.songKey === 'hard' ? KEY_FX.hard.dig : 1)
+  );
 }
 
 /** Deep Hands: everyone digs faster below 1000 ft. */

@@ -1,4 +1,6 @@
 // Story on screen: village lines as speech, verses as cards, the Cave-in as a collapse.
+import { KEY_TEXT, KEY_UI } from '../story/beyond';
+import { nextKey } from '../sim/beyond';
 import { useEffect, useState } from 'preact/hooks';
 import { LINES, SPEAKER_NAME } from '../story/lines';
 import { VERSES } from '../story/verses';
@@ -146,6 +148,7 @@ export function EndingChoice({ ui }: { ui: UiBridge }) {
   const s = ui.game.state;
   if (!endingReady(s) || s.story.events.length) return null;
   const pick = (which: 'seal' | 'sing'): void => ui.dispatch({ type: 'chooseEnding', which });
+  const key = nextKey(s);
   return (
     <div class="sheet-wrap ending-wrap choice">
       <div class="ending-card" role="dialog" aria-label={CHOICE.title}>
@@ -157,6 +160,11 @@ export function EndingChoice({ ui }: { ui: UiBridge }) {
               <b>{CHOICE[k].label}</b>
               <span>{CHOICE[k].text}</span>
               <i>{CHOICE[k].unlocks}</i>
+              {k === 'sing' && (
+                <span class="key-next">
+                  {KEY_UI.next} <b>{KEY_TEXT[key].name.toLowerCase()}</b>: {KEY_TEXT[key].text}
+                </span>
+              )}
             </button>
           ))}
         </div>

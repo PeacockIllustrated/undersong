@@ -289,3 +289,14 @@ Decision:
 - Day and night are render only, keyed to the total play clock. Rain is sim (crops grow ×3) and never starts while you are away, so a shower is always something you see.
 - Save v9 adds `cart`, `boosts`, `curios`, `surface.rainUntil` and `surface.rainNext`, with a migration and a fixture.
 **Consequences.** Cart crates and boons speed every act a little; per ADR-035 that is fine. A full shelf adds about +0.5 to miners and +0.5 to your hands from the curios themselves, and +0.6 to each from the six sets.
+
+## ADR-037 · Beyond the song: markers, deep picks, Auto Cave-in and keys
+
+**Context.** M11 asks that the game after the ending keeps paying and can run itself. ADR-035 says a fast game with frequent upgrades is the goal.
+**Decision.**
+- Endless Depth markers (canon §22.1) count from the run's deepest tile and pay once ever (`endlessPaid`), so a later run reaching the same marker does not farm it. They exist only once the shaft is sealed, since below the Heart floor is bedrock otherwise.
+- Deep picks (canon §22.2) are a counter (`deepPick`) multiplying the Heart pick, not new entries in `PICKS`, so pick gates and the Heirloom Pick are untouched. They are forgotten in a Cave-in so each run buys them again, gated by markers reached this run. Hardness grows about ×1.4 per 500 ft there, so ×2 a marker keeps each new pick a felt jump.
+- Auto Cave-in (canon §22.3) lives in the save, not in device settings, because it is a game rule; it is shown in the Settings sheet. The ticket says "after the song has been sung once"; both endings sing Verse XII, so either choice offers it. It does not run offline (a Cave-in rebuilds the world mid catch-up), and never pre-empts the ending's choice. It skips the ceremony, which would otherwise queue up while nobody watches.
+- M11-03 was marked "split before starting". It is built here as two parts in one PR: the keys and their rules in the sim (M11-03a), and the key shown on the choice and in the Survey Book (M11-03b). Four keys, each changing one rule through a small hook (`src/sim/keys.ts`, heat, `villageMult`, `echoGain`). The key is picked from a hash of songs sung and cycle, never repeats the current key, and is stored in `songKey`.
+- Save v10 adds `endlessPaid`, `deepPick`, `auto` and `songKey`, with a migration and a fixture.
+**Consequences.** Nothing changes before the ending, so Act I to IV sims are unaffected. The balance bot stops at the ending, so the post-ending game is covered by unit tests only.

@@ -323,6 +323,16 @@ export const LINES: Record<string, Line> = {
     who: 'tansy',
     text: 'Rain! Look at the barley drink it.',
   },
+  marker: {
+    id: 'marker',
+    who: 'bram',
+    text: 'Somebody set a stone here, five hundred feet under the Heart. Somebody always got here first. Still, they left us something.',
+  },
+  autoCaveIn: {
+    id: 'autoCaveIn',
+    who: 'wren',
+    text: 'You were miles away, so we let it come down. Same as ever. Same as ever.',
+  },
   helper_pell: {
     id: 'helper_pell',
     who: 'pell',

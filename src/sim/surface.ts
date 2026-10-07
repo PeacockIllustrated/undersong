@@ -1,5 +1,6 @@
 // Holloway above: Tansy's fields, the cookhouse, the feast bell and Rook's woodlot. canon §17 (ADR-029)
 // Everything up here only adds: nothing on the surface can slow the mine.
+import { keyRain } from './keys';
 import { tally } from './tally';
 import {
   ACT_CROPS,
@@ -317,8 +318,10 @@ export function stepSurface(g: Game, dt: number): void {
   let rng: ReturnType<typeof makeRng> | null = null;
   if (!g.offline && sf.tansy && s.t >= sf.rainNext && !raining(s)) {
     rng = makeRng(s.rng);
-    sf.rainUntil = s.t + RAIN.lastsMs;
-    sf.rainNext = sf.rainUntil + RAIN.gapMinMs + Math.floor(rng.next() * (RAIN.gapMaxMs - RAIN.gapMinMs));
+    const wet = keyRain(s.songKey);
+    sf.rainUntil = s.t + RAIN.lastsMs * wet.long;
+    sf.rainNext =
+      sf.rainUntil + Math.floor((RAIN.gapMinMs + rng.next() * (RAIN.gapMaxMs - RAIN.gapMinMs)) / wet.often);
     g.events.push({ kind: 'rain' });
     say(g, 'rain');
   }

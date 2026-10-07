@@ -1,4 +1,5 @@
 // Digging: the Foreman's hand-mining with Vein Rush, and the shared tile-removal that pays out drops. canon §4.6, §4.7
+import { keyDrop } from './keys';
 import { tally } from './tally';
 import { MATERIALS, M, canDig, isMineable } from '../data/materials';
 import { VEIN_BREAK, VEIN_RUSH } from '../data/economy';
@@ -136,7 +137,9 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
   if (def?.drop) {
     const { res } = def.drop;
     const n =
-      res === 'spores' && state.upgrades.glowcapGardens ? def.drop.n * UPGRADE_FX.glowcapGardens : def.drop.n;
+      (res === 'spores' && state.upgrades.glowcapGardens
+        ? def.drop.n * UPGRADE_FX.glowcapGardens
+        : def.drop.n) * keyDrop(state.songKey, res);
     if (by === 'foreman') {
       state.res[res] = state.res[res].add(D(n));
       g.events.push({ kind: 'drop', x, y, res, n });

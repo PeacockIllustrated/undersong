@@ -3,6 +3,10 @@ import { useEffect, useState } from 'preact/hooks';
 import { TEXT_SCALES, onSettings, reducedMotion, setSettings, settings, type Settings } from '../settings';
 import { SETTINGS_TEXT } from '../story/settings';
 import { SOUND_LEVELS } from '../data/sounds';
+import { AUTO_CAVEIN } from '../data/beyond';
+import { autoOffered } from '../sim/beyond';
+import { AUTO_TEXT } from '../story/beyond';
+import type { UiBridge } from './App';
 
 /** Puts the current settings on the page root: data-motion for CSS, --ts for text size. */
 export function useApplySettings(): void {
@@ -59,8 +63,9 @@ function Choice<T extends string | number | boolean>({
   );
 }
 
-export function SettingsPanel() {
+export function SettingsPanel({ ui }: { ui?: UiBridge }) {
   const [s, setS] = useState<Settings>(settings());
+  const [, setTick] = useState(0);
   useEffect(() => onSettings(setS), []);
   const t = SETTINGS_TEXT;
   return (
@@ -148,6 +153,18 @@ export function SettingsPanel() {
         ]}
         set={(numbers) => setSettings({ numbers })}
       />
+      {ui && autoOffered(ui.game.state) && (
+        <Choice
+          label={AUTO_TEXT.label}
+          hint={AUTO_TEXT.hint(AUTO_CAVEIN.stallMs / 60_000)}
+          value={ui.game.state.auto.caveIn}
+          options={[
+            [true, t.on],
+            [false, t.off],
+          ]}
+          set={(on) => (ui.dispatch({ type: 'autoCaveIn', on }), setTick((k) => k + 1))}
+        />
+      )}
     </div>
   );
 }

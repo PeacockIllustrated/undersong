@@ -1,5 +1,6 @@
 // Heat (canon §15): worked out on demand from the rock around a tile, cached until the mine changes.
 import { HEAT } from '../data/heat';
+import { KEY_FX } from '../data/beyond';
 import { M } from '../data/materials';
 import { OBJECTS } from '../data/objects';
 import { WATER } from '../data/water';
@@ -11,11 +12,12 @@ const HOT = new Set<number>([M.EMBER, M.HEART]);
 export function heatAt(g: Game, x: number, y: number): number {
   const w = g.world;
   const d = w.depth(y);
-  if (d < HEAT.fromD - HEAT.hotR) return 0;
+  const fromD = HEAT.fromD - (g.state.songKey === 'hot' ? KEY_FX.hot.earlierD : 0);
+  if (d < fromD - HEAT.hotR) return 0;
   const i = w.idx(x, y);
   const cached = g.heat.get(i);
   if (cached !== undefined) return cached;
-  let h = Math.min(HEAT.ambientMax, Math.max(0, HEAT.ambientPerTile * (d - HEAT.fromD)));
+  let h = Math.min(HEAT.ambientMax, Math.max(0, HEAT.ambientPerTile * (d - fromD)));
   const r = HEAT.hotR;
   for (let dy = -r; dy <= r; dy++)
     for (let dx = -r; dx <= r; dx++) {

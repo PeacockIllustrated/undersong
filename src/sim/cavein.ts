@@ -11,6 +11,7 @@ import { CHARM } from '../data/charms';
 import type { ResKey } from '../data/resources';
 import { NEW_SONG } from '../data/heat';
 import { resetSurface } from './surface';
+import { KEY_FX } from '../data/beyond';
 
 export function maxFt(s: GameState): number {
   return s.stats.maxDepthD * FT_PER_TILE;
@@ -30,7 +31,8 @@ export function echoGain(s: GameState): Decimal {
   const mult =
     (s.upgrades.surveyInstinct ? UPGRADE_FX.surveyInstinct : 1) *
     charm(s, 'hollow') *
-    (1 + NEW_SONG.perSong * s.ngPlus);
+    (1 + NEW_SONG.perSong * s.ngPlus) *
+    (s.songKey === 'hard' ? KEY_FX.hard.echoes : 1);
   return D(mult === 1 ? base : Math.floor(base * mult));
 }
 
@@ -79,6 +81,9 @@ export function resetRun(s: GameState): void {
   s.metalwork = {};
   s.cart = newCart();
   s.boosts = { miners: 0, hands: 0, map: 0 };
+  s.deepPick = 0;
+  s.auto.best = 0;
+  s.auto.since = 0;
   s.haulTier = s.upgrades.rememberedRope ? 1 : 0;
   s.forge = { progress: 0, recipe: 'auto', next: 0 };
   s.haulAcc = 0;

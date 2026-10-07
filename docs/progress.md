@@ -10,6 +10,20 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M11-01 to M11-03 (Beyond the song)
+Done:
+- Endless Depth markers every 500 ft under the Heart (2,024 ft, 2,524 ft, …), drawn as a row of marker stones. Marker k pays 8 × 1.5^(k−1) Echoes and 40 × 1.5^(k−1) Gold bars, once ever.
+- Deep picks past the Heart pick: each doubles pick power, one per marker reached this run, cost ×2 each time (crystal and gold). Forgotten in a Cave-in.
+- Auto Cave-in in Settings once the ending has been reached: caves in after 3 min with no rise in the Echoes on offer, never offline or ahead of the ending's choice; the Survey Book page says "by itself".
+- New Song+ keys (M11-03 split into 03a sim and 03b UI): wet year, hot year, rich veins, hard year. The sing choice names the next key; the Survey Book names the current one.
+- Save v10 with migration and fixture. Canon §22, ADR-037.
+State:
+- `npm run check` is green (140 tests). Both layouts checked for the choice card, the deep pick button and the setting; no overflow.
+- The marker stones were not caught in a screenshot: a hand-made deep save puts the Foreman back at 1,200 ft on load, so the camera never reached 2,024 ft. The marker toast and reward did show.
+- The balance bot stops at the ending, so nothing after it is in the sims; Acts I–IV are unchanged by this milestone.
+Next: M12.
+Questions for Tom: none.
+
 ## 2026-10-07 · M10-01 to M10-04 (Finds)
 Done:
 - Tom said a fast game is fine ("dopamine is the name of the game"). ADR-035 makes every time target a ceiling, `--strict` now fails only when a milestone is more than 15% late, and M9-07 (slowing Act III) is dropped.

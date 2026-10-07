@@ -1,4 +1,7 @@
 // The Survey Book: this run, the Cave-in, Echo upgrades, verses, and pages from earlier cycles.
+import { FT_PER_TILE } from '../data/constants';
+import { AUTO_TEXT, KEY_TEXT, KEY_UI, MARKER_TEXT } from '../story/beyond';
+import { markerD, markersReached } from '../sim/beyond';
 import { useState } from 'preact/hooks';
 import { CAVE_IN } from '../data/economy';
 import { UPGRADES, type Branch } from '../data/upgrades';
@@ -50,6 +53,9 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
           <p class="small ending-note">
             {s.ngPlus > 0 && `${ENDING_NOTE.songs(s.ngPlus, NEW_SONG.perSong)} `}
             {s.world.endlessRows > 0 && ENDING_NOTE.endless}
+            {s.songKey &&
+              ` ${KEY_UI.now} ${KEY_TEXT[s.songKey].name.toLowerCase()}: ${KEY_TEXT[s.songKey].text}`}
+            {s.ending === 'seal' && ` ${MARKER_TEXT.next(markerD(markersReached(s) + 1) * FT_PER_TILE)}.`}
           </p>
         )}
 
@@ -218,7 +224,10 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
                   <td>{p.hand === 'old' ? '—' : p.cycle}</td>
                   <td>{p.depthFt} ft</td>
                   <td>{p.verses}</td>
-                  <td>{p.echoes}</td>
+                  <td>
+                    {p.echoes}
+                    {p.auto && <span class="small muted"> · {AUTO_TEXT.page}</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>

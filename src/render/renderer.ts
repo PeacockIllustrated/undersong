@@ -20,6 +20,10 @@ import { hash3 } from '../sim/rng';
 import type { World } from '../world/world';
 import { tileTexture, wallTexture } from './tiles';
 import { drawSprite, windowPanes } from './sprites';
+import { markerD } from '../sim/beyond';
+
+/** Where the marker stones stand along a marker row (columns). Render only. */
+const MARKER_ROW = { x0: 4, every: 12 };
 import { glow, nightness } from './sky';
 import { CART, SKY } from '../data/finds';
 import { raining } from '../sim/surface';
@@ -304,6 +308,7 @@ export class Renderer {
         ((w.surf[COOKHOUSE_X] ?? SKY_ROWS) + 1) * T,
       );
     this.drawCarvings(game, tx0, ty0, tx1, ty1, frame);
+    this.drawMarkers(game, ty0, ty1);
     this.drawObjects(w, tx0, ty0, tx1, ty1, frame);
     this.drawVillagers(game, now);
     this.drawDog(game, now);
@@ -669,6 +674,19 @@ export class Renderer {
   }
 
   /** M10-03: Pell's dog trots to a chest and back. */
+  /** M11-01: a row of marker stones every 500 ft under the Heart, once the shaft is sealed. */
+  private drawMarkers(game: Game, ty0: number, ty1: number): void {
+    if (game.state.ending !== 'seal') return;
+    const w = game.world;
+    for (let k = 1; ; k++) {
+      const y = markerD(k) + SKY_ROWS;
+      if (y > ty1 || y >= w.h) break;
+      if (y < ty0) continue;
+      for (let x = MARKER_ROW.x0; x < w.w; x += MARKER_ROW.every)
+        drawSprite(this.ctx, 'marker', 0, x * T + T / 2, (y + 1) * T);
+    }
+  }
+
   private drawDog(game: Game, now: number): void {
     const d = game.dog;
     if (!d || !game.state.helpers.dog) return;

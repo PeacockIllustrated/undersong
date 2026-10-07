@@ -9,6 +9,7 @@ import { reach } from './reach';
 import type { Game } from './game';
 import type { GameState } from './state';
 import { first } from './story';
+import { nextKey, stepMarkers } from './beyond';
 
 export type Ending = 'seal' | 'sing';
 
@@ -23,7 +24,11 @@ export function chooseEnding(g: Game, which: Ending): boolean {
   first(g, 'chose');
   s.ending = which;
   if (which === 'seal') s.world.endlessRows = Math.max(s.world.endlessRows, ENDLESS.rows);
-  else s.ngPlus++;
+  else {
+    // M11-03: the song sets the key of every mountain until the next one is sung
+    s.songKey = nextKey(s);
+    s.ngPlus++;
+  }
   // both endings close this cycle; the ending's scene plays before the collapse
   if (!caveIn(g)) return false;
   s.story.events.unshift({ kind: 'ending', which });
@@ -34,6 +39,7 @@ export function chooseEnding(g: Game, which: Ending): boolean {
 export function stepEndless(g: Game): void {
   const s = g.state;
   if (s.ending !== 'seal' || s.world.endlessRows === 0) return;
+  stepMarkers(g);
   const floor = HEART_FLOOR_D + s.world.endlessRows;
   reach(g); // sets reachMaxY
   if (g.world.depth(g.reachMaxY) < floor - ENDLESS.margin) return;

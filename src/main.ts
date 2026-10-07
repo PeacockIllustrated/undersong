@@ -1,4 +1,7 @@
 // Boot: load or start a game, run the fixed-step loop, draw, save. dev-bible §1.3
+import { DEEP_PICK } from './data/beyond';
+import { markerD } from './sim/beyond';
+import { AUTO_TEXT, DEEP_PICK_TEXT, MARKER_TEXT } from './story/beyond';
 import { render, h } from 'preact';
 import {
   AUTOSAVE_MS,
@@ -294,6 +297,8 @@ function announce(g: Game, what: string, k = 1): void {
     const h = HAULS[s.haulTier]!;
     const o = HAULS[s.haulTier - 1]!;
     toast(h.name, `${ratio(h.speed * h.capacity, o.speed * o.capacity)} haulage`);
+  } else if (what === 'deepPick') {
+    toast(DEEP_PICK_TEXT.name(s.deepPick), `×${DEEP_PICK.mult} dig speed for you and every miner`);
   } else if (what.startsWith('cart:')) {
     toast(...CART_UI.took(CART_TEXT[what.slice(5) as keyof typeof CART_TEXT].name));
   } else if (what.startsWith('helper:')) {
@@ -446,6 +451,13 @@ function handleEvents(g: Game, r: Renderer, now: number): void {
       toast(...DOG_TEXT.fetched(`${e.n} ${RES_NAMES[e.res as ResKey]}`));
     } else if (e.kind === 'rain') {
       toast(...RAIN_TEXT);
+    } else if (e.kind === 'marker') {
+      // M11-01: a marker under the Heart
+      r.fx.shake(2, 500, now);
+      toast(...MARKER_TEXT.reached(markerD(e.k) * FT_PER_TILE, e.echoes, e.gold));
+      hum = Math.max(hum, HAPTICS.rushOre);
+    } else if (e.kind === 'autoCaveIn') {
+      toast(...AUTO_TEXT.done(e.echoes));
     } else if (e.kind === 'record') {
       r.fx.shake(1, 300, now);
       toast(`New record · ${e.ft} ft`, 'Deeper than any cycle before');

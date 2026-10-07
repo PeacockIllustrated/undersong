@@ -465,19 +465,27 @@ Acceptance:
 
 **Exit:** the game after the ending keeps paying and can run itself.
 
-### [ ] M11-01 · Endless Depth that keeps paying · M
+### [x] M11-01 · Endless Depth that keeps paying · M · PR #23
 Acceptance:
   1. Every 500 ft past the Heart floor is a marker with a reward that grows each time, and a pick line past the Heart pick that doubles at each marker.
   2. Numbers in canon; save change with migration and test.
 
-### [ ] M11-02 · Let the Cave-in run itself · S
+### [x] M11-02 · Let the Cave-in run itself · S · PR #23
 Acceptance:
   1. After the song has been sung once, Settings offers Auto Cave-in: it caves in when Echoes on offer have not risen for a set time, and logs a line each time.
 
-### [ ] M11-03 · New Song+ in a new key · L (split before starting)
+### [x] M11-03 · New Song+ in a new key · L, split into a and b below · PR #23
 Acceptance:
   1. Each sung song picks the next mountain's key, shown before you choose: one rule changes (wet year, hot year, rich veins, at least four keys).
   2. Keys in `src/data` and canon; save change with migration and test.
+
+### [x] M11-03a · The keys in the sim · S · PR #23
+Acceptance:
+  1. Four keys in `src/data/beyond.ts` and canon §22.4, each changing one rule; the song sets `songKey` and it holds until the next song. Save v10 with migration, fixture and tests.
+
+### [x] M11-03b · The key shown before you choose · S · PR #23
+Acceptance:
+  1. The ending's "sing" choice names the next key and its rule; the Survey Book names the key the mountain is in.
 
 ## M12 · Keep it
 

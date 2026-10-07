@@ -81,7 +81,7 @@ describe('saves', () => {
     expect(() => fromJSON('{"hello":1}')).toThrow(/Undersong/);
   });
 
-  for (const v of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+  for (const v of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
     it(`loads the v${v} fixture`, () => {
       const text = readFileSync(new URL(`./fixtures/saves/v${v}.json`, import.meta.url), 'utf8');
       const g = loadGame(fromJSON(text));
@@ -107,6 +107,11 @@ describe('saves', () => {
       expect(g.state.boosts.miners).toBe(0);
       expect(Array.isArray(g.state.curios)).toBe(true);
       expect(typeof g.state.surface.rainNext).toBe('number');
+      // v10 (M11): markers, deep picks, Auto Cave-in and the song's key
+      expect(g.state.endlessPaid).toBe(0);
+      expect(g.state.deepPick).toBe(0);
+      expect(g.state.auto.caveIn).toBe(false);
+      expect(g.state.songKey).toBeNull();
     });
   }
 });
