@@ -322,3 +322,15 @@ Decision:
 **Context.** M12-04 found that 4 of 45 sim mountains hold fewer than the 15 aquamarine tiles the aquamarine pick needs, so a village there must cave in to finish Act III.
 **Decision.** Fix it with the tinker's cart, not the world generator. A saved mountain is rebuilt from its seed with the player's diffs on top, so changing the generator would move tiles under every existing save. While the village has the silver pick and too little aquamarine for the next, every cart carries a crate, and the crate holds aquamarine (the usual crate amount, which grows with Cave-ins). Once the aquamarine is in hand, crates are bars again.
 **Consequences.** The longest stall in the Act III sim is gone (seed 48514: 306 to 238 min). A player in a thin mountain waits at most one cart visit, which is 6 to 10 minutes.
+
+## ADR-041 · One drawer for the Village, the Survey Book and the Menu
+
+**Context.** Tom (2026-10-07): the Village, Survey and Menu UI "feels dated and not seamless". Each was its own overlay with its own head and close button, a backdrop that blocked the mine, and one long scroll (the Survey Book had six sections stacked in one column).
+**Decision.**
+- `src/ui/Drawer.tsx` is the one frame. It has a head with the three panels as top-level tabs and a close button, a sticky row of sub-tabs, and one scrolling body. Switching panels keeps the frame mounted, so it neither closes nor animates again.
+- The drawer is not modal. Its wrap lets taps through, so the mine stays live: you can dig and place things while shopping. On a wide screen the HUD moves left to make room. Esc and the close button slide it out; reduced motion skips the slides.
+- On a phone it is a bottom sheet at 56% height. Dragging the head up makes it full height, and dragging down halves it or closes it.
+- The Survey Book becomes six tabs (Cave-in, Echoes, Verses, Shelf, Pages, Feats) on its paper body; a Cave-in opens it on Echoes. The Menu becomes four tabs (Save, Settings, Lately, Keys). The Village keeps its tabs, with the ×1/×10/Max toggle on the same sticky row.
+- Cards are tiles. Buy buttons are list rows: the name and effect in the body font on the left, the price on the right. A buy you can afford is marked by a gold edge, not a pulsing glow, so a list of them reads calmly.
+- The cart, the verses, the ending and the away summary stay centre cards. Each is a single choice or a moment, not a place you browse.
+**Consequences.** The smoke test now opens the Village and Survey drawers at both sizes for every fixture.

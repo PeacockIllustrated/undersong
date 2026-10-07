@@ -548,10 +548,10 @@ Acceptance:
   1. After the second Cave-in, repeatable buys (miners, sharpening, metalwork, plots, saplings, torches) get an Auto switch. A switched-on buy is made by itself whenever its price is no more than a set share of what is in hand, so it never starves the next pick. Numbers in `src/data` and canon.
   2. The switches are saved and survive the Cave-in. Save change with migration and test; the sim is unchanged unless the bot turns them on.
 
-### [ ] M13-07 · Panels that feel current · M
+### [x] M13-07 · Panels that feel current · M · PR #27
 Tom (2026-10-07): "we can do the village, survey etc. menu UI better too, more inline with industry standards. This feels dated and not seamless".
 Acceptance:
-  1. The Village, Survey Book, cart and Menu share one panel frame: a sticky header with the title, tabs and close, one scrolling body, and a consistent card layout (icon, name, one-line effect, price button) in a grid on desktop.
+  1. The Village, Survey Book and Menu share one panel frame (the cart, verses and ending stay centre cards: they are choices, not places; ADR-041): a sticky header with the title, tabs and close, one scrolling body, and a consistent card layout (icon, name, one-line effect, price button) in a grid on desktop.
   2. On a phone the panel is a bottom sheet with a grab handle that can be dragged between half and full height, and swiped down to close. Panels slide in and out (still for reduced motion), and switching between Village, Survey and Menu doesn't close and reopen the frame.
   3. Checked at 1280×800 and 390×844 with before-and-after screenshots; the smoke test stays green.
 

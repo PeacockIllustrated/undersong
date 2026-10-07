@@ -64,7 +64,11 @@ function useHold(buy: () => void, can: () => boolean) {
     onPointerDown: (e: PointerEvent): void => {
       if (e.button !== 0) return;
       // keep the pointer even if the card moves under it once the price changes
-      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        // no live pointer to hold (a synthetic event): the window listeners still end it
+      }
       stop();
       st.current.bought = false;
       st.current.gap = HOLD_BUY.everyMs / HOLD_BUY.speedUp;

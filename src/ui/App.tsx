@@ -13,7 +13,8 @@ import { fmt, mult } from './format';
 import { rushMult } from '../sim/dig';
 import { rushStep } from '../sim/power';
 import { VillageSheet, villageFocus, villageTab, type VillageTab } from './Village';
-import { SurveyBook } from './SurveyBook';
+import { SurveyBook, surveyTab } from './SurveyBook';
+import { Drawer, type Section } from './Drawer';
 import { CartSheet } from './Cart';
 import { CART_UI } from '../story/finds';
 import { MenuSheet } from './Menu';
@@ -146,7 +147,8 @@ export function App({ ui }: { ui: UiBridge }) {
   const [toolsOpen, setToolsOpen] = useState(false);
   // M7-06: Escape closes the open sheet first; only with nothing open does it reach the dig queue (main.ts)
   useEffect(() => {
-    if (!sheet) return undefined;
+    // the drawer handles its own Esc (M13-07); this is for the cart
+    if (sheet !== 'cart') return undefined;
     const on = (e: KeyboardEvent): void => {
       if (e.key !== 'Escape') return;
       e.stopImmediatePropagation();
@@ -157,6 +159,14 @@ export function App({ ui }: { ui: UiBridge }) {
   }, [sheet]);
   const g = ui.game;
   const s = g.state;
+  const section: Section | null =
+    sheet === 'village'
+      ? 'village'
+      : sheet === 'survey'
+        ? 'survey'
+        : sheet === 'menu' || sheet === 'keys'
+          ? 'menu'
+          : null;
   const d = g.world.depth(s.foreman.y);
   const biome = biomeAt(d);
   const wide = window.innerWidth > 600;
@@ -239,7 +249,10 @@ export function App({ ui }: { ui: UiBridge }) {
 
   // the Cave-in opens the Survey Book once its collapse has played
   useEffect(() => {
-    const onCave = (): void => setSheet('survey');
+    const onCave = (): void => {
+      surveyTab('echoes');
+      setSheet('survey');
+    };
     window.addEventListener('undersong:cavein-done', onCave);
     return () => window.removeEventListener('undersong:cavein-done', onCave);
   }, []);
@@ -306,7 +319,7 @@ export function App({ ui }: { ui: UiBridge }) {
 
   return (
     <>
-      <div class="hud-top">
+      <div class={`hud-top ${section ? 'with-drawer' : ''}`}>
         <div class="hud-left">
           <div
             class="panel depth"
@@ -403,7 +416,7 @@ export function App({ ui }: { ui: UiBridge }) {
           Clear queue · {s.foreman.queue.length + (s.foreman.target ? 1 : 0)}
         </button>
       )}
-      <div class="hud-bottom">
+      <div class={`hud-bottom ${section ? 'with-drawer' : ''}`}>
         {wide || toolsOpen ? (
           <div class={`tools panel ${wide ? '' : 'pop'}`} role="group" aria-label="Tool">
             {toolList.map((t) => (
@@ -482,11 +495,28 @@ export function App({ ui }: { ui: UiBridge }) {
         </div>
       </div>
       <AchievementToasts s={s} />
-      {sheet === 'village' && <VillageSheet ui={ui} close={() => setSheet(null)} />}
-      {sheet === 'survey' && <SurveyBook ui={ui} close={() => setSheet(null)} />}
+      {section && (
+        <Drawer
+          section={section}
+          go={setSheet}
+          close={() => setSheet(null)}
+          badges={{ village: newInVillage, survey: newInSurvey }}
+        >
+          {section === 'village' ? (
+            <VillageSheet ui={ui} goFix={goFix} />
+          ) : section === 'survey' ? (
+            <SurveyBook ui={ui} close={() => setSheet(null)} />
+          ) : (
+            <MenuSheet
+              key={sheet}
+              ui={ui}
+              close={() => setSheet(null)}
+              start={sheet === 'keys' ? 'keys' : 'menu'}
+            />
+          )}
+        </Drawer>
+      )}
       {sheet === 'cart' && <CartSheet ui={ui} close={() => setSheet(null)} />}
-      {sheet === 'menu' && <MenuSheet ui={ui} close={() => setSheet(null)} />}
-      {sheet === 'keys' && <MenuSheet ui={ui} close={() => setSheet(null)} start="keys" />}
     </>
   );
 }

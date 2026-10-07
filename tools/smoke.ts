@@ -72,8 +72,22 @@ for (const [name, save] of saves)
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(url);
     await page.waitForTimeout(WAIT_MS);
-    const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    let over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     await page.screenshot({ path: join(OUT, `${name}-${view}.png`) });
+    // M13-07: each panel of the drawer opens without errors or overflow
+    for (const [key, panel] of [
+      ['v', 'village'],
+      ['b', 'survey'],
+    ] as const) {
+      await page.keyboard.press(key);
+      await page.waitForTimeout(400);
+      if (!(await page.locator(`.drawer.${panel}`).count())) errors.push(`the ${panel} drawer did not open`);
+      over = Math.max(
+        over,
+        await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth),
+      );
+      await page.screenshot({ path: join(OUT, `${name}-${view}-${panel}.png`) });
+    }
     const tag = `${name} at ${view}`;
     for (const e of errors) fails.push(`${tag}: page error: ${e}`);
     if (over > 0) fails.push(`${tag}: ${over}px of horizontal overflow`);

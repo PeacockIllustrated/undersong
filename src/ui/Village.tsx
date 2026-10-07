@@ -38,7 +38,8 @@ import { pumpRate } from '../sim/water';
 import { OBJECTS } from '../data/objects';
 import { HELPERS, HELPER_FX } from '../data/helpers';
 import { helperCost, helperOffered } from '../sim/helpers';
-import { bottleneck } from './feedback';
+import { bottleneck, type Fix } from './feedback';
+import { Tabs } from './Drawer';
 import { useEffect, useState } from 'preact/hooks';
 import { BulkToggle, BuyRow, Cost, Desc, PriceButton, first } from './BuyRow';
 import { spriteURL } from '../render/sprites';
@@ -224,7 +225,8 @@ export function villageFocus(card: string): void {
   focus = card;
 }
 
-export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
+/** The Village's tabs and cards, inside the drawer (M13-07). */
+export function VillageSheet({ ui, goFix }: { ui: UiBridge; goFix: (f: Fix) => void }) {
   const s = ui.game.state;
   const mc = minerCost(s);
   const minerC = [{ res: mc.res, amount: mc.amount }];
@@ -271,252 +273,235 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
         CHARMS.filter((c) => canWeave(s, c.id) && canPay(s, weaveCost(s))).length,
     });
   const [picked, setTab] = useState<VillageTab>(lastTab);
+  // runs after every render, so an alert tapped while the Village is open still lands on its card
   useEffect(() => {
     if (!focus) return;
+    if (picked !== 'build') return setTab('build');
     const el = document.querySelector<HTMLElement>(`[data-card="${focus}"]`);
     focus = null;
     if (!el) return;
     el.scrollIntoView({ block: 'center' });
     el.classList.add('pulse');
-  }, []);
+  });
   const tab = tabs.some((t) => t.id === picked) ? picked : 'build';
 
   return (
-    <div class="sheet-wrap side half" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="panel sheet" role="dialog" aria-label="Village">
-        <div class="sheet-head">
-          <h2>Holloway</h2>
-          <button class="btn" onClick={close} aria-label="Close">
-            ✕
-          </button>
-        </div>
+    <>
+      <Tabs
+        label="Village"
+        tabs={tabs.map((t) => ({
+          id: t.id,
+          label: t.label,
+          n: t.n,
+          isNew: t.id !== 'build' && !s.story.ever.includes(`tab:${t.id}`),
+        }))}
+        on={tab}
+        set={(id) => {
+          lastTab = id;
+          setTab(id);
+          if (id !== 'build') ui.dispatch({ type: 'note', key: `tab:${id}` });
+        }}
+        end={<BulkToggle />}
+      />
 
-        <BulkToggle />
+      {neck && (
+        <button class="neck-card" onClick={() => goFix(neck.fix)}>
+          <b>Held back by: {neck.what}</b>
+          <span class="small">{neck.hint}</span>
+        </button>
+      )}
 
-        {neck && (
-          <section class="card neck-card">
+      {tab === 'build' && (
+        <div class="shop">
+          <section class="card">
+            <img class="prop" src={spriteURL('forge', 1)} alt="" />
             <div class="grow">
-              <h3>Held back by: {neck.what}</h3>
-              <Desc>{neck.hint}</Desc>
+              <h3>Forge</h3>
+              <Desc>
+                Turns {FORGE.orePerBar} ore into a bar every {FORGE.seconds} s. Bronze takes{' '}
+                {FORGE.bronze.copperBar} copper bars and {FORGE.bronze.tinBar} tin bar.
+              </Desc>
+              <div class="seg" role="radiogroup" aria-label="Forge recipe">
+                {RECIPES.filter((r) => !r.needs || r.needs(s)).map((r) => (
+                  <button
+                    key={r.id}
+                    role="radio"
+                    aria-checked={s.forge.recipe === r.id}
+                    class={s.forge.recipe === r.id ? 'on' : ''}
+                    onClick={() => ui.dispatch({ type: 'setRecipe', recipe: r.id })}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+              <div class="bar">
+                <i style={{ width: `${Math.min(100, (s.forge.progress / FORGE.seconds) * 100)}%` }} />
+              </div>
             </div>
           </section>
-        )}
 
-        {tabs.length > 1 && (
-          <div class="tabs" role="tablist" aria-label="Village">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                role="tab"
-                aria-selected={tab === t.id}
-                class={tab === t.id ? 'on' : ''}
-                onClick={() => {
-                  lastTab = t.id;
-                  setTab(t.id);
-                  if (t.id !== 'build') ui.dispatch({ type: 'note', key: `tab:${t.id}` });
-                }}
-              >
-                {t.label}
-                {t.id !== 'build' && !s.story.ever.includes(`tab:${t.id}`) && <span class="pip">NEW</span>}
-                {t.n > 0 && <span class="count">{t.n}</span>}
-              </button>
-            ))}
-          </div>
-        )}
+          <section class="card">
+            <img class="prop" src={spriteURL('bunkhouse')} alt="" />
+            <div class="grow">
+              <h3>Bunkhouse</h3>
+              <Desc>
+                {s.miners.length === 0
+                  ? 'Miners work the nearest ore on their own and send it up the shaft. They dig slowly in the dark.'
+                  : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by pests` : ''}. About ${perMin(minerOreRate(ui.game))} of ore.`}
+              </Desc>
+              <BuyRow ui={ui} of={{ k: 'miner' }} primary>
+                Hire a miner
+              </BuyRow>
+            </div>
+          </section>
 
-        <section class="card">
-          <img class="prop" src={spriteURL('forge', 1)} alt="" />
-          <div class="grow">
-            <h3>Forge</h3>
-            <Desc>
-              Turns {FORGE.orePerBar} ore into a bar every {FORGE.seconds} s. Bronze takes{' '}
-              {FORGE.bronze.copperBar} copper bars and {FORGE.bronze.tinBar} tin bar.
-            </Desc>
-            <div class="seg" role="radiogroup" aria-label="Forge recipe">
-              {RECIPES.filter((r) => !r.needs || r.needs(s)).map((r) => (
-                <button
-                  key={r.id}
-                  role="radio"
-                  aria-checked={s.forge.recipe === r.id}
-                  class={s.forge.recipe === r.id ? 'on' : ''}
-                  onClick={() => ui.dispatch({ type: 'setRecipe', recipe: r.id })}
-                >
-                  {r.label}
-                </button>
+          <section
+            class="card"
+            data-card="pick"
+            style={first(
+              canPay(s, whetC) ||
+                (!!pickC && canPay(s, pickC)) ||
+                (deepPickOpen(s) && canPay(s, deepC!)) ||
+                METALWORK.some((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))),
+            )}
+          >
+            <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
+            <div class="grow">
+              <h3>{s.deepPick ? DEEP_PICK_TEXT.name(s.deepPick) : PICKS[s.pickTier]!.name}</h3>
+              <Desc>
+                Pick power {PICKS[s.pickTier]!.power * deepPickMult(s)}. Everyone in the village digs with the
+                best pick you own.
+              </Desc>
+              <BuyRow ui={ui} of={{ k: 'whetstone' }}>
+                Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
+              </BuyRow>
+              {s.whetstone > 0 && <p class="small">Whetstone level {s.whetstone}</p>}
+              {METALWORK.filter((m) => metalworkOffered(s, m.id)).map((m) => (
+                <div key={m.id}>
+                  <BuyRow ui={ui} of={{ k: 'metal', id: m.id }}>
+                    {m.name} <em>{metalFx(m.fx, m.per)}</em>
+                  </BuyRow>
+                  {(s.metalwork[m.id] ?? 0) > 0 && (
+                    <p class="small">
+                      Level {s.metalwork[m.id]} · {metalFx(m.fx, m.per * (s.metalwork[m.id] ?? 0))} this run
+                    </p>
+                  )}
+                </div>
               ))}
-            </div>
-            <div class="bar">
-              <i style={{ width: `${Math.min(100, (s.forge.progress / FORGE.seconds) * 100)}%` }} />
-            </div>
-          </div>
-        </section>
-
-        <section class="card">
-          <img class="prop" src={spriteURL('bunkhouse')} alt="" />
-          <div class="grow">
-            <h3>Bunkhouse</h3>
-            <Desc>
-              {s.miners.length === 0
-                ? 'Miners work the nearest ore on their own and send it up the shaft. They dig slowly in the dark.'
-                : `${s.miners.length} miner${s.miners.length > 1 ? 's' : ''}, ${working.length} at a face${stalled ? `, ${stalled} held up by pests` : ''}. About ${perMin(minerOreRate(ui.game))} of ore.`}
-            </Desc>
-            <BuyRow ui={ui} of={{ k: 'miner' }} primary>
-              Hire a miner
-            </BuyRow>
-          </div>
-        </section>
-
-        {tab === 'build' && (
-          <div class="shop">
-            <section
-              class="card"
-              data-card="pick"
-              style={first(
-                canPay(s, whetC) ||
-                  (!!pickC && canPay(s, pickC)) ||
-                  (deepPickOpen(s) && canPay(s, deepC!)) ||
-                  METALWORK.some((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))),
-              )}
-            >
-              <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
-              <div class="grow">
-                <h3>{s.deepPick ? DEEP_PICK_TEXT.name(s.deepPick) : PICKS[s.pickTier]!.name}</h3>
-                <Desc>
-                  Pick power {PICKS[s.pickTier]!.power * deepPickMult(s)}. Everyone in the village digs with
-                  the best pick you own.
-                </Desc>
-                <BuyRow ui={ui} of={{ k: 'whetstone' }}>
-                  Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
-                </BuyRow>
-                {s.whetstone > 0 && <p class="small">Whetstone level {s.whetstone}</p>}
-                {METALWORK.filter((m) => metalworkOffered(s, m.id)).map((m) => (
-                  <div key={m.id}>
-                    <BuyRow ui={ui} of={{ k: 'metal', id: m.id }}>
-                      {m.name} <em>{metalFx(m.fx, m.per)}</em>
-                    </BuyRow>
-                    {(s.metalwork[m.id] ?? 0) > 0 && (
-                      <p class="small">
-                        Level {s.metalwork[m.id]} · {metalFx(m.fx, m.per * (s.metalwork[m.id] ?? 0))} this run
-                      </p>
-                    )}
-                  </div>
-                ))}
-                {pickC ? (
-                  <PriceButton s={s} costs={pickC} onClick={() => ui.dispatch({ type: 'buyPick' })}>
-                    Forge the {nextP!.name.toLowerCase()}{' '}
-                    <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
-                  </PriceButton>
-                ) : deepC ? (
-                  deepPickOpen(s) ? (
-                    <PriceButton s={s} costs={deepC} onClick={() => ui.dispatch({ type: 'deepPick' })}>
-                      Forge {DEEP_PICK_TEXT.name(s.deepPick + 1).toLowerCase()}{' '}
-                      <em>×{DEEP_PICK.mult} speed</em>
-                    </PriceButton>
-                  ) : s.ending === 'seal' ? (
-                    <p class="small">{DEEP_PICK_TEXT.waits(markerD(s.deepPick + 1) * FT_PER_TILE)}</p>
-                  ) : (
-                    <p class="small">{DEEP_PICK_TEXT.sealFirst}</p>
-                  )
-                ) : (
-                  <p class="small">The best pick Holloway knows how to make, for now.</p>
-                )}
-              </div>
-            </section>
-
-            <section class="card" data-card="haul" style={first(!!haulC && canPay(s, haulC))}>
-              <img class="prop" src={spriteURL('headframe', 1)} alt="" />
-              <div class="grow">
-                <h3>{haul.name}</h3>
-                <Desc>
-                  Hauls up to {perMin(haulRate(ui.game))} of ore from this depth ({haul.speed} tile/s,{' '}
-                  {haul.capacity} a load).{' '}
-                  {Object.values(s.underground).some((v) => v.gt(0)) ? 'Ore is waiting at the bottom.' : ''}
-                </Desc>
-                {haulC && (
-                  <PriceButton s={s} costs={haulC} onClick={() => ui.dispatch({ type: 'buyHaul' })}>
-                    Build the {nextH!.name.toLowerCase()}{' '}
-                    <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
-                  </PriceButton>
-                )}
-              </div>
-            </section>
-
-            <Building ui={ui} id="lampworks">
-              <p class="small">
-                {s.res.spores.gt(0)
-                  ? `Turning ${s.buildings.lampworks} spore${s.buildings.lampworks > 1 ? 's' : ''} a second into ${LAMPWORKS.lumen * lumenMult(s) * s.buildings.lampworks} Lumen.`
-                  : 'Waiting on glowcap spores. Miners pick them from the cavern walls.'}{' '}
-                {lanterns(ui.game).length > 0 &&
-                  `${lanterns(ui.game).length} lantern${lanterns(ui.game).length > 1 ? 's' : ''} burn ${perMin(lumenUpkeep(ui.game))} of Lumen${ui.game.world.lanternsLit ? '.' : ', but they are dark: no Lumen.'}`}
-              </p>
-              <Craft ui={ui} id="lantern" label={`Make a lantern`} s={s} />
-            </Building>
-
-            <Building ui={ui} id="kiln">
-              <p class="small">
-                Bakes {KILN.rubble} rubble into a brick every {KILN.seconds / s.buildings.kiln} s. Rubble
-                comes from the stone you dig by hand.
-              </p>
-              <Craft ui={ui} id="support" label={`Make a support`} s={s} />
-            </Building>
-
-            {(s.stats.firsts.halls !== undefined || s.res.pump.gt(0)) && (
-              <section class="card" style={first(canPay(s, craftCost(s, 'pump')))}>
-                <img class="icon" src={spriteURL('obj-pump')} alt="" />
-                <div class="grow">
-                  <h3>Pumps · {fmt(s.res.pump)} in hand</h3>
-                  <Desc>
-                    Each pump drains {num(pumpRate(ui.game))} water a second within {PUMP.radius} tiles, from
-                    the top down. Nobody can dig standing in a flooded tunnel. Use the Pump tool to set one.
-                  </Desc>
-                  <Craft ui={ui} id="pump" label="Make a pump" s={s} />
-                </div>
-              </section>
-            )}
-
-            {(s.stats.firsts.ember !== undefined || s.res.vent.gt(0)) && (
-              <section class="card" style={first(canPay(s, craftCost(s, 'vent')))}>
-                <img class="icon" src={spriteURL('obj-vent')} alt="" />
-                <div class="grow">
-                  <h3>Cooling vents · {fmt(s.res.vent)} in hand</h3>
-                  <Desc>
-                    A vent cools every face within {OBJECTS.vent.radius} tiles. Miners won’t work rock that is
-                    too hot. Standing water cools a face too. Use the Vent tool to set one.
-                  </Desc>
-                  <Craft ui={ui} id="vent" label="Make a vent" s={s} />
-                </div>
-              </section>
-            )}
-
-            <section class="card" style={first(canPay(s, torchC))}>
-              <img class="icon" src={spriteURL('obj-torch')} alt="" />
-              <div class="grow">
-                <h3>Torches · {fmt(s.res.torch)} in hand</h3>
-                <Desc>
-                  Light a face and the miners there work at full pace. Use the Torch tool to place one.
-                </Desc>
-                <PriceButton
-                  s={s}
-                  costs={torchC}
-                  onClick={() => ui.dispatch({ type: 'craftTorches' })}
-                  hold={() => canPay(ui.game.state, torchC)}
-                >
-                  Make {TORCH_CRAFT.makes}
+              {pickC ? (
+                <PriceButton s={s} costs={pickC} onClick={() => ui.dispatch({ type: 'buyPick' })}>
+                  Forge the {nextP!.name.toLowerCase()}{' '}
+                  <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
                 </PriceButton>
+              ) : deepC ? (
+                deepPickOpen(s) ? (
+                  <PriceButton s={s} costs={deepC} onClick={() => ui.dispatch({ type: 'deepPick' })}>
+                    Forge {DEEP_PICK_TEXT.name(s.deepPick + 1).toLowerCase()} <em>×{DEEP_PICK.mult} speed</em>
+                  </PriceButton>
+                ) : s.ending === 'seal' ? (
+                  <p class="small">{DEEP_PICK_TEXT.waits(markerD(s.deepPick + 1) * FT_PER_TILE)}</p>
+                ) : (
+                  <p class="small">{DEEP_PICK_TEXT.sealFirst}</p>
+                )
+              ) : (
+                <p class="small">The best pick Holloway knows how to make, for now.</p>
+              )}
+            </div>
+          </section>
+
+          <section class="card" data-card="haul" style={first(!!haulC && canPay(s, haulC))}>
+            <img class="prop" src={spriteURL('headframe', 1)} alt="" />
+            <div class="grow">
+              <h3>{haul.name}</h3>
+              <Desc>
+                Hauls up to {perMin(haulRate(ui.game))} of ore from this depth ({haul.speed} tile/s,{' '}
+                {haul.capacity} a load).{' '}
+                {Object.values(s.underground).some((v) => v.gt(0)) ? 'Ore is waiting at the bottom.' : ''}
+              </Desc>
+              {haulC && (
+                <PriceButton s={s} costs={haulC} onClick={() => ui.dispatch({ type: 'buyHaul' })}>
+                  Build the {nextH!.name.toLowerCase()}{' '}
+                  <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
+                </PriceButton>
+              )}
+            </div>
+          </section>
+
+          <Building ui={ui} id="lampworks">
+            <p class="small">
+              {s.res.spores.gt(0)
+                ? `Turning ${s.buildings.lampworks} spore${s.buildings.lampworks > 1 ? 's' : ''} a second into ${LAMPWORKS.lumen * lumenMult(s) * s.buildings.lampworks} Lumen.`
+                : 'Waiting on glowcap spores. Miners pick them from the cavern walls.'}{' '}
+              {lanterns(ui.game).length > 0 &&
+                `${lanterns(ui.game).length} lantern${lanterns(ui.game).length > 1 ? 's' : ''} burn ${perMin(lumenUpkeep(ui.game))} of Lumen${ui.game.world.lanternsLit ? '.' : ', but they are dark: no Lumen.'}`}
+            </p>
+            <Craft ui={ui} id="lantern" label={`Make a lantern`} s={s} />
+          </Building>
+
+          <Building ui={ui} id="kiln">
+            <p class="small">
+              Bakes {KILN.rubble} rubble into a brick every {KILN.seconds / s.buildings.kiln} s. Rubble comes
+              from the stone you dig by hand.
+            </p>
+            <Craft ui={ui} id="support" label={`Make a support`} s={s} />
+          </Building>
+
+          {(s.stats.firsts.halls !== undefined || s.res.pump.gt(0)) && (
+            <section class="card" style={first(canPay(s, craftCost(s, 'pump')))}>
+              <img class="icon" src={spriteURL('obj-pump')} alt="" />
+              <div class="grow">
+                <h3>Pumps · {fmt(s.res.pump)} in hand</h3>
+                <Desc>
+                  Each pump drains {num(pumpRate(ui.game))} water a second within {PUMP.radius} tiles, from
+                  the top down. Nobody can dig standing in a flooded tunnel. Use the Pump tool to set one.
+                </Desc>
+                <Craft ui={ui} id="pump" label="Make a pump" s={s} />
               </div>
             </section>
-            <CairnAndTally ui={ui} />
-          </div>
-        )}
-        {tab === 'fields' && <Fields ui={ui} />}
-        {tab === 'wood' && <Woodlot ui={ui} />}
-        {tab === 'hands' && <Helpers ui={ui} />}
-        {tab === 'loom' && (
-          <Building ui={ui} id="songloom">
-            <Charms ui={ui} />
-          </Building>
-        )}
-      </div>
-    </div>
+          )}
+
+          {(s.stats.firsts.ember !== undefined || s.res.vent.gt(0)) && (
+            <section class="card" style={first(canPay(s, craftCost(s, 'vent')))}>
+              <img class="icon" src={spriteURL('obj-vent')} alt="" />
+              <div class="grow">
+                <h3>Cooling vents · {fmt(s.res.vent)} in hand</h3>
+                <Desc>
+                  A vent cools every face within {OBJECTS.vent.radius} tiles. Miners won’t work rock that is
+                  too hot. Standing water cools a face too. Use the Vent tool to set one.
+                </Desc>
+                <Craft ui={ui} id="vent" label="Make a vent" s={s} />
+              </div>
+            </section>
+          )}
+
+          <section class="card" style={first(canPay(s, torchC))}>
+            <img class="icon" src={spriteURL('obj-torch')} alt="" />
+            <div class="grow">
+              <h3>Torches · {fmt(s.res.torch)} in hand</h3>
+              <Desc>
+                Light a face and the miners there work at full pace. Use the Torch tool to place one.
+              </Desc>
+              <PriceButton
+                s={s}
+                costs={torchC}
+                onClick={() => ui.dispatch({ type: 'craftTorches' })}
+                hold={() => canPay(ui.game.state, torchC)}
+              >
+                Make {TORCH_CRAFT.makes}
+              </PriceButton>
+            </div>
+          </section>
+          <CairnAndTally ui={ui} />
+        </div>
+      )}
+      {tab === 'fields' && <Fields ui={ui} />}
+      {tab === 'wood' && <Woodlot ui={ui} />}
+      {tab === 'hands' && <Helpers ui={ui} />}
+      {tab === 'loom' && (
+        <Building ui={ui} id="songloom">
+          <Charms ui={ui} />
+        </Building>
+      )}
+    </>
   );
 }

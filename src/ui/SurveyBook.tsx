@@ -18,16 +18,34 @@ import { CURIO, CURIOS } from '../data/finds';
 import { BIOMES } from '../data/biomes';
 import { CURIO_TEXT, CURIO_UI, RARITY_NAME } from '../story/finds';
 import { fullSets } from '../sim/finds';
+import { Tabs } from './Drawer';
+import { SURVEY_TABS } from '../story/qol';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
 
+export type SurveyTab = 'cycle' | 'echoes' | 'verses' | 'shelf' | 'pages' | 'feats';
+/** The last page open, kept for the session; a Cave-in opens the book on its first page. */
+let lastTab: SurveyTab = 'cycle';
+export function surveyTab(t: SurveyTab): void {
+  lastTab = t;
+}
+
+/** The Survey Book's pages, inside the drawer (M13-07). */
 export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
+  const [tab, setTabState] = useState<SurveyTab>(lastTab);
+  const setTab = (t: SurveyTab): void => {
+    lastTab = t;
+    setTabState(t);
+  };
   const s = ui.game.state;
   const [confirm, setConfirm] = useState(false);
   const ready = canCaveIn(s);
   const ft = maxFt(s);
   const gain = echoGain(s);
   const last = [...s.survey].reverse().find((p) => p.hand === 'yours');
+  const echoBuys = UPGRADES.filter(
+    (u) => !s.upgrades[u.id] && (!u.requires || s.upgrades[u.requires]) && s.echoes.gte(u.cost),
+  ).length;
   // what those Echoes would buy, cheapest first
   const buys: string[] = [];
   let left = s.echoes.add(gain).toNumber();
@@ -41,14 +59,21 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
   }
 
   return (
-    <div class="sheet-wrap side" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="book sheet" role="dialog" aria-label="Survey Book">
-        <div class="sheet-head">
-          <h2>Survey Book</h2>
-          <button class="btn" onClick={close} aria-label="Close">
-            ✕
-          </button>
-        </div>
+    <>
+      <Tabs
+        label="Survey Book"
+        tabs={[
+          { id: 'cycle', label: SURVEY_TABS.cycle, n: ready ? 1 : 0 },
+          { id: 'echoes', label: SURVEY_TABS.echoes, n: echoBuys },
+          { id: 'verses', label: SURVEY_TABS.verses },
+          { id: 'shelf', label: SURVEY_TABS.shelf },
+          { id: 'pages', label: SURVEY_TABS.pages },
+          { id: 'feats', label: SURVEY_TABS.feats },
+        ]}
+        on={tab}
+        set={setTab}
+      />
+      <div class="book">
         {(s.ngPlus > 0 || s.world.endlessRows > 0) && (
           <p class="small ending-note">
             {s.ngPlus > 0 && `${ENDING_NOTE.songs(s.ngPlus, NEW_SONG.perSong)} `}
@@ -59,185 +84,198 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
           </p>
         )}
 
-        <section>
-          <h3>Cycle {s.cycle}</h3>
-          <p>
-            Deepest this cycle: <b>{ft} ft</b>. Verses found: <b>{versesThisRun(s)}</b> of 12.
-          </p>
-          {ready ? (
-            <>
-              <p class="worth">
-                <b>+{fmt(gain)} Echoes</b>
-                {last ? ` · last time ${last.echoes}` : ''}
-                {buys.length ? ` · enough for ${buys.join(', ')}` : ''}
-              </p>
-              <p class="small">
-                The village forgets its buildings and bars; you keep Echoes, verses and your helpers, and the
-                way back down goes ×{HOMECOMING.mult} faster until {Math.round(HOMECOMING.frac * 100)}% of
-                your best depth.
-              </p>
-              {!confirm ? (
-                <button class="btn danger" onClick={() => setConfirm(true)}>
-                  Let it cave in · +{fmt(gain)} Echoes
-                </button>
-              ) : (
-                <div class="row">
-                  <button class="btn danger" onClick={() => (ui.dispatch({ type: 'caveIn' }), close())}>
-                    Yes, let it go
-                  </button>
-                  <button class="btn" onClick={() => setConfirm(false)}>
-                    Not yet
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <p class="muted">
-              The mountain holds. It will settle once you reach {CAVE_IN.minFt} ft{' '}
-              {s.verses.run[CAVE_IN.verse] ? '' : `and find Verse ${VERSES[CAVE_IN.verse]!.n}`}. Right now a
-              Cave-in would give {fmt(gain)} Echoes.
+        {tab === 'cycle' && (
+          <section>
+            <h3>Cycle {s.cycle}</h3>
+            <p>
+              Deepest this cycle: <b>{ft} ft</b>. Verses found: <b>{versesThisRun(s)}</b> of 12.
             </p>
-          )}
-        </section>
-
-        <section>
-          <h3>
-            Echoes <img class="inline" src={spriteURL('echo')} alt="" /> {fmt(s.echoes)}
-          </h3>
-          <div class="branches">
-            {(['hands', 'lamps', 'memory'] as Branch[]).map((b) => (
-              <div key={b} class="branch">
-                <h4>{BRANCH_NAME[b]}</h4>
-                {UPGRADES.filter((u) => u.branch === b).map((u) => {
-                  const owned = !!s.upgrades[u.id];
-                  const locked = !!u.requires && !s.upgrades[u.requires];
-                  return (
-                    <button
-                      key={u.id}
-                      class={`upg ${owned ? 'owned' : ''}`}
-                      disabled={owned || locked || s.echoes.lt(u.cost)}
-                      onClick={() => ui.dispatch({ type: 'buyUpgrade', id: u.id })}
-                    >
-                      <b>{u.name}</b>
-                      <span>{u.text}</span>
-                      <em>
-                        {owned
-                          ? 'Remembered'
-                          : locked
-                            ? 'Needs the one above'
-                            : `${u.cost} Echo${u.cost > 1 ? 'es' : ''}`}
-                      </em>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h3>Verses</h3>
-          <ol class="verses">
-            {VERSES.map((v, i) => (
-              <li key={v.n} class={s.verses.known[i] ? 'known' : ''}>
-                <span class="vn">{v.n}</span>
-                {s.verses.known[i] ? (
-                  <span>
-                    {v.lines[0]} {v.lines[1]}
-                  </span>
+            {ready ? (
+              <>
+                <p class="worth">
+                  <b>+{fmt(gain)} Echoes</b>
+                  {last ? ` · last time ${last.echoes}` : ''}
+                  {buys.length ? ` · enough for ${buys.join(', ')}` : ''}
+                </p>
+                <p class="small">
+                  The village forgets its buildings and bars; you keep Echoes, verses and your helpers, and
+                  the way back down goes ×{HOMECOMING.mult} faster until {Math.round(HOMECOMING.frac * 100)}%
+                  of your best depth.
+                </p>
+                {!confirm ? (
+                  <button class="btn danger" onClick={() => setConfirm(true)}>
+                    Let it cave in · +{fmt(gain)} Echoes
+                  </button>
                 ) : (
-                  <span class="muted">Somewhere in the {v.biome}.</span>
-                )}
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section>
-          <h3>
-            {CURIO_UI.title} · {s.curios.length} of {CURIOS.length}
-          </h3>
-          <p class="small muted">{CURIO_UI.intro}</p>
-          <div class="shelf">
-            {BIOMES.filter((b) => b.id >= 1).map((b) => {
-              const set = CURIOS.filter((c) => c.biome === b.id);
-              const done = fullSets(s).includes(b.id);
-              return (
-                <div key={b.id} class={`shelf-row ${done ? 'done' : ''}`}>
-                  <h4>
-                    {b.name}
-                    {done && (
-                      <span class="set">
-                        {' '}
-                        · {CURIO_UI.setDone} +{Math.round(CURIO.set * 100)}%
-                      </span>
-                    )}
-                  </h4>
-                  <div class="curios">
-                    {set.map((c) => {
-                      const has = s.curios.includes(c.id);
-                      const t = CURIO_TEXT[c.id]!;
-                      return (
-                        <div
-                          key={c.id}
-                          class={`curio ${c.rarity} ${has ? 'has' : 'missing'}`}
-                          title={
-                            has
-                              ? `${t.name}: ${t.note}`
-                              : `${RARITY_NAME[c.rarity]} · ${CURIO_UI.missing} ${b.name}`
-                          }
-                        >
-                          <img
-                            src={spriteURL('curio', c.rarity === 'common' ? 0 : c.rarity === 'fine' ? 1 : 2)}
-                            alt=""
-                          />
-                          <b>{has ? t.name : '?'}</b>
-                          <span>
-                            {has
-                              ? CURIO_UI.fx(c.fx, Math.round(CURIO.bonus[c.rarity] * 100))
-                              : RARITY_NAME[c.rarity]}
-                          </span>
-                        </div>
-                      );
-                    })}
+                  <div class="row">
+                    <button class="btn danger" onClick={() => (ui.dispatch({ type: 'caveIn' }), close())}>
+                      Yes, let it go
+                    </button>
+                    <button class="btn" onClick={() => setConfirm(false)}>
+                      Not yet
+                    </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                )}
+              </>
+            ) : (
+              <p class="muted">
+                The mountain holds. It will settle once you reach {CAVE_IN.minFt} ft{' '}
+                {s.verses.run[CAVE_IN.verse] ? '' : `and find Verse ${VERSES[CAVE_IN.verse]!.n}`}. Right now a
+                Cave-in would give {fmt(gain)} Echoes.
+              </p>
+            )}
+          </section>
+        )}
 
-        <section>
-          <h3>Pages</h3>
-          <table class="pages">
-            <thead>
-              <tr>
-                <th>Cycle</th>
-                <th>Depth</th>
-                <th>Verses</th>
-                <th>Echoes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {s.survey.map((p, i) => (
-                <tr key={i} class={p.hand}>
-                  <td>{p.hand === 'old' ? '—' : p.cycle}</td>
-                  <td>{p.depthFt} ft</td>
-                  <td>{p.verses}</td>
-                  <td>
-                    {p.echoes}
-                    {p.auto && <span class="small muted"> · {AUTO_TEXT.page}</span>}
-                  </td>
-                </tr>
+        {tab === 'echoes' && (
+          <section>
+            <h3>
+              Echoes <img class="inline" src={spriteURL('echo')} alt="" /> {fmt(s.echoes)}
+            </h3>
+            <div class="branches">
+              {(['hands', 'lamps', 'memory'] as Branch[]).map((b) => (
+                <div key={b} class="branch">
+                  <h4>{BRANCH_NAME[b]}</h4>
+                  {UPGRADES.filter((u) => u.branch === b).map((u) => {
+                    const owned = !!s.upgrades[u.id];
+                    const locked = !!u.requires && !s.upgrades[u.requires];
+                    return (
+                      <button
+                        key={u.id}
+                        class={`upg ${owned ? 'owned' : ''}`}
+                        disabled={owned || locked || s.echoes.lt(u.cost)}
+                        onClick={() => ui.dispatch({ type: 'buyUpgrade', id: u.id })}
+                      >
+                        <b>{u.name}</b>
+                        <span>{u.text}</span>
+                        <em>
+                          {owned
+                            ? 'Remembered'
+                            : locked
+                              ? 'Needs the one above'
+                              : `${u.cost} Echo${u.cost > 1 ? 'es' : ''}`}
+                        </em>
+                      </button>
+                    );
+                  })}
+                </div>
               ))}
-            </tbody>
-          </table>
-          <p class="small muted">
-            The first pages were here when you opened the book. The handwriting is yours.
-          </p>
-        </section>
-        <AchievementList s={s} />
+            </div>
+          </section>
+        )}
+
+        {tab === 'verses' && (
+          <section>
+            <h3>Verses</h3>
+            <ol class="verses">
+              {VERSES.map((v, i) => (
+                <li key={v.n} class={s.verses.known[i] ? 'known' : ''}>
+                  <span class="vn">{v.n}</span>
+                  {s.verses.known[i] ? (
+                    <span>
+                      {v.lines[0]} {v.lines[1]}
+                    </span>
+                  ) : (
+                    <span class="muted">Somewhere in the {v.biome}.</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {tab === 'shelf' && (
+          <section>
+            <h3>
+              {CURIO_UI.title} · {s.curios.length} of {CURIOS.length}
+            </h3>
+            <p class="small muted">{CURIO_UI.intro}</p>
+            <div class="shelf">
+              {BIOMES.filter((b) => b.id >= 1).map((b) => {
+                const set = CURIOS.filter((c) => c.biome === b.id);
+                const done = fullSets(s).includes(b.id);
+                return (
+                  <div key={b.id} class={`shelf-row ${done ? 'done' : ''}`}>
+                    <h4>
+                      {b.name}
+                      {done && (
+                        <span class="set">
+                          {' '}
+                          · {CURIO_UI.setDone} +{Math.round(CURIO.set * 100)}%
+                        </span>
+                      )}
+                    </h4>
+                    <div class="curios">
+                      {set.map((c) => {
+                        const has = s.curios.includes(c.id);
+                        const t = CURIO_TEXT[c.id]!;
+                        return (
+                          <div
+                            key={c.id}
+                            class={`curio ${c.rarity} ${has ? 'has' : 'missing'}`}
+                            title={
+                              has
+                                ? `${t.name}: ${t.note}`
+                                : `${RARITY_NAME[c.rarity]} · ${CURIO_UI.missing} ${b.name}`
+                            }
+                          >
+                            <img
+                              src={spriteURL(
+                                'curio',
+                                c.rarity === 'common' ? 0 : c.rarity === 'fine' ? 1 : 2,
+                              )}
+                              alt=""
+                            />
+                            <b>{has ? t.name : '?'}</b>
+                            <span>
+                              {has
+                                ? CURIO_UI.fx(c.fx, Math.round(CURIO.bonus[c.rarity] * 100))
+                                : RARITY_NAME[c.rarity]}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {tab === 'pages' && (
+          <section>
+            <h3>Pages</h3>
+            <table class="pages">
+              <thead>
+                <tr>
+                  <th>Cycle</th>
+                  <th>Depth</th>
+                  <th>Verses</th>
+                  <th>Echoes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {s.survey.map((p, i) => (
+                  <tr key={i} class={p.hand}>
+                    <td>{p.hand === 'old' ? '—' : p.cycle}</td>
+                    <td>{p.depthFt} ft</td>
+                    <td>{p.verses}</td>
+                    <td>
+                      {p.echoes}
+                      {p.auto && <span class="small muted"> · {AUTO_TEXT.page}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p class="small muted">
+              The first pages were here when you opened the book. The handwriting is yours.
+            </p>
+          </section>
+        )}
+        {tab === 'feats' && <AchievementList s={s} />}
       </div>
-    </div>
+    </>
   );
 }
