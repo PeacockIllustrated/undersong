@@ -875,3 +875,13 @@ button.danger {
     font-size: 26px;
   }
 }
+
+.spill {
+  display: block;
+  color: var(--gold-pale);
+  font-size: 11px;
+}
+.pct {
+  color: var(--ink-dim);
+  font-size: 11px;
+}

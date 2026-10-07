@@ -14,6 +14,9 @@ export interface Bridge {
   input: Input;
   readonly paused: boolean;
   readonly muted: boolean;
+  /** Most crew sprites drawn at once: 50, 100, 200 or 400. */
+  readonly crowd: number;
+  setCrowd(n: number): void;
   setPaused(p: boolean): void;
   setMuted(m: boolean): void;
   buy(id: ShopId): boolean;

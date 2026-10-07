@@ -23,6 +23,7 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
   const frac = d.quota.gt(0) ? Math.min(1, d.deposited.div(d.quota).toNumber()) : 1;
   const used = d.pack.coal.toNumber() + packOre(d);
   const pick = CO_PICKS[pickIndex(s)]!;
+  const spill = Math.floor(d.spill.coal) + ORE_IDS.reduce((a, k) => a + d.spill.ores[k], 0);
   const cap = packCap(s);
   const crew = crewRate(s);
   const dusk = s.phase === 'dusk';
@@ -58,6 +59,7 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
           <div class="bar">
             <div style={{ width: `${Math.min(100, (used / cap) * 100)}%` }} />
           </div>
+          {spill > 0 && <small class="spill">+{spill} waiting for putters</small>}
           {packOre(d) > 0 && (
             <div class="ore-row">
               {ORE_IDS.filter((k) => d.pack.ores[k] > 0).map((k) => (
@@ -144,6 +146,14 @@ export function PauseMenu({ bridge }: { bridge: Bridge }) {
         </button>
         <button onClick={() => bridge.setMuted(!bridge.muted)}>
           {bridge.muted ? 'Sound: off' : 'Sound: on'}
+        </button>
+        <button
+          onClick={() => {
+            const caps = [50, 100, 200, 400];
+            bridge.setCrowd(caps[(caps.indexOf(bridge.crowd) + 1) % caps.length]!);
+          }}
+        >
+          Crew drawn: up to {bridge.crowd}
         </button>
         <Controls />
         {!sure ? (

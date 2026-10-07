@@ -11,7 +11,7 @@ import { tileTexture, wallTexture } from '../../render/tiles';
 import { BODY, DAY } from '../data/co';
 import { aimTile, packOre } from '../sim/day';
 import { shaftFoot } from '../sim/mine';
-import { deputies, shaftDepth } from '../sim/stats';
+import { deputies, role, shaftDepth } from '../sim/stats';
 import type { Control } from '../sim/body';
 import type { Game } from '../sim/state';
 import { Fx } from './fx';
@@ -422,16 +422,28 @@ export class View {
     }
   }
 
+  /** Most crew sprites drawn at once (plan: 200 by default, 50 to 400 in the pause menu). */
+  spriteCap = 200;
+
   private drawGangs(g: Game, now: number): void {
     const { ctx } = this;
-    for (const [i, gang] of g.day!.gangs.entries()) {
+    const gangs = g.day!.gangs;
+    const per = Math.max(1, Math.min(3, Math.floor(this.spriteCap / Math.max(1, gangs.length))));
+    // gang i carries a hewer, then the roles the crew has, handed out across the gangs (ADR-H010)
+    const extra = (i: number): string => {
+      if (i < deputies(g.s)) return 'deputy';
+      if (i < role(g.s, 'shotfirer')) return 'shotfirer';
+      if (i < role(g.s, 'lampman')) return 'lampman';
+      if (i < role(g.s, 'pumpman')) return 'pumpman';
+      return 'miner';
+    };
+    for (const [i, gang] of gangs.entries()) {
       // gangs stand in their tunnel and face the vein they are working toward (ADR-H009)
       const face = gang.target ? Math.sign(gang.target.x - gang.x) || gang.side : gang.side;
       const fx = gang.x * T + T / 2;
       const fy = (gang.y + 1) * T;
-      const show = Math.min(3, gang.count);
-      // a gang is a hewer at the face, a putter behind and a third role: a deputy if the gang has one (ADR-H008)
-      const roles = ['miner', 'putter', i < deputies(g.s) ? 'deputy' : i % 2 ? 'lampman' : 'shotfirer'];
+      const show = Math.min(per, gang.count);
+      const roles = ['miner', i < role(g.s, 'putter') ? 'putter' : 'miner', extra(i)];
       for (let k = 0; k < show; k++) {
         const swing = gang.stuck
           ? Math.floor(now / 600 + k) % 2

@@ -21,7 +21,7 @@ import {
 import { aimTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
-import { pickTier, quota, shopOres } from '../src/co/sim/stats';
+import { crewRate, pickTier, quota, shopOres } from '../src/co/sim/stats';
 
 const run = (g: Game, c: Partial<Control>, seconds: number): void => {
   const ctl = { ...idleControl(), ...c };
@@ -280,5 +280,47 @@ describe('ore, grades and the tinker', () => {
     g.s.contract.levels.pick = 3;
     run(g, {}, 40);
     expect(g.s.contract.ores.iron).toBeGreaterThan(0);
+  });
+});
+
+describe('crews and promotions (H2)', () => {
+  it('a promotion needs a hand, and promoted hands stop hewing', () => {
+    const g = started();
+    run(g, {}, DAY.baseS + 0.1);
+    g.s.contract.levels.hand = 50;
+    g.day!.deposited = g.day!.quota;
+    settleDusk(g);
+    g.s.contract.day = 3;
+    g.s.contract.levels.hand = 1;
+    g.s.contract.scrip = D(1e6);
+    Object.assign(g.s.contract.ores, { tin: 99, iron: 99, glowcap: 99, copper: 99 });
+    const before = crewRate(g.s);
+    expect(buy(g, 'putter')).toBe(true);
+    expect(buy(g, 'putter')).toBe(false);
+    expect(crewRate(g.s)).toBeLessThan(before);
+  });
+
+  it('putters haul the spill from a full pack', () => {
+    const g = started();
+    g.s.contract.levels.putter = 2;
+    g.s.contract.levels.hand = 2;
+    startDay(g);
+    const d = g.day!;
+    d.spill.coal = 5;
+    d.spill.ores.iron = 2;
+    run(g, {}, 10);
+    expect(d.spill.coal).toBe(0);
+    expect(d.byHaul.toNumber()).toBe(5);
+    expect(g.s.contract.ores.iron).toBeGreaterThanOrEqual(2);
+  });
+
+  it('gangs scale with the payroll and the banners add up to it', () => {
+    const g = started();
+    g.s.contract.levels.hand = 123;
+    g.s.contract.levels.shaft = 6;
+    startDay(g);
+    const gangs = g.day!.gangs;
+    expect(gangs.length).toBeGreaterThan(8);
+    expect(gangs.reduce((a, x) => a + x.count, 0)).toBe(123);
   });
 });

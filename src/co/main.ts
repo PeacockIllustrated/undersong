@@ -59,6 +59,12 @@ function boot(): void {
 
   const canvas = document.getElementById('view') as HTMLCanvasElement;
   const view = new View(canvas);
+  try {
+    const cap = Number(localStorage.getItem('hollowayco.crowd'));
+    if ([50, 100, 200, 400].includes(cap)) view.spriteCap = cap;
+  } catch {
+    // no storage: keep the default crowd
+  }
   const input = new Input(canvas);
   const sound = new Sound(0.55, 0);
   let muted = false;
@@ -93,6 +99,17 @@ function boot(): void {
     },
     get muted() {
       return muted;
+    },
+    get crowd() {
+      return view.spriteCap;
+    },
+    setCrowd: (n: number) => {
+      view.spriteCap = n;
+      try {
+        localStorage.setItem('hollowayco.crowd', String(n));
+      } catch {
+        // a per-device preference; fine to lose
+      }
     },
     setPaused: (p) => {
       paused = p;
@@ -334,6 +351,18 @@ function boot(): void {
           ((w.surf[SHAFT_X + 2] ?? SKY_ROWS) - 1.5) * T,
           `+${n} crew`,
           '#B9FFF3',
+          now,
+        );
+      }
+      if (g.day && g.day.haulPop >= 1 && crewPopT > 0.5) {
+        const w = g.world!;
+        const n = Math.floor(g.day.haulPop);
+        g.day.haulPop -= n;
+        view.fx.float(
+          (SHAFT_X + 3) * T,
+          ((w.surf[SHAFT_X + 3] ?? SKY_ROWS) - 2.5) * T,
+          `+${n} hauled`,
+          '#F2A35E',
           now,
         );
       }

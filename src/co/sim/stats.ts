@@ -9,6 +9,8 @@ import {
   KIT,
   CO_PICKS,
   QUOTA,
+  ROLE_FX,
+  ROLE_IDS,
   SHAFT,
   SHOP,
   UPGRADE,
@@ -77,6 +79,14 @@ export const blastRadius = (s: CoState): number => KIT.blastRadius + lvl(s, 'bla
 export const jetFuel = (s: CoState): number => BODY.jetFuelS * lvl(s, 'jetpack');
 export const hands = (s: CoState): number => lvl(s, 'hand');
 export const deputies = (s: CoState): number => lvl(s, 'deputy');
+export const role = (s: CoState, id: (typeof ROLE_IDS)[number]): number => lvl(s, id);
+/** Hands promoted into a role. Promotions never outnumber hands (canon §8.1). */
+export const promoted = (s: CoState): number => ROLE_IDS.reduce((a, k) => a + lvl(s, k), 0);
+/** Hands still at the face: everyone but putters, shotfirers, lampmen and pumpmen (deputies lead and dig). */
+export const hewers = (s: CoState): number => Math.max(0, hands(s) - promoted(s) + deputies(s));
+/** The lampmen who count: at most one per ROLE_FX.lampPer hands. */
+export const lampmen = (s: CoState): number =>
+  Math.min(role(s, 'lampman'), Math.floor(hands(s) / ROLE_FX.lampPer));
 
 export function scripMult(s: CoState): number {
   return 1 + BOOK_FX.strike * book(s, 'strike');
@@ -86,13 +96,14 @@ export const chestMult = (s: CoState): number => scripMult(s) * (has(s, 'button'
 
 /** Coal a second from the whole crew. hybrid canon §8 */
 export function crewRate(s: CoState): number {
-  const n = hands(s);
+  const n = hewers(s);
   if (n <= 0) return 0;
   const per = CREW.rate * Math.sqrt(pickPower(s));
   const led = Math.min(deputies(s) * CREW.deputyGang, n);
   const verse = 1 + VERSE_POWER * s.meta.verses.length;
   const union = 1 + BOOK_FX.union * book(s, 'union');
-  return (n + led * CREW.deputyBoost) * per * verse * union * echoMult(s);
+  const lit = 1 + ROLE_FX.lampman * lampmen(s);
+  return (n + led * CREW.deputyBoost) * per * verse * union * lit * echoMult(s);
 }
 
 export const isAudit = (day: number): boolean => day % QUOTA.auditEvery === 0;

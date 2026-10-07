@@ -1,13 +1,13 @@
 // Night: the tally sheet for the day, tomorrow's quota, and the Company Store. Hold a buy button to keep buying.
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { spriteURL } from '../../render/sprites';
-import { D } from '../../sim/decimal';
+import { D, type Decimal } from '../../sim/decimal';
 import { fmt } from '../../ui/format';
 import { CO_PICKS, ORES, ORE_IDS, RELICS, SHOP, type OreId, type ShopId } from '../data/co';
-import { echoesIfTonight, relicCost, rerollCost, streakMult } from '../sim/contract';
+import { canBuy, echoesIfTonight, relicCost, rerollCost, streakMult } from '../sim/contract';
 import { NIGHT, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
-import { crewRate, dayLength, hasOres, isAudit, quota, shopCost, shopOres } from '../sim/stats';
+import { crewRate, dayLength, hands, isAudit, promoted, quota, shopCost, shopOres } from '../sim/stats';
 import type { Bridge } from './App';
 
 /** Store icons borrowed from Undersong's item sheet; anything missing falls back to a letter. */
@@ -18,13 +18,17 @@ const ICON: Partial<Record<ShopId, string>> = {
   hours: 'obj-lantern',
   ladders: 'obj-rope',
   shaft: 'obj-support',
-  deputy: 'charm',
-  charges: 'chunk-ember',
-  blast: 'chunk-ember',
+  deputy: 'badge',
+  charges: 'charge',
+  blast: 'charge-lit',
   footKibble: 'bar-stack',
-  jetpack: 'lumen',
-  doubleJump: 'curio',
-  boots: 'bar-iron',
+  jetpack: 'jetpack',
+  doubleJump: 'feather',
+  boots: 'pit-boots',
+  putter: 'putter',
+  shotfirer: 'shotfirer',
+  lampman: 'lampman',
+  pumpman: 'pumpman',
 };
 
 /** What each purchase does to a number the player can read, so the jump is visible before buying. */
@@ -43,10 +47,29 @@ function preview(g: Game, id: ShopId): string {
     case 'hours':
       return `${dayLength(g.s)} s → ${dayLength(g.s) + 20} s`;
     case 'deputy':
-      return `${l} → ${l + 1} deputies`;
+    case 'putter':
+    case 'shotfirer':
+    case 'lampman':
+    case 'pumpman':
+      return `${l} → ${l + 1} · ${promoted(g.s)} of ${hands(g.s)} hands promoted`;
     default:
       return l > 0 ? `level ${l} → ${l + 1}` : 'new';
   }
+}
+
+/** Whole-percent shares of the day's coal that always add to 100 (largest remainder). */
+function shares(vals: readonly Decimal[]): number[] {
+  const all = vals.reduce((a, v) => a.add(v), D(0));
+  if (all.lte(0)) return vals.map(() => 0);
+  const raw = vals.map((v) => v.div(all).toNumber() * 100);
+  const out = raw.map(Math.floor);
+  let left = 100 - out.reduce((a, b) => a + b, 0);
+  const order = raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]);
+  for (const [, i] of order) {
+    if (left-- <= 0) break;
+    out[i]!++;
+  }
+  return out;
 }
 
 function OreChip({ id, n, short }: { id: OreId; n: number; short?: boolean }) {
@@ -141,7 +164,7 @@ function Row({ g, bridge, id }: { g: Game; bridge: Bridge; id: ShopId }) {
   const def = SHOP.find((d) => d.id === id)!;
   const cost = shopCost(g.s, id);
   const ores = shopOres(g.s, id);
-  const can = !!cost && g.s.contract.scrip.gte(cost) && hasOres(g.s, ores);
+  const can = canBuy(g, id);
   const hold = useRef<number | null>(null);
   const stop = (): void => {
     if (hold.current !== null) clearInterval(hold.current);
@@ -208,6 +231,15 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
       : TALLY_LINES.passed[t.day % TALLY_LINES.passed.length]
     : '';
   const crewDay = crewRate(s) * dayLength(s);
+  const rows = t
+    ? ([
+        ['by you', t.byHand.sub(t.late)],
+        ['by the crew', t.byCrew],
+        ['hauled by putters', t.byHaul],
+        ['late, at half', t.late],
+      ] as const)
+    : [];
+  const pct = shares(rows.map((r) => r[1]));
   return (
     <div class="screen night">
       <div class="night-grid">
@@ -238,14 +270,16 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
                   <dt>Deposited</dt>
                   <dd>{fmt(t.deposited.floor())}</dd>
                 </div>
-                <div class="sub">
-                  <dt>by you</dt>
-                  <dd>{fmt(t.byHand.floor())}</dd>
-                </div>
-                <div class="sub">
-                  <dt>by the crew</dt>
-                  <dd>{fmt(t.byCrew.floor())}</dd>
-                </div>
+                {rows.map(([k, v], i) =>
+                  v.gt(0) ? (
+                    <div class="sub" key={k}>
+                      <dt>{k}</dt>
+                      <dd>
+                        {fmt(v.floor())} <small class="pct">{pct[i]}%</small>
+                      </dd>
+                    </div>
+                  ) : null,
+                )}
                 <div>
                   <dt>Surplus coal sold</dt>
                   <dd>+{fmt(t.surplusScrip)}</dd>

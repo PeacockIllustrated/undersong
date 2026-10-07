@@ -151,7 +151,14 @@ export const CO_PICKS: readonly CoPick[] = [
     ],
   },
   { name: 'Iron pick', sprite: 'copick-iron', power: 5, gate: 3, scrip: 300, ores: [{ id: 'iron', n: 10 }] },
-  { name: 'Steel pick', sprite: 'copick-steel', power: 7, gate: 3, scrip: 700, ores: [{ id: 'iron', n: 25 }] },
+  {
+    name: 'Steel pick',
+    sprite: 'copick-steel',
+    power: 7,
+    gate: 3,
+    scrip: 700,
+    ores: [{ id: 'iron', n: 25 }],
+  },
   {
     name: 'Silver pick',
     sprite: 'copick-silver',
@@ -287,7 +294,7 @@ export const CREW = {
   deputyBoost: 0.5,
   /** Gangs shown digging in the mine: one per this many hands, at most `shown`. */
   perGang: 5,
-  shown: 8,
+  shown: 40,
   /** Tiles a shown gang digs per second. Coal they break adds to the crew rate; ore they break goes to stock. */
   gangDig: 0.35,
   /** How far a gang looks for coal or ore to tunnel to, and how far it strays from its own row. */
@@ -328,7 +335,11 @@ export type ShopId =
   | 'charges'
   | 'blast'
   | 'doubleJump'
-  | 'jetpack';
+  | 'jetpack'
+  | 'putter'
+  | 'shotfirer'
+  | 'lampman'
+  | 'pumpman';
 
 export const SHOP: readonly ShopDef[] = [
   { id: 'hand', name: 'Hire a hand', blurb: 'Digs coal all day and sends it up', base: 18, growth: 1.22 },
@@ -403,6 +414,42 @@ export const SHOP: readonly ShopDef[] = [
     ore: { id: 'silver', base: 3, growth: 1.5 },
   },
   {
+    id: 'putter',
+    name: 'Promote a putter',
+    blurb: 'Hauls what your full pack leaves behind',
+    base: 40,
+    growth: 1.3,
+    fromDay: 2,
+    ore: { id: 'tin', base: 2, growth: 1.25 },
+  },
+  {
+    id: 'lampman',
+    name: 'Promote a lampman',
+    blurb: '+12% from the crew: lit faces dig faster',
+    base: 55,
+    growth: 1.32,
+    fromDay: 3,
+    ore: { id: 'glowcap', base: 2, growth: 1.3 },
+  },
+  {
+    id: 'shotfirer',
+    name: 'Promote a shotfirer',
+    blurb: 'Gangs blast one rock harder and tunnel faster',
+    base: 90,
+    growth: 1.4,
+    fromDay: 3,
+    ore: { id: 'iron', base: 3, growth: 1.3 },
+  },
+  {
+    id: 'pumpman',
+    name: 'Promote a pumpman',
+    blurb: 'Drains flooded tunnels near the shaft each dawn',
+    base: 70,
+    growth: 1.3,
+    fromDay: 4,
+    ore: { id: 'copper', base: 3, growth: 1.3 },
+  },
+  {
     id: 'charges',
     name: 'Blast charges',
     blurb: '+3 charges each morning (E or right click)',
@@ -453,6 +500,20 @@ export const SHOP: readonly ShopDef[] = [
     ore: { id: 'aqua', base: 8, growth: 1.8 },
   },
 ];
+
+/** hybrid canon §8.1: the promotion ladder. A promotion turns one hand into a role; roles never outnumber hands. */
+export const ROLE_IDS = ['putter', 'shotfirer', 'lampman', 'pumpman', 'deputy'] as const;
+export const ROLE_FX = {
+  /** Spill (coal or ore that did not fit in the pack) each putter hauls to the kibble a second. */
+  putterHaul: 0.6,
+  /** With any shotfirer, gangs break one tier harder; each shotfirer speeds a gang's tunnelling by this much. */
+  shotfirerDig: 0.3,
+  /** Each lampman adds this much to the crew rate, for at most one lampman per `lampPer` hands. */
+  lampman: 0.12,
+  lampPer: 5,
+  /** Water tiles each pumpman drains near the shaft at dawn, and the crew bonus in flooded rows. */
+  pumpTiles: 60,
+} as const;
 
 export const UPGRADE = {
   whetstone: 0.2,

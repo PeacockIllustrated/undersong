@@ -9,6 +9,7 @@ import {
   GRADES,
   HEART_ECHOES,
   RELICS,
+  ROLE_IDS,
   SHOP,
   STREAK,
   TINKER,
@@ -18,7 +19,18 @@ import {
 } from '../data/co';
 import { startDay } from './day';
 import { newContract, type Game } from './state';
-import { bookCost, crewRate, dayLength, hasOres, pardons, scripMult, shopCost, shopOres } from './stats';
+import {
+  bookCost,
+  crewRate,
+  dayLength,
+  hands,
+  hasOres,
+  pardons,
+  promoted,
+  scripMult,
+  shopCost,
+  shopOres,
+} from './stats';
 
 /** After the tally has been read at dusk: on to the night, or the roof comes down. */
 export function settleDusk(g: Game): void {
@@ -41,6 +53,7 @@ export function settleDusk(g: Game): void {
     deposited: d.deposited,
     byHand: d.byHand,
     byCrew: d.byCrew,
+    byHaul: d.byHaul,
     late: d.late,
     oreScrip: d.oreScrip,
     chestScrip: d.chestScrip,
@@ -153,16 +166,23 @@ export function caveIn(g: Game): void {
   g.world = null;
 }
 
-export function buy(g: Game, id: ShopId): boolean {
+/** Can the next level of a store item be bought right now: tonight, unlocked, unmaxed, affordable in scrip and ore? */
+export function canBuy(g: Game, id: ShopId): boolean {
   const s = g.s;
   if (s.phase !== 'night') return false;
   const def = SHOP.find((x) => x.id === id);
   if (!def || (def.fromDay ?? 0) > s.contract.day + 1) return false;
+  // a promotion needs a hand to promote
+  if ((ROLE_IDS as readonly string[]).includes(id) && promoted(s) >= hands(s)) return false;
   const cost = shopCost(s, id);
-  const ores = shopOres(s, id);
-  if (!cost || s.contract.scrip.lt(cost) || !hasOres(s, ores)) return false;
-  s.contract.scrip = s.contract.scrip.sub(cost);
-  for (const o of ores) s.contract.ores[o.id] -= o.n;
+  return !!cost && s.contract.scrip.gte(cost) && hasOres(s, shopOres(s, id));
+}
+
+export function buy(g: Game, id: ShopId): boolean {
+  if (!canBuy(g, id)) return false;
+  const s = g.s;
+  s.contract.scrip = s.contract.scrip.sub(shopCost(s, id)!);
+  for (const o of shopOres(s, id)) s.contract.ores[o.id] -= o.n;
   s.contract.levels[id]++;
   return true;
 }

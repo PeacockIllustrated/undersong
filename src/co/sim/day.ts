@@ -15,6 +15,7 @@ import {
   KIT,
   ORE_IDS,
   RELICS,
+  ROLE_FX,
   SHAFT,
   hardnessAt,
   type GemId,
@@ -39,6 +40,7 @@ import {
   pickPower,
   pickTier,
   quota,
+  role,
   runMult,
   shaftDepth,
 } from './stats';
@@ -65,6 +67,10 @@ export function startDay(g: Game): void {
     ores: zeroOres(),
     body: b,
     pack: { coal: ZERO(), ores: zeroOres() },
+    spill: { coal: 0, ores: zeroOres() },
+    byHaul: ZERO(),
+    haulPop: 0,
+    haulWork: 0,
     ladders: ladders(s),
     charges: charges(s),
     dig: null,
@@ -78,36 +84,53 @@ export function startDay(g: Game): void {
     warnT: 0,
     late: ZERO(),
   };
+  drainWater(g);
   s.phase = 'day';
   s.tally = null;
 }
 
-/** Gangs start off the shaft, one row each, alternating sides, then tunnel after the nearest coal or ore. */
+/** Pumpmen drain the flooded tiles nearest the shaft before the day starts (canon §8.1). */
+function drainWater(g: Game): void {
+  const w = g.world!;
+  let left = role(g.s, 'pumpman') * ROLE_FX.pumpTiles;
+  if (left <= 0) return;
+  const wet: number[] = [];
+  for (let i = 0; i < w.water.length; i++) if (w.water[i]! > 0) wet.push(i);
+  const top = w.surf[SHAFT_X] ?? SKY_ROWS;
+  const dist = (i: number): number =>
+    Math.abs((i % w.w) - SHAFT_X) + Math.abs(Math.floor(i / w.w) - top) * 0.5;
+  wet.sort((a, b) => dist(a) - dist(b));
+  for (const i of wet) {
+    if (left-- <= 0) break;
+    w.water[i] = 0;
+  }
+  w.touchAll();
+}
+
+/** Gangs start off the shaft, a row every three tiles on alternating sides, then tunnel after the nearest coal
+ * or ore. Past the shaft's depth, more gangs start further out along the same rows. */
 function makeGangs(g: Game, depth: number): Gang[] {
   const n = hands(g.s);
-  const shown = Math.min(CREW.shown, Math.ceil(n / CREW.perGang));
+  const want = Math.min(CREW.shown, Math.ceil(n / CREW.perGang));
   const top = g.world!.surf[SHAFT_X] ?? SKY_ROWS;
+  const rows = Math.max(1, Math.floor((depth - 3) / 3) + 1);
   const out: Gang[] = [];
-  for (let i = 0; i < shown; i++) {
-    const d = 3 + i * 3;
-    if (d > depth) break;
-    const side = i % 2 === 0 ? 1 : -1;
-    const left = n - i * CREW.perGang;
-    out.push({
-      x: SHAFT_X + side,
-      y: top + d,
-      home: top + d,
-      side,
-      work: 0,
-      count: Math.max(1, Math.min(CREW.perGang, left)),
-      stuck: false,
-      target: null,
-      bad: [],
-    });
+  for (let i = 0; i < want; i++) {
+    const row = i % rows;
+    const lap = Math.floor(i / rows);
+    const y = top + 3 + row * 3;
+    const side: -1 | 1 = (i + lap) % 2 === 0 ? 1 : -1;
+    const x = SHAFT_X + side * (1 + lap * 6);
+    if (x <= 1 || x >= g.world!.w - 2) break;
+    out.push({ x, y, home: y, side, work: 0, count: CREW.perGang, stuck: false, target: null, bad: [] });
   }
   // the last gang takes the rest of the crew, so banners add up to the whole payroll
   const last = out[out.length - 1];
   if (last) last.count = Math.max(1, n - (out.length - 1) * CREW.perGang);
+  // a gang that starts inside rock opens its own standing room
+  for (const gang of out)
+    for (const yy of [gang.y - 1, gang.y])
+      if (g.world!.get(gang.x, yy) !== M.BEDROCK) g.world!.set(gang.x, yy, M.AIR);
   return out;
 }
 
@@ -120,10 +143,18 @@ function take(g: Game, m: number, mult: number): { coal: number; ore: number; or
   const drop = DROPS[m];
   if (!drop) return { coal: 0, ore: 0, oreId: null };
   const room = Math.max(0, packCap(g.s) - packUsed(d));
-  const n = Math.min(room, Math.round(drop.n * mult));
-  if (n < Math.round(drop.n * mult) && d.warnT <= 0) {
-    g.events.push({ t: 'full' });
-    d.warnT = 1.2;
+  const want = Math.round(drop.n * mult);
+  const n = Math.min(room, want);
+  if (n < want) {
+    // with putters, what does not fit waits at the face for them; without, it is lost
+    if (role(g.s, 'putter') > 0) {
+      if (drop.kind === 'coal') d.spill.coal += want - n;
+      else d.spill.ores[drop.ore] += want - n;
+    }
+    if (d.warnT <= 0) {
+      g.events.push({ t: 'full' });
+      d.warnT = 1.2;
+    }
   }
   if (n <= 0) return { coal: 0, ore: 0, oreId: null };
   if (drop.kind === 'coal') {
@@ -490,14 +521,43 @@ function gangStep(g: Game, gang: Gang, tier: number): void {
 }
 
 function stepGangs(g: Game, dt: number): void {
-  const tier = pickTier(g.s);
-  for (const gang of g.day!.gangs) {
+  const fire = role(g.s, 'shotfirer');
+  const tier = pickTier(g.s) + (fire > 0 ? 1 : 0);
+  const gangs = g.day!.gangs;
+  const blast = 1 + (ROLE_FX.shotfirerDig * fire) / Math.max(1, gangs.length);
+  for (const gang of gangs) {
     if (gang.stuck) continue;
-    gang.work += CREW.gangDig * Math.min(3, 1 + gang.count / 25) * dt;
+    gang.work += CREW.gangDig * Math.min(3, 1 + gang.count / 25) * blast * dt;
     while (gang.work >= 1) {
       gang.work -= 1;
       gangStep(g, gang, tier);
     }
+  }
+}
+
+/** Putters carry the spill up a load at a time: coal first, then ore. */
+function haul(g: Game, dt: number): void {
+  const d = g.day!;
+  const rate = role(g.s, 'putter') * ROLE_FX.putterHaul;
+  if (rate <= 0) return;
+  d.haulWork = Math.min(d.haulWork + rate * dt, 50);
+  while (d.haulWork >= 1) {
+    if (d.spill.coal >= 1) {
+      d.spill.coal -= 1;
+      d.deposited = d.deposited.add(1);
+      d.byHaul = d.byHaul.add(1);
+      g.s.contract.coal = g.s.contract.coal.add(1);
+      d.haulPop += 1;
+    } else {
+      const k = ORE_IDS.find((o) => d.spill.ores[o] > 0);
+      if (!k) {
+        d.haulWork = 0;
+        return;
+      }
+      d.spill.ores[k] -= 1;
+      bankOre(g, k, 1);
+    }
+    d.haulWork -= 1;
   }
 }
 
@@ -537,6 +597,7 @@ export function stepDay(g: Game, c: Control, dt: number): void {
     d.crewPop += crew;
   }
   stepGangs(g, dt);
+  haul(g, dt);
 
   if (!d.met && d.deposited.gte(d.quota)) {
     d.met = true;

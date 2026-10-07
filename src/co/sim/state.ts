@@ -52,6 +52,8 @@ export interface Tally {
   deposited: Decimal;
   byHand: Decimal;
   byCrew: Decimal;
+  /** Spill the putters hauled up. */
+  byHaul: Decimal;
   late: Decimal;
   /** Gold sold at the kibble. */
   oreScrip: Decimal;
@@ -148,6 +150,12 @@ export interface DayRun {
   ores: Record<OreId, number>;
   body: Body;
   pack: { coal: Decimal; ores: Record<OreId, number> };
+  /** What did not fit in a full pack: it waits at the face for the putters (canon §8.1). */
+  spill: { coal: number; ores: Record<OreId, number> };
+  byHaul: Decimal;
+  /** Hauled coal not yet shown as a pop at the kibble (render only reads it). */
+  haulPop: number;
+  haulWork: number;
   ladders: number;
   charges: number;
   dig: { x: number; y: number; t: number; need: number } | null;
@@ -229,6 +237,7 @@ const DEC_TALLY = [
   'deposited',
   'byHand',
   'byCrew',
+  'byHaul',
   'late',
   'oreScrip',
   'chestScrip',
