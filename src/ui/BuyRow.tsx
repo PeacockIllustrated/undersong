@@ -14,6 +14,11 @@ import type { UiBridge } from './App';
 import { readyIn } from './rates';
 import { RES_ICON } from './icons';
 import { fmt } from './format';
+import { autoBuyOffered, autoKey, isAuto } from '../sim/autobuy';
+import { METALWORK } from '../data/economy';
+import { MEALS, WOOD_BUYS } from '../data/surface';
+import { onPin, pinned, setPin, type Pin } from './pin';
+import { PIN_TEXT } from '../story/qol';
 
 type Costs = { res: ResKey; amount: Decimal }[];
 
@@ -90,6 +95,8 @@ export function PriceButton({
   onClick,
   primary,
   hold,
+  pin,
+  auto,
   children,
 }: {
   s: GameState;
@@ -98,12 +105,19 @@ export function PriceButton({
   primary?: boolean;
   /** M13-02: holding keeps buying. Only for buys that can be made again and again. */
   hold?: () => boolean;
+  /** M13-04: what pinning this buy would pin. */
+  pin?: Pin;
+  /** M13-06: the Auto switch, where the buy has one. */
+  auto?: { on: boolean; set: (on: boolean) => void };
   children: ComponentChildren;
 }) {
   const ok = canPay(s, costs);
   const h = useHold(onClick, hold ?? (() => false));
+  const [, rerender] = useState(0);
+  useEffect(() => onPin(() => rerender((n) => n + 1)), []);
+  const isPinned = !!pin && pinned()?.id === pin.id;
   return (
-    <div class="row">
+    <div class="row buyline">
       <button
         class={`btn buy ${primary ? 'primary' : ''} ${ok ? 'can' : ''} ${hold ? 'holdable' : ''}`}
         disabled={!ok}
@@ -112,6 +126,28 @@ export function PriceButton({
         <span class="lbl">{children}</span>
         <Cost costs={costs} have={s.res} />
       </button>
+      {auto && (
+        <button
+          class={`mini auto-sw ${auto.on ? 'on' : ''}`}
+          role="switch"
+          aria-checked={auto.on}
+          title={auto.on ? PIN_TEXT.autoOn : PIN_TEXT.autoOff}
+          onClick={() => auto.set(!auto.on)}
+        >
+          {PIN_TEXT.auto}
+        </button>
+      )}
+      {pin && (
+        <button
+          class={`mini pin ${isPinned ? 'on' : ''}`}
+          aria-pressed={isPinned}
+          aria-label={isPinned ? PIN_TEXT.unpin : PIN_TEXT.pin}
+          title={isPinned ? PIN_TEXT.unpin : PIN_TEXT.pin}
+          onClick={() => setPin(isPinned ? null : pin)}
+        >
+          <img src={spriteURL('icon-pin')} alt="" />
+        </button>
+      )}
       {!ok && <span class="small ready">{readyText(readyIn(costs, s))}</span>}
     </div>
   );
@@ -182,11 +218,18 @@ export function BuyRow({
   const s = ui.game.state;
   const b = bulkCost(s, of, step);
   if (!b) return null;
+  const key = autoKey(of);
   return (
     <PriceButton
       s={s}
       costs={b.costs}
       primary={primary}
+      pin={{ id: `k:${key}`, name: bulkName(of) }}
+      auto={
+        autoBuyOffered(s)
+          ? { on: isAuto(s, of), set: (on) => ui.dispatch({ type: 'autoBuy', key, on }) }
+          : undefined
+      }
       onClick={() => {
         // the price may have moved since this render, so ask again at the moment of buying
         const now = bulkCost(ui.game.state, of, step);
@@ -201,4 +244,24 @@ export function BuyRow({
       {b.n > 1 && <span class="many"> ×{b.n}</span>}
     </PriceButton>
   );
+}
+
+/** M13-04: a repeatable buy's name, for the pinned chip. */
+export function bulkName(b: BulkKind): string {
+  switch (b.k) {
+    case 'miner':
+      return PIN_TEXT.miner;
+    case 'whetstone':
+      return PIN_TEXT.whetstone;
+    case 'plot':
+      return PIN_TEXT.plot;
+    case 'sapling':
+      return PIN_TEXT.sapling;
+    case 'metal':
+      return METALWORK.find((m) => m.id === b.id)!.name;
+    case 'meal':
+      return MEALS.find((m) => m.id === b.id)!.name;
+    case 'wood':
+      return WOOD_BUYS.find((w) => w.id === b.id)!.name;
+  }
 }

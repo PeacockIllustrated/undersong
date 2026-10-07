@@ -125,6 +125,7 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
   const def = MATERIALS[m];
   world.set(x, y, M.AIR);
   state.stats.tilesMined++;
+  state.stats.tilesEver++;
   const best = state.stats.bestDepthD;
   state.stats.maxDepthD = Math.max(state.stats.maxDepthD, world.depth(y));
   state.stats.bestDepthD = Math.max(state.stats.bestDepthD, state.stats.maxDepthD);

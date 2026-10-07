@@ -10,6 +10,15 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M13-04 to M13-06 (Pin, ledger, Keep buying)
+Done (ADR-042, canon §23, save v11):
+- Pin: any Village buy has a pin. The pinned goal sits on the HUD with a bar for how much of its price is in hand and "ready in". Tapping it opens its card, even on another tab. One-off goals clear once bought and toast when they become affordable.
+- Ledger: a Survey Book tab with time played, tiles dug (in all and this cycle), deepest ever, Cave-ins, fastest Cave-in, Echoes in all, chests and collapses. Each new page notes how long its run took.
+- Keep buying: from the third run on, every repeatable buy has an Auto switch. It buys once a second while the price is at most 10% of what is in hand, with no toast, and the switches stay through Cave-ins.
+State: `npm run check` is green. Save v11 has its migration, fixture and tests. Checked in Playwright at both sizes: pinning the copper pick puts it on the HUD, and tapping the chip opens the Village on the pick card. No overflow.
+Next: the Parking lot polish (walk cycles, lamp glow through rock, the lantern sprite, the bot's torch plan).
+Questions for Tom: none.
+
 ## 2026-10-07 · M13-07 (Panels that feel current)
 Done: the Village, Survey Book and Menu are now one drawer (ADR-041). It is a side panel on desktop and a draggable bottom sheet on a phone, and the three panels are switched as tabs at its top. The tabs and the ×1/×10/Max toggle stay put while the cards scroll. The mine stays live beside the drawer, and the HUD moves over to make room. The Survey Book is split into six tabs and the Menu into four. Cards are tiles; buy buttons are list rows with the price on the right and a gold edge when you can afford them.
 State: `npm run check` and `npm run smoke` are green. The smoke test now opens the Village and Survey drawers for every fixture at both sizes. Checked in Playwright: Esc closes; on a phone, dragging up gives full height and dragging down halves, then closes; no overflow.

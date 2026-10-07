@@ -9,7 +9,7 @@ import type { CropId, MealId, WoodBuyId } from '../data/surface';
 import { CART, RAIN, type CartOfferId } from '../data/finds';
 import type { KeyId } from '../data/beyond';
 
-export const SAVE_VERSION = 10;
+export const SAVE_VERSION = 11;
 
 export interface Tile {
   x: number;
@@ -142,6 +142,8 @@ export interface SurveyEntry {
   hand: 'old' | 'yours';
   /** M11-02: the village caved in by itself. */
   auto?: true;
+  /** M13-05: how long the run lasted, in minutes (pages written before save v11 have none). */
+  min?: number;
 }
 
 export type StoryEvent =
@@ -208,6 +210,8 @@ export interface GameState {
     maxDepthD: number;
     bestDepthD: number;
     tilesMined: number;
+    /** M13-05: tiles dug in every run. */
+    tilesEver: number;
     caveIns: number;
     chests: number;
     /** Best pick tier ever bought, for the Heirloom Pick. */
@@ -239,8 +243,11 @@ export interface GameState {
   endlessPaid: number;
   /** M11-01: deep picks made this run, past the Heart pick. canon §22.2 */
   deepPick: number;
-  /** M11-02: Auto Cave-in, and the best Echo offer this run with the run time (ms) it last rose. canon §22.3 */
-  auto: { caveIn: boolean; best: number; since: number };
+  /**
+   * M11-02: Auto Cave-in, and the best Echo offer this run with the run time (ms) it last rose. canon §22.3
+   * M13-06: `buy` holds the repeatable buys switched to Auto (keys from `autoKey`). canon §23
+   */
+  auto: { caveIn: boolean; best: number; since: number; buy: string[] };
   /** M11-03: the key this mountain is in, set by the last song sung. canon §22.4 */
   songKey: KeyId | null;
 }
@@ -304,6 +311,7 @@ export function newGame(seed: number): GameState {
       maxDepthD: 0,
       bestDepthD: 0,
       tilesMined: 0,
+      tilesEver: 0,
       caveIns: 0,
       chests: 0,
       bestPick: 0,
@@ -324,7 +332,7 @@ export function newGame(seed: number): GameState {
     curios: [],
     endlessPaid: 0,
     deepPick: 0,
-    auto: { caveIn: false, best: 0, since: 0 },
+    auto: { caveIn: false, best: 0, since: 0, buy: [] },
     songKey: null,
   };
 }

@@ -81,7 +81,7 @@ describe('saves', () => {
     expect(() => fromJSON('{"hello":1}')).toThrow(/Undersong/);
   });
 
-  for (const v of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+  for (const v of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
     it(`loads the v${v} fixture`, () => {
       const text = readFileSync(new URL(`./fixtures/saves/v${v}.json`, import.meta.url), 'utf8');
       const g = loadGame(fromJSON(text));
@@ -112,6 +112,9 @@ describe('saves', () => {
       expect(g.state.deepPick).toBe(0);
       expect(g.state.auto.caveIn).toBe(false);
       expect(g.state.songKey).toBeNull();
+      // v11 (M13): the ledger's tiles in all, and the buys switched to Auto
+      expect(g.state.stats.tilesEver).toBeGreaterThanOrEqual(g.state.stats.tilesMined);
+      expect(g.state.auto.buy).toEqual([]);
     });
   }
 });

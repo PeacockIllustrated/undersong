@@ -180,3 +180,10 @@ export const CHEST_LOOT: readonly { res: ResKey; lo: number; hi: number }[] = [
 
 /** Miners look for exposed ore within this many tiles of the dug network's tiles they can reach. */
 export const MINER_SEARCH = 24;
+
+/**
+ * canon §23 M13-06: Auto on a repeatable buy. Offered once the village has caved in `fromCaveIns` times. A switched-on
+ * buy is made by itself, at most once a second, whenever every part of its price is no more than `share` of what is
+ * in hand, so it never eats the bars the next pick needs.
+ */
+export const AUTO_BUY = { fromCaveIns: 2, share: 0.1 } as const;

@@ -6,6 +6,7 @@ import { PICKS } from '../data/items';
 import { UPGRADES } from '../data/upgrades';
 import type { ObjKind } from '../data/objects';
 import { caveIn } from './cavein';
+import { setAutoBuy } from './autobuy';
 import { chooseEnding, type Ending } from './ending';
 import type { CharmId } from '../data/charms';
 import { equip, weave } from './charms';
@@ -95,7 +96,9 @@ export type Action =
   /** M10-01: take one of the tinker's offers. */
   | { type: 'cart'; i: number }
   | { type: 'deepPick' }
-  | { type: 'autoCaveIn'; on: boolean };
+  | { type: 'autoCaveIn'; on: boolean }
+  /** M13-06: switch a repeatable buy to Auto, or back. */
+  | { type: 'autoBuy'; key: string; on: boolean };
 
 export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
@@ -264,6 +267,9 @@ export function apply(g: Game, a: Action): void {
       g.events.push({ kind: 'bought', what: 'deepPick' });
       return;
     }
+    case 'autoBuy':
+      setAutoBuy(s, a.key, a.on);
+      return;
     case 'autoCaveIn':
       if (!autoOffered(s)) return;
       s.auto.caveIn = a.on;

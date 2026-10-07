@@ -334,3 +334,13 @@ Decision:
 - Cards are tiles. Buy buttons are list rows: the name and effect in the body font on the left, the price on the right. A buy you can afford is marked by a gold edge, not a pulsing glow, so a list of them reads calmly.
 - The cart, the verses, the ending and the away summary stay centre cards. Each is a single choice or a moment, not a place you browse.
 **Consequences.** The smoke test now opens the Village and Survey drawers at both sizes for every fixture.
+
+## ADR-042 · Keep buying, the pin and the ledger (save v11)
+
+**Context.** M13-04 to M13-06: Tom asked for every quality-of-life improvement. Clicking the same buy over and over gets old by the third run. Long goals are easy to lose track of, and nothing showed how far the village has come.
+**Decision.**
+- Keep buying is a rule of the game, so its switches live in the save (`auto.buy`, keys from `autoKey`) and survive the Cave-in. A switched-on buy is made at most once a second, and only while every part of its price is no more than 10% of what is in hand, so it never starves the next pick or lift. It is offered after two Cave-ins, when the player has felt the clicks twice. Auto buys make no toast. Torches are left out because the Lamplighters already make them.
+- The pin is a preference about what to look at, so like the settings it is kept on the device and not in the save. Pins on one-off buys carry the tier or level they were made for, so buying the thing (or a Cave-in) clears them. Echo upgrades can't be pinned: Echoes come only at a Cave-in, and the Survey Book already shows what they would buy.
+- The ledger reads what the save already had (`totalT`, chests, collapses, best depth, Cave-ins, Echoes ever). It adds `stats.tilesEver` and a `min` on each new Survey Book page. Pages written before v11 show "—".
+- Save v11 adds `stats.tilesEver` (migrated from this run's count) and `auto.buy` (empty), with a fixture and a test.
+**Consequences.** The balance bot never switches Auto on, so the pacing sims are unchanged. A player who switches everything to Auto spends at most a tenth of each resource per buy, once a second per buy.

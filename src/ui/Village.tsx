@@ -93,6 +93,7 @@ function Building({
           costs={cost}
           primary={lv === 0}
           onClick={() => ui.dispatch({ type: 'buyBuilding', id })}
+          pin={{ id: `b:${id}`, name: def.name }}
         >
           {lv === 0 ? `Build the ${def.name}` : 'Add a level'}
         </PriceButton>
@@ -181,7 +182,7 @@ function Helpers({ ui }: { ui: UiBridge }) {
             const lv = s.helpers[h.id] ?? 0;
             const c = helperCost(s, h.id);
             return (
-              <div class="helper" key={h.id}>
+              <div class="helper" key={h.id} data-card={`helper:${h.id}`}>
                 <img class="icon" src={spriteURL(h.who)} alt="" />
                 <div class="grow">
                   <b>
@@ -198,6 +199,7 @@ function Helpers({ ui }: { ui: UiBridge }) {
                       s={s}
                       costs={c}
                       onClick={() => ui.dispatch({ type: 'hireHelper', id: h.id })}
+                      pin={{ id: `h:${h.id}:${lv}`, name: h.name }}
                     >
                       {lv === 0 ? 'Hire' : 'Train'}
                     </PriceButton>
@@ -220,8 +222,9 @@ export function villageTab(t: VillageTab): void {
 }
 /** M8-06: the card an alert sent you to, scrolled to and lit once when the sheet opens. */
 let focus: string | null = null;
-export function villageFocus(card: string): void {
-  lastTab = 'build';
+let focusTab: VillageTab = 'build';
+export function villageFocus(card: string, tab: VillageTab = 'build'): void {
+  lastTab = focusTab = tab;
   focus = card;
 }
 
@@ -276,7 +279,7 @@ export function VillageSheet({ ui, goFix }: { ui: UiBridge; goFix: (f: Fix) => v
   // runs after every render, so an alert tapped while the Village is open still lands on its card
   useEffect(() => {
     if (!focus) return;
-    if (picked !== 'build') return setTab('build');
+    if (picked !== focusTab) return setTab(focusTab);
     const el = document.querySelector<HTMLElement>(`[data-card="${focus}"]`);
     focus = null;
     if (!el) return;
@@ -340,7 +343,7 @@ export function VillageSheet({ ui, goFix }: { ui: UiBridge; goFix: (f: Fix) => v
             </div>
           </section>
 
-          <section class="card">
+          <section class="card" data-card="miner">
             <img class="prop" src={spriteURL('bunkhouse')} alt="" />
             <div class="grow">
               <h3>Bunkhouse</h3>
@@ -389,13 +392,23 @@ export function VillageSheet({ ui, goFix }: { ui: UiBridge; goFix: (f: Fix) => v
                 </div>
               ))}
               {pickC ? (
-                <PriceButton s={s} costs={pickC} onClick={() => ui.dispatch({ type: 'buyPick' })}>
+                <PriceButton
+                  s={s}
+                  costs={pickC}
+                  onClick={() => ui.dispatch({ type: 'buyPick' })}
+                  pin={{ id: `pick:${s.pickTier + 1}`, name: nextP!.name }}
+                >
                   Forge the {nextP!.name.toLowerCase()}{' '}
                   <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
                 </PriceButton>
               ) : deepC ? (
                 deepPickOpen(s) ? (
-                  <PriceButton s={s} costs={deepC} onClick={() => ui.dispatch({ type: 'deepPick' })}>
+                  <PriceButton
+                    s={s}
+                    costs={deepC}
+                    onClick={() => ui.dispatch({ type: 'deepPick' })}
+                    pin={{ id: `deep:${s.deepPick + 1}`, name: DEEP_PICK_TEXT.name(s.deepPick + 1) }}
+                  >
                     Forge {DEEP_PICK_TEXT.name(s.deepPick + 1).toLowerCase()} <em>×{DEEP_PICK.mult} speed</em>
                   </PriceButton>
                 ) : s.ending === 'seal' ? (
@@ -419,7 +432,12 @@ export function VillageSheet({ ui, goFix }: { ui: UiBridge; goFix: (f: Fix) => v
                 {Object.values(s.underground).some((v) => v.gt(0)) ? 'Ore is waiting at the bottom.' : ''}
               </Desc>
               {haulC && (
-                <PriceButton s={s} costs={haulC} onClick={() => ui.dispatch({ type: 'buyHaul' })}>
+                <PriceButton
+                  s={s}
+                  costs={haulC}
+                  onClick={() => ui.dispatch({ type: 'buyHaul' })}
+                  pin={{ id: `haul:${s.haulTier + 1}`, name: nextH!.name }}
+                >
                   Build the {nextH!.name.toLowerCase()}{' '}
                   <em>{x(nextH!.speed * nextH!.capacity, haul.speed * haul.capacity)} haulage</em>
                 </PriceButton>

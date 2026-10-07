@@ -555,3 +555,13 @@ Each time you sing the last verse, the next mountain is set in a key, shown on t
 | Hot year   | the deep is warm 60 tiles (240 ft) higher; ember ore and gold ore drop ×2 |
 | Rich veins | every ore drops ×2                                                        |
 | Hard year  | everyone digs ×0.8; Cave-ins give ×1.5 Echoes                             |
+
+## §23 Quality of life (v0, ADR-042)
+
+Values live in `src/data/economy.ts` (`AUTO_BUY`); the shortcuts, hold to buy, Lately and the drawer are in §19.
+
+| Thing       | Value                                                                                                                                                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Keep buying | offered after 2 Cave-ins, on miners, sharpening, metalwork, plots, saplings, meals and woodlot buys. A switched-on buy is made once a second whenever every part of its price is at most 10% of what is in hand. No toast. The switches stay through the Cave-in (M13-06) |
+| Pin         | one pinned goal, kept on the device apart from the save. A one-off buy (a pick, a lift, a deep pick, a helper level) clears once bought; a building or a repeatable buy stays pinned. A toast says when a one-off becomes affordable (M13-04)                             |
+| Ledger      | time in the mountain (all and this cycle), tiles dug (all and this cycle), deepest ever, Cave-ins, fastest Cave-in, Echoes earned in all, old chests, roofs that fell; each page of the Survey Book notes how long its run took (M13-05)                                  |
