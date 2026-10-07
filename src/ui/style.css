@@ -166,11 +166,13 @@ body {
   margin: 0 0 12px;
   color: var(--gold);
 }
-.sheet p {
+.sheet p,
+.drawer-body p {
   margin: 0 0 12px;
   line-height: 1.45;
 }
-.sheet textarea {
+.sheet textarea,
+.drawer textarea {
   width: 100%;
   min-height: 96px;
   font-family: monospace;
@@ -311,7 +313,8 @@ body.atlas #ui > * {
 .sheet-head h2 {
   margin: 0;
 }
-.sheet h3 {
+.sheet h3,
+.drawer h3 {
   font-family: var(--display);
   font-size: calc(15px * var(--ts));
   margin: 0 0 6px;
@@ -1965,4 +1968,420 @@ ol.lately li {
 ol.lately .when {
   display: block;
   color: var(--ink-dim);
+}
+
+/* ------------------------------------------------------------------ */
+/* M13-07: one panel frame. A side drawer on a wide screen, a bottom   */
+/* sheet on a phone. The mine stays live beside it.                    */
+/* ------------------------------------------------------------------ */
+.drawer-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+.drawer {
+  --drawer-bg: #18203f;
+  --drawer-line: rgba(141, 162, 232, 0.28);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(480px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--drawer-bg);
+  border-left: 2px solid var(--panel-edge);
+  box-shadow: -8px 0 0 rgba(6, 8, 18, 0.35);
+  pointer-events: auto;
+  animation: drawer-in-x 180ms ease-out;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.drawer-wrap.leaving .drawer {
+  animation: drawer-out-x 160ms ease-in forwards;
+}
+@keyframes drawer-in-x {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes drawer-out-x {
+  to {
+    transform: translateX(100%);
+  }
+}
+.drawer-head {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0 8px 0 12px;
+  border-bottom: 2px solid var(--drawer-line);
+  flex: none;
+}
+.drawer-head .grab {
+  display: none;
+}
+.drawer-nav {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.drawer-nav button {
+  position: relative;
+  font-family: var(--display);
+  font-size: calc(13px * var(--ts));
+  color: var(--ink-dim);
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 16px 10px 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drawer-nav button:hover {
+  color: var(--ink);
+}
+.drawer-nav button.on {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.drawer-nav button:focus-visible,
+.drawer-x:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.drawer-nav .dot {
+  position: absolute;
+  top: 10px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  background: var(--glow);
+}
+.drawer-x {
+  align-self: center;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+  color: var(--ink);
+  background: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.drawer-x:hover {
+  background: var(--slate-1);
+  border-color: var(--slate-3);
+}
+.drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+/* the tabs and the ×1 / ×10 / Max toggle stay put while the cards scroll */
+.drawer-sub {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -16px;
+  padding: 10px 16px;
+  background: var(--drawer-bg);
+  border-bottom: 2px solid var(--drawer-line);
+}
+.drawer-sub:empty {
+  display: none;
+}
+.drawer-sub .tabs {
+  flex: 1 1 auto;
+  margin: 0;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.drawer-sub .tabs button {
+  flex: 0 0 auto;
+  font-size: calc(11px * var(--ts));
+  padding: 7px 10px;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 2px solid var(--slate-2);
+}
+.drawer-sub .tabs button:hover {
+  color: var(--ink);
+  border-color: var(--slate-3);
+}
+.drawer-sub .tabs button.on {
+  color: var(--night);
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.drawer-sub .seg.bulk {
+  margin: 0 0 0 auto;
+  flex-wrap: nowrap;
+}
+.drawer-sub .seg.bulk button {
+  font-family: var(--display);
+  font-size: calc(11px * var(--ts));
+  padding: 5px 8px;
+}
+.drawer .pad {
+  padding-top: 14px;
+}
+
+/* cards: one tile each, with room to breathe */
+.drawer .card {
+  gap: 14px;
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 2px solid var(--drawer-line);
+}
+.drawer .card:hover {
+  border-color: rgba(141, 162, 232, 0.5);
+}
+.drawer .card h3 {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: calc(17px * var(--ts));
+  letter-spacing: 0.01em;
+  margin: 0 0 4px;
+}
+.drawer .card .prop {
+  width: 56px;
+}
+.drawer .card .icon {
+  margin: 0;
+  width: 40px;
+  height: 40px;
+}
+.drawer .card p,
+.drawer .card .desc {
+  color: var(--ink-dim);
+  font-size: calc(14px * var(--ts));
+  margin: 0 0 10px;
+}
+.drawer .card .btn.buy {
+  width: 100%;
+  justify-content: space-between;
+}
+.drawer .card .row {
+  flex-wrap: wrap;
+}
+.drawer .helper {
+  padding: 10px 0;
+  border-top: 2px solid var(--drawer-line);
+}
+.drawer .helper:first-of-type {
+  border-top: 0;
+}
+.drawer .neck-card {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: var(--body);
+  color: var(--ink);
+  background: rgba(255, 214, 90, 0.08);
+  border: 2px solid var(--gold);
+  cursor: pointer;
+}
+.drawer .neck-card b {
+  color: var(--gold);
+}
+
+/* the Survey Book keeps its paper inside the frame */
+.drawer.survey .drawer-body {
+  --paper: #e8f4f0;
+  background: var(--paper);
+  color: #262940;
+}
+.drawer.survey .drawer-sub {
+  background: #dce8e4;
+  border-bottom-color: rgba(107, 67, 41, 0.35);
+}
+.drawer.survey .drawer-sub .tabs button {
+  color: #4b4f6b;
+  border-color: rgba(75, 79, 107, 0.45);
+}
+.drawer.survey .drawer-sub .tabs button.on {
+  color: var(--paper);
+  background: #6b4329;
+  border-color: #6b4329;
+}
+.drawer.survey .drawer-sub .count {
+  background: #1e6b66;
+  color: var(--paper);
+}
+.drawer .book {
+  background: none;
+  border: 0;
+}
+.drawer .book section:first-child,
+.drawer .book > p + section {
+  border-top: 0;
+}
+
+@media (max-width: 600px) {
+  .drawer {
+    top: auto;
+    left: 0;
+    width: 100%;
+    height: 56vh;
+    height: 56dvh;
+    border-left: 0;
+    border-top: 2px solid var(--panel-edge);
+    box-shadow: 0 -8px 0 rgba(6, 8, 18, 0.35);
+    animation-name: drawer-in-y;
+    transition: height 200ms ease-out;
+    padding-top: 0;
+  }
+  .drawer.full {
+    height: calc(100vh - 16px);
+    height: calc(100dvh - env(safe-area-inset-top, 0px) - 8px);
+  }
+  .drawer.dragging {
+    transition: none;
+  }
+  .drawer-wrap.leaving .drawer {
+    animation-name: drawer-out-y;
+  }
+  .drawer-head {
+    padding-top: 14px;
+    touch-action: none;
+    cursor: grab;
+  }
+  .drawer-head .grab {
+    display: block;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 44px;
+    height: 5px;
+    margin-left: -22px;
+    background: var(--slate-3);
+  }
+  .drawer-nav button {
+    font-size: calc(11px * var(--ts));
+    padding: 10px 7px 11px;
+  }
+  .drawer-body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .drawer-sub {
+    margin: 0 -12px;
+    padding: 8px 12px;
+  }
+}
+@keyframes drawer-in-y {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes drawer-out-y {
+  to {
+    transform: translateY(100%);
+  }
+}
+:root[data-motion='reduced'] .drawer,
+:root[data-motion='reduced'] .drawer-wrap.leaving .drawer {
+  animation: none;
+  transition: none;
+}
+
+/* M13-07: buy buttons read as a row in a list: name on the left, price on the right, calm until they can be paid */
+.drawer .btn.buy {
+  font-family: var(--body);
+  font-size: calc(15px * var(--ts));
+  letter-spacing: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  background: var(--slate-0);
+  border-color: var(--slate-2);
+  flex-wrap: nowrap;
+}
+.drawer .btn.buy .lbl {
+  flex: 1;
+  min-width: 0;
+}
+.drawer .btn.buy .cost {
+  flex: none;
+  border-left: 0;
+  padding: 2px 8px;
+  background: rgba(6, 8, 18, 0.35);
+}
+.drawer .btn.buy:hover:not(:disabled) {
+  background: var(--slate-1);
+}
+.drawer .btn.buy.can {
+  border-color: var(--gold);
+  animation: none;
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.drawer .btn.buy.primary {
+  background: #1e5b57;
+  border-color: var(--glow);
+  box-shadow: none;
+}
+.drawer .btn.buy.primary.can {
+  box-shadow: inset 3px 0 0 var(--glow);
+}
+.drawer .btn.buy:disabled {
+  color: var(--ink-dim);
+  border-style: dashed;
+}
+.drawer .card .row {
+  margin-bottom: 6px;
+}
+.drawer .card .row:last-child {
+  margin-bottom: 0;
+}
+.drawer .ready {
+  width: 100%;
+  margin-top: -2px;
+}
+@media (max-width: 600px) {
+  .drawer .card {
+    gap: 10px;
+    padding: 10px;
+  }
+  .drawer .card .prop {
+    width: 36px;
+  }
+  .drawer .card .icon {
+    width: 32px;
+    height: 32px;
+  }
+  .drawer .btn.buy {
+    font-size: calc(14px * var(--ts));
+  }
+}
+/* one row: the tabs scroll sideways if they must, the bulk toggle keeps its place at the end */
+.drawer-sub {
+  flex-wrap: nowrap;
+}
+.drawer-sub .tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.drawer-sub .tabs::-webkit-scrollbar {
+  display: none;
+}
+/* the HUD makes room for the drawer on a wide screen */
+@media (min-width: 601px) {
+  .hud-top.with-drawer,
+  .hud-bottom.with-drawer {
+    right: calc(min(480px, 100vw) + 10px);
+  }
 }

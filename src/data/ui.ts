@@ -67,3 +67,6 @@ export const HOLD_BUY = { delayMs: 400, everyMs: 220, speedUp: 0.85, minMs: 50 }
 
 /** canon §19 M13-03: how many lines the Lately list keeps. */
 export const LATELY_KEEP = 50;
+
+/** canon §19 M13-07: the panel slides out over `outMs`; on a phone a drag of `snapPx` changes its height or closes it. */
+export const DRAWER = { outMs: 160, snapPx: 60 } as const;

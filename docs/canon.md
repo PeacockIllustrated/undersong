@@ -474,6 +474,7 @@ Values live in `src/data/ui.ts`.
 | Shortcuts    | V Village · B Survey Book · C cart (while parked) · F follow the Foreman · G whole mountain · 1–6 tools · ? key list · M mute · Esc close or stop (M13-01)                                                                                                                   |
 | Hold to buy  | first repeat 400 ms after the press, then every 220 ms, each gap ×0.85 down to 50 ms; stops when it can't pay (M13-02)                                                                                                                                                       |
 | Lately       | the last 50 toasts, biome banners and achievements, newest first, kept on the device apart from the save (M13-03)                                                                                                                                                            |
+| Drawer       | slides out over 160 ms; on a phone a bottom sheet at 56% height, a 60 px drag up for full height, down to halve or close (M13-07)                                                                                                                                            |
 
 ## §20 Memory and the deep game (v0, ADR-034)
 

@@ -6,7 +6,8 @@ import { fmt } from './format';
 import type { UiBridge } from './App';
 import { SettingsPanel } from './Settings';
 import { SETTINGS_TEXT } from '../story/settings';
-import { KEYS_TEXT, LATELY_TEXT } from '../story/qol';
+import { KEYS_TEXT, LATELY_TEXT, MENU_TABS } from '../story/qol';
+import { Tabs } from './Drawer';
 import { KeysList, LatelyList } from './Qol';
 
 export type MenuView = 'menu' | 'settings' | 'keys' | 'lately';
@@ -73,143 +74,111 @@ export function MenuSheet({
     setMsg({ ok: true, text: 'Save loaded.' });
   };
 
-  // M13-01 and M13-03: the key list and the Lately list, each a page of the Menu
-  if (view === 'keys' || view === 'lately')
-    return (
-      <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
-        <div
-          class="panel sheet"
-          role="dialog"
-          aria-label={view === 'keys' ? KEYS_TEXT.title : LATELY_TEXT.title}
-        >
-          <h2>{view === 'keys' ? KEYS_TEXT.title : LATELY_TEXT.title}</h2>
-          {view === 'keys' ? <KeysList /> : <LatelyList />}
-          <div class="row end">
-            <button class="btn" onClick={() => setView('menu')}>
-              {SETTINGS_TEXT.back}
-            </button>
-            <button class="btn" onClick={close}>
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-
-  if (view === 'settings')
-    return (
-      <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
-        <div class="panel sheet" role="dialog" aria-label={SETTINGS_TEXT.title}>
-          <h2>{SETTINGS_TEXT.title}</h2>
+  const tabs: { id: MenuView; label: string }[] = [
+    { id: 'menu', label: MENU_TABS.game },
+    { id: 'settings', label: SETTINGS_TEXT.title },
+    { id: 'lately', label: LATELY_TEXT.title },
+    { id: 'keys', label: KEYS_TEXT.title },
+  ];
+  return (
+    <>
+      <Tabs label="Menu" tabs={tabs} on={view} set={setView} />
+      {view === 'settings' && (
+        <div class="pad">
           <SettingsPanel ui={ui} />
           <p class="small">{SETTINGS_TEXT.note}</p>
-          <div class="row end">
-            <button class="btn" onClick={() => setView('menu')}>
-              {SETTINGS_TEXT.back}
+        </div>
+      )}
+      {view === 'lately' && (
+        <div class="pad">
+          <LatelyList />
+        </div>
+      )}
+      {view === 'keys' && (
+        <div class="pad">
+          <KeysList />
+        </div>
+      )}
+      {view === 'menu' && (
+        <div class="pad">
+          <p>The game saves itself every 30 seconds and whenever you leave.</p>
+          <div class="row">
+            <button class="btn primary" onClick={() => (ui.save(), setMsg({ ok: true, text: 'Saved.' }))}>
+              Save now
             </button>
-            <button class="btn" onClick={close}>
-              Close
+            <button class="btn" onClick={doExport}>
+              Copy save
+            </button>
+            <button class="btn" onClick={doDownload}>
+              Download save
             </button>
           </div>
-        </div>
-      </div>
-    );
-
-  return (
-    <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
-      <div class="panel sheet" role="dialog" aria-label="Menu">
-        <h2>Menu</h2>
-        <div class="row">
-          <button class="btn primary" onClick={() => setView('settings')}>
-            {SETTINGS_TEXT.open}
-          </button>
-          <button class="btn" onClick={() => setView('lately')}>
-            {LATELY_TEXT.open}
-          </button>
-          <button class="btn" onClick={() => setView('keys')}>
-            {KEYS_TEXT.open}
-          </button>
-        </div>
-        <p>The game saves itself every 30 seconds and whenever you leave.</p>
-        <div class="row">
-          <button class="btn primary" onClick={() => (ui.save(), setMsg({ ok: true, text: 'Saved.' }))}>
-            Save now
-          </button>
-          <button class="btn" onClick={doExport}>
-            Copy save
-          </button>
-          <button class="btn" onClick={doDownload}>
-            Download save
-          </button>
-        </div>
-        {out && <textarea readOnly value={out} onFocus={(e) => (e.target as HTMLTextAreaElement).select()} />}
-        <p style={{ marginTop: '14px' }}>Paste a copied save, or open a downloaded one, to load it.</p>
-        <textarea
-          id="import"
-          value={inp}
-          onInput={(e) => (setInp((e.target as HTMLTextAreaElement).value), setPending(null))}
-        />
-        {pending ? (
-          <div class="confirm-load">
-            <p>
-              {((p) =>
-                `This save is on cycle ${p.cycle}, ${p.bestFt.toLocaleString('en-GB')} ft at its deepest, with ${fmt(p.echoes)} Echoes and ${p.verses} of 12 verses. Loading it replaces the game you are playing now.`)(
-                saveSummary(pending),
-              )}
-            </p>
-            <div class="row">
-              <button class="btn primary" onClick={doLoad}>
-                Load this save
-              </button>
-              <button class="btn" onClick={() => setPending(null)}>
-                Keep my game
-              </button>
-            </div>
-          </div>
-        ) : null}
-        <div class="row">
-          <button class="btn" disabled={!inp.trim() || !!pending} onClick={() => doCheck(inp)}>
-            Import save
-          </button>
-          <label class="btn file-btn">
-            Open a file
-            <input
-              type="file"
-              accept=".txt,.json,text/plain,application/json"
-              onChange={(e) => {
-                const el = e.target as HTMLInputElement;
-                doFile(el.files?.[0]);
-                el.value = '';
-              }}
-            />
-          </label>
-          {!confirmWipe ? (
-            <button class="btn danger" onClick={() => setConfirmWipe(true)}>
-              Start over
-            </button>
-          ) : (
-            <button
-              class="btn danger"
-              onClick={() => {
-                ui.wipe();
-                close();
-              }}
-            >
-              Erase everything
-            </button>
+          {out && (
+            <textarea readOnly value={out} onFocus={(e) => (e.target as HTMLTextAreaElement).select()} />
           )}
+          <p style={{ marginTop: '14px' }}>Paste a copied save, or open a downloaded one, to load it.</p>
+          <textarea
+            id="import"
+            value={inp}
+            onInput={(e) => (setInp((e.target as HTMLTextAreaElement).value), setPending(null))}
+          />
+          {pending ? (
+            <div class="confirm-load">
+              <p>
+                {((p) =>
+                  `This save is on cycle ${p.cycle}, ${p.bestFt.toLocaleString('en-GB')} ft at its deepest, with ${fmt(p.echoes)} Echoes and ${p.verses} of 12 verses. Loading it replaces the game you are playing now.`)(
+                  saveSummary(pending),
+                )}
+              </p>
+              <div class="row">
+                <button class="btn primary" onClick={doLoad}>
+                  Load this save
+                </button>
+                <button class="btn" onClick={() => setPending(null)}>
+                  Keep my game
+                </button>
+              </div>
+            </div>
+          ) : null}
+          <div class="row">
+            <button class="btn" disabled={!inp.trim() || !!pending} onClick={() => doCheck(inp)}>
+              Import save
+            </button>
+            <label class="btn file-btn">
+              Open a file
+              <input
+                type="file"
+                accept=".txt,.json,text/plain,application/json"
+                onChange={(e) => {
+                  const el = e.target as HTMLInputElement;
+                  doFile(el.files?.[0]);
+                  el.value = '';
+                }}
+              />
+            </label>
+            {!confirmWipe ? (
+              <button class="btn danger" onClick={() => setConfirmWipe(true)}>
+                Start over
+              </button>
+            ) : (
+              <button
+                class="btn danger"
+                onClick={() => {
+                  ui.wipe();
+                  close();
+                }}
+              >
+                Erase everything
+              </button>
+            )}
+          </div>
+          {msg && <div class={msg.ok ? 'ok' : 'err'}>{msg.text}</div>}
+          <p class="small">
+            Controls: tap rock to dig it, drag from rock to dig a path (on touch, press and hold first). Drag
+            empty space, scroll, or use WASD to look around. Hold a buy button to keep buying.
+          </p>
         </div>
-        {msg && <div class={msg.ok ? 'ok' : 'err'}>{msg.text}</div>}
-        <p class="small">
-          Controls: tap rock to dig it, drag from rock to dig a path (on touch, press and hold first). Drag
-          empty space, scroll, or use WASD to look around. Hold a buy button to keep buying.
-        </p>
-        <div class="row end">
-          <button class="btn" onClick={close}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

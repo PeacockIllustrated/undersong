@@ -37,3 +37,24 @@ export const LATELY_TEXT = {
   biome: (name: string): string => `Reached ${name}`,
   close: 'Close',
 };
+
+export const DRAWER_TEXT = {
+  village: 'Village',
+  survey: 'Survey Book',
+  menu: 'Menu',
+  nav: 'Panels',
+  close: 'Close',
+  closeKey: 'Close (Esc)',
+  newThings: 'Something new here',
+};
+
+export const SURVEY_TABS = {
+  cycle: 'Cave-in',
+  echoes: 'Echoes',
+  verses: 'Verses',
+  shelf: 'Shelf',
+  pages: 'Pages',
+  feats: 'Feats',
+};
+
+export const MENU_TABS = { game: 'Save' };

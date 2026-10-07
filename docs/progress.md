@@ -10,6 +10,12 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M13-07 (Panels that feel current)
+Done: the Village, Survey Book and Menu are now one drawer (ADR-041). It is a side panel on desktop and a draggable bottom sheet on a phone, and the three panels are switched as tabs at its top. The tabs and the ×1/×10/Max toggle stay put while the cards scroll. The mine stays live beside the drawer, and the HUD moves over to make room. The Survey Book is split into six tabs and the Menu into four. Cards are tiles; buy buttons are list rows with the price on the right and a gold edge when you can afford them.
+State: `npm run check` and `npm run smoke` are green. The smoke test now opens the Village and Survey drawers for every fixture at both sizes. Checked in Playwright: Esc closes; on a phone, dragging up gives full height and dragging down halves, then closes; no overflow.
+Next: M13-04 pin a goal, M13-05 the ledger, M13-06 auto-buy.
+Questions for Tom: none.
+
 ## 2026-10-07 · M13-01 to M13-03 (Quality of life, first batch)
 Done: Tom asked for every QoL improvement; M13 is ticketed in the roadmap (seven tickets, the last one a panel redesign he asked for).
 - Keys: V Village, B Survey Book, C cart, F follow, G mountain, 1–6 tools, ? key list (also a Keys page in the Menu). Tooltips name the key. Nothing fires while typing or with a modifier held.

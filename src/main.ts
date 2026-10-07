@@ -164,7 +164,7 @@ function boot(): void {
       const on = ears.toggleMute();
       toast(on ? SETTINGS_TEXT.unmuted : SETTINGS_TEXT.muted, on ? undefined : SETTINGS_TEXT.mutedSub);
     }
-    if (e.key === 'Escape' && !document.querySelector('.sheet, .modal, dialog[open]')) {
+    if (e.key === 'Escape' && !document.querySelector('.sheet, .drawer, .modal, dialog[open]')) {
       if (renderer.mountain) setMountain(false);
       else dispatch({ type: 'cancelDig' });
     }
