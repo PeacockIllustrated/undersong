@@ -21,3 +21,6 @@ export const SMART_DIG = {
 
 /** M7-06 vibration lengths (ms). */
 export const HAPTICS = { hold: 12, brk: 6, ore: 14, rushOre: 24 } as const;
+
+/** canon §18 M7-03: how long the mouse rests on a tile before its label shows (ms), and the label's offset (CSS px). */
+export const HOVER = { delayMs: 400, dx: 18, dy: -10 } as const;

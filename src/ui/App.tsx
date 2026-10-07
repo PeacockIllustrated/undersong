@@ -15,12 +15,13 @@ import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
 import { useApplySettings } from './Settings';
 import { AchievementToasts } from './Achievements';
-import { EndingChoice, StoryLayer } from './Story';
+import { EndingChoice, StoryLayer, TipStrip } from './Story';
 import { AwaySheet } from './Away';
 import { lanterns } from '../sim/village';
 import { homecoming, homeUntilD } from '../sim/power';
 import { ResChips } from './ResChips';
 import { EdgeMarkers } from './EdgeMarkers';
+import { HoverLabel } from './HoverLabel';
 import { DepthRuler } from './DepthRuler';
 import { FEAST, FIELDS } from '../data/surface';
 import { feasting, ripe } from '../sim/surface';
@@ -42,6 +43,8 @@ export interface UiBridge {
   /** What the village did while the player was away, until they close the summary. */
   readonly away: AwaySummary | null;
   clearAway(): void;
+  /** M7-03: the tile under an idle mouse, and since when (performance.now ms). Never set by touch. */
+  readonly hover: { x: number; y: number; t0: number } | null;
 }
 
 /** Big centre-screen announcements (ADR-020), one at a time, each for a couple of seconds. */
@@ -277,15 +280,17 @@ export function App({ ui }: { ui: UiBridge }) {
             </button>
           )}
           {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
+          {!sheet && <TipStrip ui={ui} />}
         </div>
         <ResChips s={s} biome={biome.id} wide={wide} />
       </div>
       {ui.away && <AwaySheet ui={ui} />}
-      <StoryLayer ui={ui} tips={!sheet} />
+      <StoryLayer ui={ui} />
       <EndingChoice ui={ui} />
       <Toasts />
       <BiomeBanner />
       {!sheet && <EdgeMarkers ui={ui} />}
+      {!sheet && <HoverLabel ui={ui} />}
       {!sheet && <DepthRuler ui={ui} />}
       {(s.foreman.queue.length > 0 || s.foreman.target) && (
         <button

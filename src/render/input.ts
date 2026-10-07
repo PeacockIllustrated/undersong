@@ -37,6 +37,8 @@ export class Input {
   touch: { x: number; y: number } | null = null;
   /** M7-01: the tile a touch is aiming at (under the finger, or under the crosshair above it). */
   aimTile: Tile | null = null;
+  /** M7-03: the tile under an idle mouse, and when it got there (performance.now ms). */
+  hover: { x: number; y: number; t0: number } | null = null;
   private sx = 0;
   private sy = 0;
   private lx = 0;
@@ -56,6 +58,7 @@ export class Input {
     el.addEventListener('pointermove', this.move);
     el.addEventListener('pointerup', this.up);
     el.addEventListener('pointercancel', this.cancel);
+    el.addEventListener('pointerleave', () => (this.hover = null));
     el.addEventListener('wheel', this.wheel, { passive: false });
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('keydown', (e) => {
@@ -148,6 +151,10 @@ export class Input {
   };
 
   private move = (e: PointerEvent): void => {
+    if (e.pointerType === 'mouse' && this.id === -1) {
+      const t = this.tileAt(e.clientX, e.clientY);
+      if (this.hover?.x !== t.x || this.hover.y !== t.y) this.hover = { ...t, t0: performance.now() };
+    } else this.hover = null;
     if (e.pointerId !== this.id) return;
     const moved = Math.hypot(e.clientX - this.sx, e.clientY - this.sy);
     if (this.mode === 'pending' && moved > SLOP_PX) {

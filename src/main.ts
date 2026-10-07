@@ -178,6 +178,10 @@ function boot(): void {
       this.tool = t;
       canvas.style.cursor = t === 'dig' ? 'crosshair' : 'cell';
     },
+    get hover() {
+      const h = input.hover;
+      return h && input.mode === 'idle' ? h : null;
+    },
     get away() {
       return away;
     },
@@ -216,6 +220,7 @@ function boot(): void {
     const h = input.hold;
     renderer.hold = h ? { x: h.x, y: h.y, p: Math.min(1, (performance.now() - h.t0) / HOLD_MS) } : null;
     renderer.touch = input.touch;
+    renderer.hover = input.hover;
     renderer.aimTile = input.aimTile;
     renderer.previewCancel = input.mode === 'dig' && !!p0 && queued(game.g, p0.x, p0.y);
     const t0 = performance.now();

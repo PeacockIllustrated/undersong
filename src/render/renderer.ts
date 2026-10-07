@@ -89,6 +89,8 @@ export class Renderer {
   /** M7-01: the finger (CSS px in the canvas) while a touch aims at rock, and the tile it aims at. */
   touch: { x: number; y: number } | null = null;
   aimTile: { x: number; y: number } | null = null;
+  /** M7-03: the tile under an idle mouse. */
+  hover: { x: number; y: number } | null = null;
   private loupeBuf: HTMLCanvasElement | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -268,6 +270,15 @@ export class Renderer {
     this.drawLight(w, tx0, ty0, tx1, ty1, now);
     this.drawHeat(game, tx0, ty0, tx1, ty1, now);
     this.fx.drawOverlay(ctx, now);
+    const h = this.hover;
+    if (h && !this.aimTile) {
+      // M7-03: a soft outline on the tile under the mouse, over the dark so it always shows
+      ctx.strokeStyle = '#E8F4F0';
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(h.x * T + 0.5, h.y * T + 0.5, T - 1, T - 1);
+      ctx.globalAlpha = 1;
+    }
     const a = this.aimTile;
     if (a) {
       // M7-01: the tile a touch is aiming at, drawn over the dark so it always shows

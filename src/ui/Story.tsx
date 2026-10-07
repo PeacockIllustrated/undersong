@@ -21,7 +21,7 @@ const PORTRAIT: Record<string, string> = {
   rook: 'rook',
 };
 
-export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }) {
+export function StoryLayer({ ui }: { ui: UiBridge }) {
   const ev = ui.game.state.story.events[0];
   const [shownAt, setShownAt] = useState(0);
   const [cave, setCave] = useState(0);
@@ -54,7 +54,7 @@ export function StoryLayer({ ui, tips = true }: { ui: UiBridge; tips?: boolean }
         {cave === 2 && <p>The mountain settles. The village forgets.</p>}
       </div>
     );
-  if (!ev) return tips ? <TipCard ui={ui} /> : null;
+  if (!ev) return null;
   if (ev.kind === 'line') {
     const line = LINES[ev.id];
     if (!line) return null;
@@ -164,9 +164,13 @@ export function EndingChoice({ ui }: { ui: UiBridge }) {
   );
 }
 
-/** Polish item 4: a tip card, queued behind the story so two never stack. Shown once ever per system. */
-function TipCard({ ui }: { ui: UiBridge }) {
-  const tip = nextTip(ui.game.state);
+/**
+ * Polish item 4: a tip, queued behind the story so two never stack. Shown once ever per system.
+ * M7-04: a slim strip under the header, never over the dig face.
+ */
+export function TipStrip({ ui }: { ui: UiBridge }) {
+  if (ui.game.state.story.events.length) return null;
+  const tip = nextTip(ui.game);
   if (!tip) return null;
   const seen = (): void => ui.dispatch({ type: 'note', key: `tip:${tip.id}` });
   const show = (): void => {
@@ -179,18 +183,17 @@ function TipCard({ ui }: { ui: UiBridge }) {
   };
   return (
     <div class="tip panel" role="status" aria-live="polite">
-      <b>{tip.title}</b>
-      <span>{tip.text}</span>
-      <div class="row">
-        {tip.show && (
-          <button class="btn" onClick={show}>
-            Show me
-          </button>
-        )}
-        <button class="btn primary" onClick={seen}>
-          Got it
+      <span>
+        <b>{tip.title}</b> {tip.text}
+      </span>
+      {tip.show && (
+        <button class="btn" onClick={show}>
+          Show me
         </button>
-      </div>
+      )}
+      <button class="btn primary" onClick={seen}>
+        Got it
+      </button>
     </div>
   );
 }

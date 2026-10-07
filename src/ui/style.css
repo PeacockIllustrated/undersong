@@ -1174,37 +1174,36 @@ body.atlas #ui > * {
 }
 /* Polish item 4: tip cards and NEW pips */
 .tip {
-  position: absolute;
-  left: 50%;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 118px);
-  transform: translateX(-50%);
-  width: min(360px, calc(100vw - 56px));
+  /* M7-04: a slim strip in the header column, under the depth panel and alerts */
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  align-items: center;
+  gap: 8px;
+  max-width: min(460px, calc(100vw - 20px));
+  padding: 6px 8px 6px 10px;
   pointer-events: auto;
   border-color: var(--glow);
-  z-index: 6;
   animation: tip-in 0.25s steps(4) both;
+}
+.tip span {
+  flex: 1;
+  color: var(--ink);
+  font-size: calc(12px * var(--ts));
+  line-height: 1.3;
 }
 .tip b {
   font-family: var(--display);
   color: var(--glow);
-  font-size: calc(13px * var(--ts));
+  font-size: calc(11px * var(--ts));
+  margin-right: 2px;
 }
-.tip span {
-  color: var(--ink);
-  font-size: calc(14px * var(--ts));
-  line-height: 1.35;
-}
-.tip .row {
-  justify-content: flex-end;
-  gap: 8px;
+.tip .btn {
+  flex: none;
+  padding: 4px 8px;
+  font-size: calc(12px * var(--ts));
 }
 @keyframes tip-in {
   from {
-    transform: translate(-50%, 12px);
+    transform: translateY(-6px);
     opacity: 0;
   }
 }
@@ -1413,4 +1412,28 @@ table.tally td {
 }
 table.tally td + td {
   opacity: 0.8;
+}
+
+/* M7-03: the hover label, mouse only */
+.hover-label {
+  position: absolute;
+  pointer-events: none;
+  z-index: 4;
+  padding: 4px 8px;
+  background: rgba(20, 26, 51, 0.88);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  font-size: calc(12px * var(--ts));
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.hover-label b {
+  display: block;
+  font-weight: 600;
+}
+.hover-label span {
+  color: var(--ink-dim);
+}
+.hover-label span.warn {
+  color: var(--ember);
 }

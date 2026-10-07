@@ -12,6 +12,7 @@ import { NEIGH4, type Carving } from '../world/world';
 import { D } from './decimal';
 import { FOREMAN_RATE, hardnessAt } from './formulas';
 import type { Game } from './game';
+import type { Tile } from './state';
 import { reach, workable } from './reach';
 import { first, say } from './story';
 import { maybeCollapse } from './village';
@@ -27,10 +28,9 @@ export function rushMult(chain: number, step: number = VEIN_RUSH.step): number {
   return Math.min(VEIN_RUSH.max, 1 + step * chain);
 }
 
-export function foremanRate(g: Game): number {
+export function foremanRate(g: Game, t: Tile | null = g.state.foreman.target): number {
   const s = g.state;
   const power = pickPower(s);
-  const t = s.foreman.target;
   const d = t ? g.world.depth(t.y) : 0;
   // ADR-017: below Topsoil the Foreman digs by whatever light reaches the face, like the miners
   const light = t && d >= DARK_FROM_D ? lightFactor(g.world.faceLight(t.x, t.y)) : 1;
