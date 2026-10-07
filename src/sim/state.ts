@@ -7,8 +7,9 @@ import type { MetalworkId, Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
 import type { CropId, MealId, WoodBuyId } from '../data/surface';
 import { CART, RAIN, type CartOfferId } from '../data/finds';
+import type { KeyId } from '../data/beyond';
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 export interface Tile {
   x: number;
@@ -139,6 +140,8 @@ export interface SurveyEntry {
   echoes: string;
   /** Who wrote it, as the Survey Book shows it. */
   hand: 'old' | 'yours';
+  /** M11-02: the village caved in by itself. */
+  auto?: true;
 }
 
 export type StoryEvent =
@@ -232,6 +235,14 @@ export interface GameState {
   boosts: { miners: number; hands: number; map: number };
   /** M10-02: curio ids on the shelf. They stay through every Cave-in. canon §21.2 */
   curios: string[];
+  /** M11-01: Endless Depth markers whose reward has been paid, in any run. canon §22.1 */
+  endlessPaid: number;
+  /** M11-01: deep picks made this run, past the Heart pick. canon §22.2 */
+  deepPick: number;
+  /** M11-02: Auto Cave-in, and the best Echo offer this run with the run time (ms) it last rose. canon §22.3 */
+  auto: { caveIn: boolean; best: number; since: number };
+  /** M11-03: the key this mountain is in, set by the last song sung. canon §22.4 */
+  songKey: KeyId | null;
 }
 
 /** The Survey Book is never empty: earlier cycles left pages, in the Foreman's own hand. */
@@ -311,6 +322,10 @@ export function newGame(seed: number): GameState {
     cart: newCart(),
     boosts: { miners: 0, hands: 0, map: 0 },
     curios: [],
+    endlessPaid: 0,
+    deepPick: 0,
+    auto: { caveIn: false, best: 0, since: 0 },
+    songKey: null,
   };
 }
 

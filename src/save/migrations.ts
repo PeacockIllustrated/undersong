@@ -91,6 +91,16 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.v = 9;
     return o as Raw;
   },
+  // v9 → v10 (M11): Endless Depth markers, deep picks, Auto Cave-in and the song's key.
+  9: (s) => {
+    const o = s as Record<string, any>;
+    o.endlessPaid = 0;
+    o.deepPick = 0;
+    o.auto = { caveIn: false, best: 0, since: 0 };
+    o.songKey = null;
+    o.v = 10;
+    return o as Raw;
+  },
 };
 
 export function migrate(raw: Raw): GameState {

@@ -86,6 +86,11 @@ export function cuesFor(e: SimEvent, seen: boolean, chain: number): Play[] {
       return [{ id: 'rain' }];
     case 'fetched':
       return [];
+    // M11: a marker is a record broken; an Auto Cave-in is heard through its own caveIn event
+    case 'marker':
+      return [{ id: 'record' }, { id: 'chest' }];
+    case 'autoCaveIn':
+      return [];
     case 'shatter':
       return [
         {

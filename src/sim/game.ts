@@ -41,7 +41,9 @@ export type SimEvent =
   | { kind: 'cart' }
   | { kind: 'curio'; id: string; x: number; y: number; set?: number }
   | { kind: 'fetched'; x: number; y: number; res: string; n: number }
-  | { kind: 'rain' };
+  | { kind: 'rain' }
+  | { kind: 'marker'; k: number; echoes: number; gold: number }
+  | { kind: 'autoCaveIn'; echoes: number };
 
 export interface Game {
   state: GameState;

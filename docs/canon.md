@@ -511,3 +511,42 @@ Values live in `src/data/finds.ts`; names and notes in `src/story/finds.ts`.
 | Sets    | four per biome below Holloway (two common, one fine, one singing), six sets, 24 curios                                                       |
 | Bonus   | each curio: miners or your hands +2% (common), +4% (fine), +8% (singing). A full set: miners and hands +10% more                             |
 | Keeping | the shelf stays through every Cave-in. Each rarity has its own sound; a full set also plays the record fanfare                               |
+
+## §22 Beyond the song (v0, ADR-037)
+
+Values live in `src/data/beyond.ts`; words in `src/story/beyond.ts`.
+
+### 22.1 Endless Depth markers
+
+| Thing  | Value                                                                                                                                    |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Where  | every 125 tiles (500 ft) below the Heart floor (1,524 ft): 2,024 ft, 2,524 ft and on. Only once the shaft is sealed                      |
+| Reward | marker k pays `round(8 × 1.5^(k−1))` Echoes and `round(40 × 1.5^(k−1))` Gold bars the first time any run reaches it; each pays once ever |
+| Drawn  | a row of marker stones across the cross-section at the marker's depth                                                                    |
+
+### 22.2 Deep picks
+
+| Thing | Value                                                                                                                                         |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Line  | past the Heart pick: Deep pick I, II, III and on. Deep pick n can be made once marker n has been reached this run                             |
+| Power | each doubles pick power (Heart pick 40, Deep pick I 80, II 160, …)                                                                            |
+| Cost  | Deep pick n costs `100 × 2^(n−1)` Resonant crystal and `60 × 2^(n−1)` Gold bars. Deep picks are forgotten in a Cave-in, like every other pick |
+
+### 22.3 Auto Cave-in
+
+| Thing   | Value                                                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Offered | in Settings once the ending has been reached (either choice). Saved with the game                                                                                               |
+| Rule    | once a Cave-in is allowed, the village caves in when the Echoes on offer have not risen for 3 minutes of run time. Never while you are away, never ahead of the ending's choice |
+| Log     | no ceremony; a toast, Wren's line, and the Survey Book page is marked "by itself"                                                                                               |
+
+### 22.4 The keys of New Song+
+
+Each time you sing the last verse, the next mountain is set in a key, shown on the choice before you make it. The key holds through every Cave-in until the next song, and is never the key the mountain is already in.
+
+| Key        | Rule                                                                      |
+| ---------- | ------------------------------------------------------------------------- |
+| Wet year   | rain comes twice as often and lasts twice as long                         |
+| Hot year   | the deep is warm 60 tiles (240 ft) higher; ember ore and gold ore drop ×2 |
+| Rich veins | every ore drops ×2                                                        |
+| Hard year  | everyone digs ×0.8; Cave-ins give ×1.5 Echoes                             |

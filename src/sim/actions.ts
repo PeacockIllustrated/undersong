@@ -26,6 +26,7 @@ import {
 import type { MetalworkId } from '../data/economy';
 import { syncWorld, type Game } from './game';
 import { openChest, takeCart } from './finds';
+import { autoOffered, deepPickCost, deepPickOpen } from './beyond';
 import { reachable, workable } from './reach';
 import { coolCache } from './heat';
 import type { Tile } from './state';
@@ -92,7 +93,9 @@ export type Action =
   /** M8-03: buy several of a repeatable thing at once (a count, or as many as can be paid for). */
   | { type: 'buyMany'; of: BulkKind; n: number | 'max' }
   /** M10-01: take one of the tinker's offers. */
-  | { type: 'cart'; i: number };
+  | { type: 'cart'; i: number }
+  | { type: 'deepPick' }
+  | { type: 'autoCaveIn'; on: boolean };
 
 export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
@@ -253,6 +256,19 @@ export function apply(g: Game, a: Action): void {
     }
     case 'cart':
       takeCart(g, a.i);
+      return;
+    case 'deepPick': {
+      const c = deepPickCost(s);
+      if (!c || !deepPickOpen(s) || !pay(s, c)) return;
+      s.deepPick++;
+      g.events.push({ kind: 'bought', what: 'deepPick' });
+      return;
+    }
+    case 'autoCaveIn':
+      if (!autoOffered(s)) return;
+      s.auto.caveIn = a.on;
+      // the clock starts from now, so turning it on never caves in at once
+      s.auto.since = s.t;
       return;
     case 'metalwork':
       if (!metalworkOffered(s, a.id) || !pay(s, metalworkCost(s, a.id))) return;

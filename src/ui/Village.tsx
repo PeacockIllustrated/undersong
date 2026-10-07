@@ -1,4 +1,8 @@
 // Holloway: the forge, the bunkhouse, tools and torches.
+import { FT_PER_TILE } from '../data/constants';
+import { DEEP_PICK } from '../data/beyond';
+import { deepPickCost, deepPickMult, deepPickOpen, markerD } from '../sim/beyond';
+import { DEEP_PICK_TEXT } from '../story/beyond';
 import {
   FORGE,
   HAULS,
@@ -233,6 +237,7 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
   const neck = bottleneck(ui.game);
   const whetC = whetstoneCost(s);
   const nextP = PICKS[s.pickTier + 1];
+  const deepC = deepPickCost(s);
   const nextH = HAULS[s.haulTier + 1];
   const x = (a: number, b: number): string => `×${mult(a / b)}`;
   const hands = HELPERS.filter((h) => helperOffered(s, h.id));
@@ -241,7 +246,8 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
       id: 'build',
       label: 'Build',
       n:
-        [minerC, pickC, haulC, whetC].filter((c) => c && canPay(s, c)).length +
+        [minerC, pickC, haulC, whetC, deepPickOpen(s) ? deepC : null].filter((c) => c && canPay(s, c))
+          .length +
         METALWORK.filter((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))).length,
     },
   ];
@@ -368,15 +374,16 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
               style={first(
                 canPay(s, whetC) ||
                   (!!pickC && canPay(s, pickC)) ||
+                  (deepPickOpen(s) && canPay(s, deepC!)) ||
                   METALWORK.some((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))),
               )}
             >
               <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
               <div class="grow">
-                <h3>{PICKS[s.pickTier]!.name}</h3>
+                <h3>{s.deepPick ? DEEP_PICK_TEXT.name(s.deepPick) : PICKS[s.pickTier]!.name}</h3>
                 <Desc>
-                  Pick power {PICKS[s.pickTier]!.power}. Everyone in the village digs with the best pick you
-                  own.
+                  Pick power {PICKS[s.pickTier]!.power * deepPickMult(s)}. Everyone in the village digs with
+                  the best pick you own.
                 </Desc>
                 <BuyRow ui={ui} of={{ k: 'whetstone' }}>
                   Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
@@ -399,6 +406,17 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                     Forge the {nextP!.name.toLowerCase()}{' '}
                     <em>{x(nextP!.power, PICKS[s.pickTier]!.power)} speed</em>
                   </PriceButton>
+                ) : deepC ? (
+                  deepPickOpen(s) ? (
+                    <PriceButton s={s} costs={deepC} onClick={() => ui.dispatch({ type: 'deepPick' })}>
+                      Forge {DEEP_PICK_TEXT.name(s.deepPick + 1).toLowerCase()}{' '}
+                      <em>×{DEEP_PICK.mult} speed</em>
+                    </PriceButton>
+                  ) : s.ending === 'seal' ? (
+                    <p class="small">{DEEP_PICK_TEXT.waits(markerD(s.deepPick + 1) * FT_PER_TILE)}</p>
+                  ) : (
+                    <p class="small">{DEEP_PICK_TEXT.sealFirst}</p>
+                  )
                 ) : (
                   <p class="small">The best pick Holloway knows how to make, for now.</p>
                 )}

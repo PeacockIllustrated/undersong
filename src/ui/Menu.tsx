@@ -39,7 +39,7 @@ export function MenuSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
       <div class="sheet-wrap" onClick={(e) => e.target === e.currentTarget && close()}>
         <div class="panel sheet" role="dialog" aria-label={SETTINGS_TEXT.title}>
           <h2>{SETTINGS_TEXT.title}</h2>
-          <SettingsPanel />
+          <SettingsPanel ui={ui} />
           <p class="small">{SETTINGS_TEXT.note}</p>
           <div class="row end">
             <button class="btn" onClick={() => setView('menu')}>
