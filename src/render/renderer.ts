@@ -19,7 +19,10 @@ import { digProgress } from '../sim/step';
 import { hash3 } from '../sim/rng';
 import type { World } from '../world/world';
 import { tileTexture, wallTexture } from './tiles';
-import { drawSprite } from './sprites';
+import { drawSprite, windowPanes } from './sprites';
+import { glow, nightness } from './sky';
+import { CART, SKY } from '../data/finds';
+import { raining } from '../sim/surface';
 import type { Camera } from './camera';
 import { Fx } from './fx';
 import { PESTS } from '../data/economy';
@@ -303,8 +306,10 @@ export class Renderer {
     this.drawCarvings(game, tx0, ty0, tx1, ty1, frame);
     this.drawObjects(w, tx0, ty0, tx1, ty1, frame);
     this.drawVillagers(game, now);
+    this.drawDog(game, now);
     this.drawDigging(game, frame, now);
     this.drawForeman(game, now);
+    this.drawNight(game, camY, tx0, tx1, now);
     this.fx.drawWorld(ctx, now);
 
     this.drawLight(w, tx0, ty0, tx1, ty1, now);
@@ -450,6 +455,8 @@ export class Renderer {
     const b = step(bars, HEAP.barSteps);
     if (b >= 0) drawSprite(this.ctx, 'bar-stack', b, HEAP.barsX * T, surfY(HEAP.barsX));
     this.drawSurface(game, now, surfY);
+    // M10-01: the tinker's cart, parked by the shaft while it has offers
+    if (game.state.cart.offers) drawSprite(this.ctx, 'cart', 0, CART.x * T + T / 2, surfY(CART.x));
   }
 
   /** M6: the fields, the woodlot, the cookhouse and the cairn, and the two who work them. */
@@ -661,6 +668,106 @@ export class Renderer {
     }
   }
 
+  /** M10-03: Pell's dog trots to a chest and back. */
+  private drawDog(game: Game, now: number): void {
+    const d = game.dog;
+    if (!d || !game.state.helpers.dog) return;
+    const moving = Math.abs(d.x - this.dogX) > 0.001 || Math.abs(d.y - this.dogY) > 0.001;
+    if (moving) this.dogLeft = d.x < this.dogX;
+    this.dogX = d.x;
+    this.dogY = d.y;
+    const f = moving ? Math.floor(now / 120) % 2 : 0;
+    drawSprite(this.ctx, 'dog', f, d.x * T + T / 2, d.y * T + T - 1, this.dogLeft);
+  }
+
+  /**
+   * M10-04: the surface by day and night. Above the ground a dusk and night shade falls over everything, then
+   * the village's windows light up, fireflies come out over the fields, and stars over the hills. Rain falls
+   * over the surface while a shower lasts. Underground nothing changes.
+   */
+  private drawNight(game: Game, camY: number, tx0: number, tx1: number, now: number): void {
+    const ctx = this.ctx;
+    const w = game.world;
+    const s = game.state;
+    const d = nightness(s.totalT);
+    const warm = glow(s.totalT);
+    const top = Math.floor(camY) - T;
+    const ground = (x: number): number => ((w.surf[x] ?? SKY_ROWS) + 1) * T;
+    if (warm > 0) {
+      ctx.globalAlpha = warm * 0.18;
+      ctx.fillStyle = '#FF9A3C';
+      for (let x = tx0; x <= tx1; x++) ctx.fillRect(x * T, top, T, ground(x) - top);
+    }
+    if (d > 0) {
+      ctx.globalAlpha = d * SKY.dark;
+      ctx.fillStyle = '#141A33';
+      for (let x = tx0; x <= tx1; x++) ctx.fillRect(x * T, top, T, ground(x) - top);
+      // the dark fades out over the first rows of soil, which the sky lights by day
+      for (let k = 0; k < SKY.fadeRows; k++) {
+        ctx.globalAlpha = d * SKY.dark * (1 - (k + 1) / (SKY.fadeRows + 1));
+        for (let x = tx0; x <= tx1; x++) ctx.fillRect(x * T, ground(x) + k * T, T, T);
+      }
+      ctx.globalAlpha = 1;
+      // stars, steady, over the sky
+      ctx.fillStyle = '#E8F4F0';
+      for (let i = 0; i < 40; i++) {
+        const x = tx0 * T + hash3(i, 1, 41) * (tx1 - tx0) * T;
+        const y = top + hash3(i, 2, 41) * (SKY_ROWS - 4) * T * 0.8;
+        if (y > (w.surf[Math.floor(x / T)] ?? SKY_ROWS) * T - 3 * T) continue;
+        ctx.globalAlpha = d * (0.4 + 0.6 * hash3(i, 3, 41));
+        ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+      // lit windows: dusk lights them first
+      const lit = Math.min(1, d * 1.6);
+      const surfY = (x: number): number => (w.surf[Math.floor(x)] ?? SKY_ROWS) * T;
+      const houses: [string, number, number][] = [];
+      const cottages = Math.min(s.surface.wood.cottage, COTTAGE_X.length);
+      for (let i = 0; i < cottages; i++)
+        houses.push(['cottage', COTTAGE_X[i]! * T + T / 2, surfY(COTTAGE_X[i]!) - 5]);
+      for (const b of VILLAGE) {
+        if (b.key && s.buildings[b.key] <= 0) continue;
+        houses.push([b.sprite, b.x * T + T / 2, surfY(b.x)]);
+      }
+      houses.push(['cookhouse', COOKHOUSE_X * T + T / 2, surfY(COOKHOUSE_X)]);
+      for (const [name, hx, hy] of houses) {
+        for (const [dx, dy] of windowPanes(name)) {
+          ctx.globalAlpha = lit;
+          ctx.fillStyle = (dx + dy) % 3 ? '#FFD65A' : '#FFF2A8';
+          ctx.fillRect(Math.round(hx + dx), Math.round(hy + dy), 1, 1);
+          ctx.globalAlpha = lit * 0.25;
+          ctx.fillStyle = '#FFD65A';
+          ctx.fillRect(Math.round(hx + dx) - 1, Math.round(hy + dy) - 1, 3, 3);
+        }
+      }
+      // fireflies over the fields and the woodlot
+      ctx.fillStyle = '#FFF2A8';
+      for (let i = 0; i < SKY.fireflies; i++) {
+        const bx = (FIELDS.plotX0 - 6 + hash3(i, 5, 43) * (FIELDS.maxPlots + 12)) * T;
+        const by = surfY(bx / T) - T * (0.5 + hash3(i, 6, 43) * 2.5);
+        const x = bx + Math.sin(now / 1300 + i * 2.1) * 10;
+        const y = by + Math.cos(now / 900 + i * 1.7) * 5;
+        const blink = Math.max(0, Math.sin(now / 400 + i * 3.3));
+        ctx.globalAlpha = d * blink;
+        ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+    if (raining(s)) {
+      ctx.fillStyle = '#7FD6FF';
+      ctx.globalAlpha = 0.55;
+      const fall = now * 0.25;
+      for (let i = 0; i < 160; i++) {
+        const x = tx0 * T + hash3(i, 7, 47) * (tx1 - tx0 + 1) * T;
+        const span = (SKY_ROWS + 4) * T;
+        const y = top + ((hash3(i, 8, 47) * span + fall) % span);
+        const col = Math.floor(x / T);
+        if (y + 4 > ground(col) - T) continue;
+        ctx.fillRect(Math.round(x - (y % 4) / 2), Math.round(y), 1, 3);
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
   private drawVillagers(game: Game, now: number): void {
     const s = game.state;
     for (const m of s.miners) {
@@ -782,6 +889,9 @@ export class Renderer {
   }
 
   /** Foreman position eases toward the sim position, so steps read as walking. */
+  private dogX = 0;
+  private dogY = 0;
+  private dogLeft = false;
   private fx0 = { x: SHAFT_X * T + T / 2, y: SKY_ROWS * T + T - 1, flip: false };
   private drawForeman(game: Game, now: number): void {
     const f = game.state.foreman;

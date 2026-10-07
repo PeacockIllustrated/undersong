@@ -149,7 +149,7 @@ frames: 1                  # optional; frames are stacked vertically in the grid
 | `src/save`              | Round-trips and every fixture migrating cleanly                                                    | Vitest                       |
 | `src/data` ↔ `canon.md` | Values match                                                                                       | Vitest                       |
 | Sprites                 | Palette, size and naming                                                                           | `lint:sprites`               |
-| Balance                 | Time to each milestone stays within canon §5 targets ±15%                                          | `npm run sim` in CI          |
+| Balance                 | Time to each milestone is no more than 15% past its canon target (ADR-035)                          | `npm run sim` in CI          |
 | UI                      | Manual check at 1280×800 and 390×844, with screenshots in the PR                                   | Playwright screenshot script |
 
 A bug fix is only finished when a test reproduces the bug first.

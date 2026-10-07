@@ -435,31 +435,28 @@ Acceptance:
   1. Miners within a radius of the Foreman dig faster by a factor in `src/data` (start ×1.5; shipped at ×1.25, ADR-034), shown as a glow on those miners.
   2. Pacing targets still inside ±15%.
 
-### [ ] M9-07 · Act III back on time · S
-Split from M9-02 and M9-06: Act III ran ~25% early before M9 (median 240 in M8 runs, about 300 after M9).
-Acceptance:
-  1. The Act III median over 9 seeds is inside ±15% of 390 min, with the ending still inside ±15% of 690.
-  2. The bot learns verses IX–XII on seed 32676 within 1000 minutes.
+### ~~M9-07 · Act III back on time~~ · dropped
+Tom (2026-10-07): "i dont mind if it runs through too quick, constant improvement/upgrades increase dopamine". Running early is fine; see ADR-035. The bot stall on seed 32676 moved to the Parking lot.
 
 ## M10 · Finds
 
 **Exit:** every session has a surprise worth coming back for.
 
-### [ ] M10-01 · The tinker's cart · M
+### [x] M10-01 · The tinker's cart · M · PR #22
 Acceptance:
   1. Every 6 to 10 minutes a cart parks by the shaft with three offers; you pick one; it waits for you and while you are away.
   2. Offers and odds in `src/data`; save change with migration and test; the sim bot takes the first offer.
 
-### [ ] M10-02 · The curio shelf · M
+### [x] M10-02 · The curio shelf · M · PR #22
 Acceptance:
   1. About 1 tile in 350 drops a curio: common, fine or singing, each with its own sound. Four per biome in six sets, each a small permanent bonus and a bigger one for a full set.
   2. The shelf (Survey Book page) shows found and missing curios; curios survive the Cave-in. Save change with migration and test.
 
-### [ ] M10-03 · Pell's dog · S
+### [x] M10-03 · Pell's dog · S · PR #22
 Acceptance:
   1. A helper (canon §14) that walks to the nearest unopened chest within 30 tiles and fetches it once a worker is close. Save change for the helper flag.
 
-### [ ] M10-04 · Day, night and rain · S
+### [x] M10-04 · Day, night and rain · S · PR #22
 Acceptance:
   1. An eight-minute sky cycle with lit windows at dusk and fireflies over the fields (render only).
   2. Rain now and then makes crops grow ×3 for a minute; it waits while you are away. Numbers in canon §17.
@@ -510,6 +507,7 @@ Acceptance:
 - Holloway Above ideas still open: none (the cart, curio shelf, Pell's dog, day and night, rain and the ore heap are now M8 and M10 tickets).
 
 - The lantern sprite reads small at ×2; give it a brighter frame or a bracket.
+- Balance bot: seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes.
 - The bot places far too many torches; a smarter light plan would make the sim closer to a careful player.
 
 Good ideas that are out of scope right now. Add to this list instead of building them. Review it when ticketing each milestone.

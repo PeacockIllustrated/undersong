@@ -1778,3 +1778,123 @@ button.neck {
 button {
   font-variant-ligatures: none;
 }
+
+/* ---- M10 Finds ---- */
+.alert.cart-alert {
+  border-color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.alert.cart-alert img {
+  width: 24px;
+  height: 18px;
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+.cart {
+  max-width: 460px;
+  margin: auto;
+}
+.cart h2 {
+  font-family: var(--display);
+  color: var(--gold);
+}
+.offers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+.offer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  background: var(--slate-1);
+  border: 2px solid var(--slate-3);
+  color: var(--ink);
+  font-family: var(--body);
+  cursor: pointer;
+  text-align: center;
+}
+.offer:hover,
+.offer:focus-visible {
+  border-color: var(--gold);
+}
+.offer img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+.offer b {
+  font-family: var(--display);
+  font-size: calc(12px * var(--ts));
+  color: var(--gold-pale);
+}
+.offer span {
+  font-size: calc(13px * var(--ts));
+  color: var(--ink-dim);
+}
+@media (max-width: 420px) {
+  .offers {
+    grid-template-columns: 1fr;
+  }
+  .offer {
+    flex-direction: row;
+    text-align: left;
+  }
+  .offer span {
+    margin-left: auto;
+  }
+}
+.shelf-row h4 {
+  margin: 8px 0 4px;
+  font-family: var(--display);
+  font-size: calc(12px * var(--ts));
+  color: var(--ink-dim);
+}
+.shelf-row.done h4 {
+  color: var(--gold);
+}
+.curios {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.curio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 2px;
+  background: var(--slate-0);
+  border: 1px solid var(--slate-2);
+  text-align: center;
+  font-size: calc(12px * var(--ts));
+}
+.curio img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}
+.curio b {
+  font-family: var(--body);
+  font-weight: normal;
+  color: var(--ink);
+  line-height: 1.15;
+  margin: 2px 0;
+}
+.curio span {
+  color: #a9b3c4;
+  font-size: calc(11px * var(--ts));
+}
+.curio.missing img {
+  filter: brightness(0) opacity(0.35);
+}
+.curio.has.fine {
+  border-color: var(--gold);
+}
+.curio.has.singing {
+  border-color: var(--glow);
+}

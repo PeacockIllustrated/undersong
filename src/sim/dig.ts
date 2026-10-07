@@ -18,6 +18,7 @@ import { first, say } from './story';
 import { maybeCollapse } from './village';
 import { GOLEMS } from '../data/water';
 import { makeRng } from './rng';
+import { rollCurio } from './finds';
 import { veinAround } from './smartdig';
 import { heatAt, heatFactor } from './heat';
 import { HEAT } from '../data/heat';
@@ -174,6 +175,7 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
     }
   }
   discoverVerses(g, x, y);
+  rollCurio(g, x, y);
   maybeCollapse(g, x, y);
   if (m === M.CRYSTAL) maybeGolem(g, x, y);
 }

@@ -97,3 +97,22 @@ export function spriteURL(name: string, frame = 0): string {
   }
   return u;
 }
+
+/** M10-04: a sprite's window panes, as offsets from its anchor: each 'z' pane just right of an 'a' frame, 3 × 2. */
+const paneCache = new Map<string, [number, number][]>();
+export function windowPanes(name: string): [number, number][] {
+  let out = paneCache.get(name);
+  if (out) return out;
+  out = [];
+  const s = cache.get(name);
+  if (s) {
+    const { rows, w, h, anchor } = s.doc;
+    for (let y = 0; y < h - 1; y++)
+      for (let x = 1; x < w - 2; x++)
+        if (rows[y]![x - 1] === 'a' && rows[y]![x] === 'z' && rows[y + 1]![x - 1] === 'a')
+          for (let dy = 0; dy < 2; dy++)
+            for (let dx = 0; dx < 3; dx++) out.push([x + dx - anchor[0], y + dy - anchor[1]]);
+  }
+  paneCache.set(name, out);
+  return out;
+}

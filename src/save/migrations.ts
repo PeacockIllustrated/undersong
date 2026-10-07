@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- migrations work on untyped old saves */
 // One migration per SAVE_VERSION bump. Players never lose a save (golden rule 5).
 import { RES_KEYS } from '../data/resources';
-import { newGame, newSurface, SAVE_VERSION, type GameState } from '../sim/state';
+import { newCart, newGame, newSurface, SAVE_VERSION, type GameState } from '../sim/state';
+import { RAIN } from '../data/finds';
 import { Decimal } from '../sim/decimal';
 
 type Raw = { v: number } & Record<string, unknown>;
@@ -75,6 +76,19 @@ const MIGRATIONS: Record<number, (s: Raw) => Raw> = {
     o.lastRun = { miners: 0, depthByMin: [] };
     o.metalwork = {};
     o.v = 8;
+    return o as Raw;
+  },
+  // v8 → v9 (M10): the tinker's cart, its boons, the curio shelf, and the rain.
+  8: (s) => {
+    const o = s as Record<string, any>;
+    o.cart = newCart();
+    o.boosts = { miners: 0, hands: 0, map: 0 };
+    o.curios = [];
+    if (o.surface) {
+      o.surface.rainUntil = 0;
+      o.surface.rainNext = RAIN.firstMs;
+    }
+    o.v = 9;
     return o as Raw;
   },
 };

@@ -10,6 +10,7 @@ import {
   type CueId,
 } from '../data/sounds';
 import type { SimEvent } from '../sim/game';
+import { CURIOS } from '../data/finds';
 
 export interface Play {
   id: CueId;
@@ -72,6 +73,19 @@ export function cuesFor(e: SimEvent, seen: boolean, chain: number): Play[] {
     // M8-02: a vein gives way like a find, then each tile pops higher; Geode veins ring instead of crunch
     case 'veinBreak':
       return [{ id: 'chest' }];
+    // M10: each curio rarity has its own sound; a fetched chest sounds like one opened by hand
+    case 'curio': {
+      const c = CURIOS.find((k) => k.id === e.id);
+      const id =
+        c?.rarity === 'singing' ? 'curioSinging' : c?.rarity === 'fine' ? 'curioFine' : 'curioCommon';
+      return e.set ? [{ id }, { id: 'record' }] : [{ id }];
+    }
+    case 'cart':
+      return [{ id: 'cart' }];
+    case 'rain':
+      return [{ id: 'rain' }];
+    case 'fetched':
+      return [];
     case 'shatter':
       return [
         {

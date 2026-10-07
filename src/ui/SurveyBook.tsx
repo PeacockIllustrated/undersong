@@ -11,6 +11,10 @@ import { fmt } from './format';
 import { ENDING_NOTE } from '../story/ending';
 import { NEW_SONG } from '../data/heat';
 import { AchievementList } from './Achievements';
+import { CURIO, CURIOS } from '../data/finds';
+import { BIOMES } from '../data/biomes';
+import { CURIO_TEXT, CURIO_UI, RARITY_NAME } from '../story/finds';
+import { fullSets } from '../sim/finds';
 
 const BRANCH_NAME: Record<Branch, string> = { hands: 'Hands', lamps: 'Lamps', memory: 'Memory' };
 
@@ -141,6 +145,60 @@ export function SurveyBook({ ui, close }: { ui: UiBridge; close: () => void }) {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section>
+          <h3>
+            {CURIO_UI.title} · {s.curios.length} of {CURIOS.length}
+          </h3>
+          <p class="small muted">{CURIO_UI.intro}</p>
+          <div class="shelf">
+            {BIOMES.filter((b) => b.id >= 1).map((b) => {
+              const set = CURIOS.filter((c) => c.biome === b.id);
+              const done = fullSets(s).includes(b.id);
+              return (
+                <div key={b.id} class={`shelf-row ${done ? 'done' : ''}`}>
+                  <h4>
+                    {b.name}
+                    {done && (
+                      <span class="set">
+                        {' '}
+                        · {CURIO_UI.setDone} +{Math.round(CURIO.set * 100)}%
+                      </span>
+                    )}
+                  </h4>
+                  <div class="curios">
+                    {set.map((c) => {
+                      const has = s.curios.includes(c.id);
+                      const t = CURIO_TEXT[c.id]!;
+                      return (
+                        <div
+                          key={c.id}
+                          class={`curio ${c.rarity} ${has ? 'has' : 'missing'}`}
+                          title={
+                            has
+                              ? `${t.name}: ${t.note}`
+                              : `${RARITY_NAME[c.rarity]} · ${CURIO_UI.missing} ${b.name}`
+                          }
+                        >
+                          <img
+                            src={spriteURL('curio', c.rarity === 'common' ? 0 : c.rarity === 'fine' ? 1 : 2)}
+                            alt=""
+                          />
+                          <b>{has ? t.name : '?'}</b>
+                          <span>
+                            {has
+                              ? CURIO_UI.fx(c.fx, Math.round(CURIO.bonus[c.rarity] * 100))
+                              : RARITY_NAME[c.rarity]}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         <section>

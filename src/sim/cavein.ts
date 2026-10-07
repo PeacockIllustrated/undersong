@@ -4,7 +4,7 @@ import { FT_PER_TILE, SHAFT_X, SKY_ROWS } from '../data/constants';
 import { D, Decimal } from './decimal';
 import { attach, freshWorld, type Game } from './game';
 import { hash3 } from './rng';
-import { emptyRes, type GameState } from './state';
+import { emptyRes, newCart, type GameState } from './state';
 import { UPGRADE_FX } from '../data/upgrades';
 import { charm } from './power';
 import { CHARM } from '../data/charms';
@@ -77,6 +77,8 @@ export function resetRun(s: GameState): void {
   s.pickTier = s.heirloomTier;
   s.whetstone = 0;
   s.metalwork = {};
+  s.cart = newCart();
+  s.boosts = { miners: 0, hands: 0, map: 0 };
   s.haulTier = s.upgrades.rememberedRope ? 1 : 0;
   s.forge = { progress: 0, recipe: 'auto', next: 0 };
   s.haulAcc = 0;

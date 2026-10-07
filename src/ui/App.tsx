@@ -14,6 +14,8 @@ import { rushMult } from '../sim/dig';
 import { rushStep } from '../sim/power';
 import { VillageSheet, villageFocus, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
+import { CartSheet } from './Cart';
+import { CART_UI } from '../story/finds';
 import { MenuSheet } from './Menu';
 import { useApplySettings } from './Settings';
 import { AchievementToasts } from './Achievements';
@@ -110,7 +112,7 @@ function lumenOut(ui: UiBridge): boolean {
   return !ui.game.world.lanternsLit && lanterns(ui.game).length > 0;
 }
 
-export type Sheet = null | 'village' | 'survey' | 'menu';
+export type Sheet = null | 'village' | 'survey' | 'menu' | 'cart';
 
 function useTick(ms: number): void {
   const [, set] = useState(0);
@@ -320,6 +322,11 @@ export function App({ ui }: { ui: UiBridge }) {
               <img src={spriteURL('barley')} alt="" /> {ripeN} ripe · reap
             </button>
           )}
+          {s.cart.offers && (
+            <button class="panel alert cart-alert" onClick={() => setSheet('cart')}>
+              <img src={spriteURL('cart')} alt="" /> {CART_UI.here} ›
+            </button>
+          )}
           {lumenOut(ui) && (
             <button class="panel alert dark" onClick={() => goFix({ card: 'lampworks' })}>
               Out of Lumen · the lanterns are dark ›
@@ -425,6 +432,7 @@ export function App({ ui }: { ui: UiBridge }) {
       <AchievementToasts s={s} />
       {sheet === 'village' && <VillageSheet ui={ui} close={() => setSheet(null)} />}
       {sheet === 'survey' && <SurveyBook ui={ui} close={() => setSheet(null)} />}
+      {sheet === 'cart' && <CartSheet ui={ui} close={() => setSheet(null)} />}
       {sheet === 'menu' && <MenuSheet ui={ui} close={() => setSheet(null)} />}
     </>
   );

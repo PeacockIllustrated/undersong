@@ -272,3 +272,20 @@ Decision:
 - The Foreman's lead is ×1.25 inside 6 tiles, not the ticket's ×1.5 starting point: at ×1.5 together with metalwork, the ending came in around 520 minutes against 690.
 - The balance bot buys metalwork from spare (at most 20% of holdings) and reports the longest wait per act. The 10-minute gate runs on Act II runs.
 **Consequences.** Long-act sims stay noisy (±10% between runs of 9 seeds); see the M9 progress entry for the medians at merge.
+
+## ADR-035 · Pacing may run short; it must not run long
+
+**Context.** After M9 the sim put Act III at about 300 min against 390, and M9-07 was cut to slow it down. Tom (2026-10-07): "i dont mind if it runs through too quick, constant improvement/upgrades increase dopamine, and dopamine is the name of the game."
+**Decision.** Every time target in canon §6 (Act I milestones, Act III at 390 min, the ending at 690 min) is now a ceiling, not a centre: coming in early is fine, and later than +15% is still a miss. `--strict` checks it that way (amended in M10, when the tinker's cart brought Act I in early). The wait gates (90 s early, 10 min per act) and the Echoes-at-first-Cave-in range are unchanged, since they are about always having something to buy. M9-07 is dropped. When a feature speeds things up, prefer keeping the speed and adding more to buy over slowing the player down.
+**Consequences.** Future tuning only pushes back when an act runs long or a wait gate fails.
+
+## ADR-036 · Finds: a cart, a shelf, a dog and the weather
+
+**Context.** M10 asks that every session has a surprise worth coming back for, and ADR-035 says a faster game is fine as long as there is always something new.
+**Decision.**
+- The tinker's cart (canon §21.1) runs on the run clock and parks until you take an offer, so it waits while you are away and is never missed. Its boons (tonic, grindstone, map) are run-time windows saved in `boosts`; it resets on a Cave-in. The balance bot takes the first offer.
+- Curios (canon §21.2) roll from a tile hash (seed, cycle, x, y), not the PRNG stream, so mining order and offline catch-up cannot change which tiles hold one. They live in `curios` and survive every Cave-in, which makes them a slow permanent ladder next to Echoes.
+- Pell's dog walks a straight line to the chest and back; her position lives on the Game and is not saved (she starts by the Foreman on load). Only her hire is saved, in `helpers`.
+- Day and night are render only, keyed to the total play clock. Rain is sim (crops grow ×3) and never starts while you are away, so a shower is always something you see.
+- Save v9 adds `cart`, `boosts`, `curios`, `surface.rainUntil` and `surface.rainNext`, with a migration and a fixture.
+**Consequences.** Cart crates and boons speed every act a little; per ADR-035 that is fine. A full shelf adds about +0.5 to miners and +0.5 to your hands from the curios themselves, and +0.6 to each from the six sets.

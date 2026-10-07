@@ -6,8 +6,9 @@ import { Decimal, ZERO } from './decimal';
 import type { MetalworkId, Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
 import type { CropId, MealId, WoodBuyId } from '../data/surface';
+import { CART, RAIN, type CartOfferId } from '../data/finds';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 export interface Tile {
   x: number;
@@ -104,6 +105,9 @@ export interface Surface {
   /** The glowcap root cellar: 0 not dug, 1 dug, 2 seeded. And seconds toward its next spore. */
   cellar: number;
   cellarAcc: number;
+  /** M10-04: run time (ms) the current shower ends, and when the next may start. canon §17.7 */
+  rainUntil: number;
+  rainNext: number;
 }
 
 export function newSurface(): Surface {
@@ -123,6 +127,8 @@ export function newSurface(): Surface {
     chopsEver: 0,
     cellar: 0,
     cellarAcc: 0,
+    rainUntil: 0,
+    rainNext: RAIN.firstMs,
   };
 }
 
@@ -220,6 +226,12 @@ export interface GameState {
   runDepth: number[];
   /** M9-03 and M9-05: what the last run left behind: its miner count and its depth by minute. */
   lastRun: { miners: number; depthByMin: number[] };
+  /** M10-01: when the tinker's cart next comes (run ms), and its offers while it is parked. canon §21.1 */
+  cart: { nextAt: number; offers: CartOfferId[] | null };
+  /** M10-01: run time (ms) each cart boon lasts until. */
+  boosts: { miners: number; hands: number; map: number };
+  /** M10-02: curio ids on the shelf. They stay through every Cave-in. canon §21.2 */
+  curios: string[];
 }
 
 /** The Survey Book is never empty: earlier cycles left pages, in the Foreman's own hand. */
@@ -296,5 +308,10 @@ export function newGame(seed: number): GameState {
     savedAt: 0,
     runDepth: [],
     lastRun: { miners: 0, depthByMin: [] },
+    cart: newCart(),
+    boosts: { miners: 0, hands: 0, map: 0 },
+    curios: [],
   };
 }
+
+export const newCart = (): GameState['cart'] => ({ nextAt: CART.firstMs, offers: null });

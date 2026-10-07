@@ -10,6 +10,21 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M10-01 to M10-04 (Finds)
+Done:
+- Tom said a fast game is fine ("dopamine is the name of the game"). ADR-035 makes every time target a ceiling, `--strict` now fails only when a milestone is more than 15% late, and M9-07 (slowing Act III) is dropped.
+- The tinker's cart parks by the shaft 6 min into a run, then 6–10 min after each pick, with three offers: a crate of bars, a miner's tonic, a grindstone, lamps, an old map or an Echo. It waits while you are away.
+- The curio shelf: about 1 tile in 350 gives up one of 24 curios (four per biome, common, fine or singing, each with its own sound). Each speeds miners or hands; a full set adds +10% to both. They stay through every Cave-in. The shelf is a page in the Survey Book.
+- Pell's dog, Biscuit: a helper who fetches chests near the Foreman.
+- An eight-minute day: dusk, night with lit windows, fireflies and stars. Showers every 5–9 min make crops grow ×3 for a minute, and never start while you are away.
+- Save v9 with migration and fixture. Canon §17.7, §21, the dog in §14. ADR-036.
+State:
+- `npm run check` is green (129 tests).
+- Act I sim: first miner 6.0 min against 8 and first Cave-in 24.9 against 30, both early, which ADR-035 allows. The 15-minute wait median is 56 s.
+- The dog walks a straight line to a chest, through rock if need be. That is a render shortcut.
+Next: M11.
+Questions for Tom: none.
+
 ## 2026-10-07 · M9-01 to M9-06 (The deep game)
 Done:
 - The sim reports the longest wait with nothing to buy in each act; Act II runs fail above 10 minutes.

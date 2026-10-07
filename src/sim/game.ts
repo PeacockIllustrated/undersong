@@ -36,7 +36,12 @@ export type SimEvent =
   /** A new depth record since the last Cave-in. */
   | { kind: 'record'; ft: number }
   /** verses: the verses found this run, for the Cave-in's song (M9-04). */
-  | { kind: 'caveIn'; verses: number[] };
+  | { kind: 'caveIn'; verses: number[] }
+  /** M10: the tinker's cart parks, a curio turns up, the dog fetches a chest, a shower starts. */
+  | { kind: 'cart' }
+  | { kind: 'curio'; id: string; x: number; y: number; set?: number }
+  | { kind: 'fetched'; x: number; y: number; res: string; n: number }
+  | { kind: 'rain' };
 
 export interface Game {
   state: GameState;
@@ -67,6 +72,8 @@ export interface Game {
   rehiredAt?: number;
   /** M9-05: ahead of last run's ghost at the last step. */
   ahead?: boolean;
+  /** M10-03: where Pell's dog is and what she is after (not saved: she starts by the Foreman on load). */
+  dog?: { x: number; y: number; target: { x: number; y: number } | null; rest: number };
 }
 
 export function worldFor(state: GameState): World {
