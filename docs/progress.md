@@ -10,6 +10,21 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M12-01 to M12-04 (Keep it)
+Done:
+- Saves: Copy save, Download save (a dated .txt), and Open a file or paste to import. Import checks the save, shows its cycle, depth, Echoes and verses, and replaces the game only after "Load this save". Plain JSON is accepted too.
+- Installable: a web manifest, icons drawn at integer scale, and a hand-written service worker (ADR-038). Served from a subfolder, the built game took over, went offline, reloaded and booted.
+- Layout smoke test: Playwright as a dev dependency (ADR-039). `npm run smoke` boots a new game and every save fixture at 1280×800 and 390×844; CI runs it after the build and keeps the screenshots. 22 boots clean.
+- Sim coverage: the bot now buys plots when one costs half its copper, and keeps at least two barley plots when it floods paddies. The summary line prints plots, pumps, paddies, hot-beds, feasts rung and the bell's best.
+State:
+- `npm run check` is green.
+- Act III, 9 seeds, 600 min: all finish, 140 to 306 min, median 182 against 390 (early, which ADR-035 allows).
+- Paddies appear in 8 of 9 seeds (up to 3), pumps in all 9. Hot-beds never appear because the Act III run stops before the Ember Deep.
+- Is 150 crops reachable in an ordinary run? Yes. The bell reached 150 and rang in 8 of 9 seeds (1 to 3 feasts each, and a second bell at 240 nearly filled twice). The ninth seed got to 128 in a short 140-minute session. Before this the bot held one plot, so the bell never rang.
+- The slow Act III seeds: the two slowest (48514 at 306 min, 24757 at 240) both sat for 30 to 50 minutes in a mountain without enough aquamarine. The aquamarine pick needs 30 (15 tiles), and 4 of the 45 mountains these seeds dig (five cycles each) hold fewer than 15 aquamarine tiles in the Halls, so the village has to cave in to get a new mountain. That is the game, not the bot, so it is ticketed as M12-05.
+Next: M12-05.
+Questions for Tom: none.
+
 ## 2026-10-07 · M11-01 to M11-03 (Beyond the song)
 Done:
 - Endless Depth markers every 500 ft under the Heart (2,024 ft, 2,524 ft, …), drawn as a row of marker stones. Marker k pays 8 × 1.5^(k−1) Echoes and 40 × 1.5^(k−1) Gold bars, once ever.

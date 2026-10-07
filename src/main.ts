@@ -52,6 +52,14 @@ import './ui/style.css';
 loadSprites();
 buildTileTextures();
 
+// M12-02 (ADR-038): install and play offline. Built game only, so the dev server's hot reload is never cached.
+if (import.meta.env.PROD && 'serviceWorker' in navigator)
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // an iframe or a private window may refuse it; the game runs the same without
+    });
+  });
+
 const uiRoot = document.getElementById('ui')!;
 
 if (location.hash === '#atlas') {

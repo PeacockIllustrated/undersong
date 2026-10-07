@@ -3,6 +3,7 @@ import LZString from 'lz-string';
 import { Decimal } from '../sim/decimal';
 import { SAVE_VERSION, type GameState } from '../sim/state';
 import { migrate } from './migrations';
+import { ftFromDepthTiles } from '../data/constants';
 
 const TAG = 'D:';
 
@@ -41,8 +42,44 @@ export function exportString(state: GameState): string {
   return LZString.compressToBase64(toJSON(state));
 }
 
+/** M12-01: an export string, or the plain JSON of a save. Checked before it is handed back. */
 export function importString(s: string): GameState {
-  const json = LZString.decompressFromBase64(s.trim());
+  const t = s.trim();
+  const json = t.startsWith('{') ? t : LZString.decompressFromBase64(t);
   if (!json) throw new Error('That export string is empty or damaged.');
-  return fromJSON(json);
+  const state = fromJSON(json);
+  checkSave(state);
+  return state;
 }
+
+/** M12-01: the parts of a save the game can't run without. Throws a readable error naming the first one missing. */
+export function checkSave(s: GameState): void {
+  const bad = (what: string): never => {
+    throw new Error(`The save is missing its ${what}.`);
+  };
+  if (typeof s.seed !== 'number' || !Number.isFinite(s.seed)) bad('seed');
+  if (!s.res || !(s.res.copperOre instanceof Decimal)) bad('resources');
+  if (!(s.echoes instanceof Decimal)) bad('Echoes');
+  if (!s.foreman || typeof s.foreman.x !== 'number' || typeof s.foreman.y !== 'number') bad('Foreman');
+  if (!Array.isArray(s.verses?.known) || s.verses.known.length !== 12) bad('verses');
+  if (!s.world || typeof s.world.diffs !== 'object') bad('mountain');
+  if (!Array.isArray(s.survey) || !Array.isArray(s.miners)) bad('Survey Book');
+}
+
+/** M12-01: what a save holds, to show before it replaces the game. */
+export function saveSummary(s: GameState): {
+  cycle: number;
+  bestFt: number;
+  echoes: Decimal;
+  verses: number;
+} {
+  return {
+    cycle: s.cycle,
+    bestFt: ftFromDepthTiles(s.stats.bestDepthD),
+    echoes: s.echoes.floor(),
+    verses: s.verses.known.filter(Boolean).length,
+  };
+}
+
+/** M12-01: a file name for a downloaded save, dated. */
+export const saveFileName = (now: Date): string => `undersong-save-${now.toISOString().slice(0, 10)}.txt`;
