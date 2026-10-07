@@ -1,5 +1,6 @@
 // Draws the world, objects, characters and light. Reads game state; never writes it. dev-bible §1.6
-import { AIM } from '../data/touch';
+import { AIM, ZOOM } from '../data/touch';
+import { MountainView } from './mountain';
 import { CHUNK, SHAFT_X, SKY_ROWS, TILE_PX } from '../data/constants';
 import { LIGHT } from '../data/light';
 import { M, MATERIALS, isMineable } from '../data/materials';
@@ -92,6 +93,14 @@ export class Renderer {
   /** M7-03: the tile under an idle mouse. */
   hover: { x: number; y: number } | null = null;
   private loupeBuf: HTMLCanvasElement | null = null;
+  /** M7-05: art px per CSS px the player has picked, from ZOOM; null until they zoom. */
+  private art: number | null = null;
+  private levels: readonly number[] = ZOOM.desk;
+  private dpr = 1;
+  private defArt = 3;
+  /** M7-05: the whole mountain as a flat map instead of the close view. */
+  mountain = false;
+  readonly mountainView = new MountainView();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -103,11 +112,33 @@ export class Renderer {
   /** canon §6.3 / M0-04: ×2 below 600 css px, ×3 up to 1400, ×4 above; times the device ratio, rounded. */
   resize(cssW: number, cssH: number, dpr: number): void {
     const art = cssW < 600 ? 2 : cssW <= 1400 ? 3 : 4;
-    this.scale = Math.max(1, Math.round(art * dpr));
+    this.levels = cssW < 600 ? ZOOM.phone : ZOOM.desk;
+    if (this.art !== null && !this.levels.includes(this.art)) this.art = null;
+    this.dpr = dpr;
+    this.defArt = art;
+    this.scale = Math.max(1, Math.round((this.art ?? art) * dpr));
     this.canvas.width = Math.round(cssW * dpr);
     this.canvas.height = Math.round(cssH * dpr);
     this.canvas.style.width = `${cssW}px`;
     this.canvas.style.height = `${cssH}px`;
+  }
+
+  /** M7-05: one whole-number zoom step in (1) or out (-1). False at the end of the range. */
+  zoom(dir: 1 | -1): boolean {
+    const cur = this.art ?? this.defArt;
+    const i = this.levels.indexOf(cur);
+    const at =
+      i === -1
+        ? Math.max(
+            0,
+            this.levels.findIndex((l) => l >= cur),
+          )
+        : i;
+    const next = this.levels[Math.max(0, Math.min(this.levels.length - 1, at + dir))]!;
+    if (next === cur) return false;
+    this.art = next;
+    this.scale = Math.max(1, Math.round(next * this.dpr));
+    return true;
   }
 
   /** Visible size in art pixels. */
@@ -220,6 +251,10 @@ export class Renderer {
 
   draw(game: Game, cam: Camera, now: number): void {
     const { ctx } = this;
+    if (this.mountain) {
+      this.mountainView.draw(ctx, game, this.canvas.width, this.canvas.height, this.dpr, now);
+      return;
+    }
     const s = this.scale;
     const w = game.world;
     ctx.imageSmoothingEnabled = false;
@@ -323,7 +358,17 @@ export class Renderer {
     }
     const bg = b.getContext('2d')!;
     bg.clearRect(0, 0, b.width, b.height);
-    bg.drawImage(canvas, Math.round(fx) - src, Math.round(fy) - src, src * 2, src * 2, 0, 0, src * 2, src * 2);
+    bg.drawImage(
+      canvas,
+      Math.round(fx) - src,
+      Math.round(fy) - src,
+      src * 2,
+      src * 2,
+      0,
+      0,
+      src * 2,
+      src * 2,
+    );
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.beginPath();

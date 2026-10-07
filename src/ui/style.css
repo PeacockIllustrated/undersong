@@ -1437,3 +1437,28 @@ table.tally td + td {
 .hover-label span.warn {
   color: var(--ember);
 }
+
+/* M7-06: icon buttons in the nav get pixel icons, and a label under them on phones */
+.ibtn img {
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+  display: block;
+}
+.ibtn .il {
+  display: none;
+}
+@media (max-width: 600px) {
+  .nav .ibtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 6px;
+  }
+  .ibtn .il {
+    display: block;
+    font-size: calc(9px * var(--ts));
+    line-height: 1;
+  }
+}

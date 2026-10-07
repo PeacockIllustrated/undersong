@@ -19,7 +19,8 @@ export function snapToOre(g: Game, x: number, y: number): Tile {
     for (let dx = -r; dx <= r; dx++) {
       const tx = x + dx;
       const ty = y + dy;
-      if (!isOreAt(g, tx, ty) || !canDig(g.world.get(tx, ty), g.state.pickTier) || !workable(g, tx, ty)) continue;
+      if (!isOreAt(g, tx, ty) || !canDig(g.world.get(tx, ty), g.state.pickTier) || !workable(g, tx, ty))
+        continue;
       const d = dx * dx + dy * dy;
       if (d < bd) {
         bd = d;

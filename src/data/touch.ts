@@ -24,3 +24,15 @@ export const HAPTICS = { hold: 12, brk: 6, ore: 14, rushOre: 24 } as const;
 
 /** canon §18 M7-03: how long the mouse rests on a tile before its label shows (ms), and the label's offset (CSS px). */
 export const HOVER = { delayMs: 400, dx: 18, dy: -10 } as const;
+
+/**
+ * canon §18 M7-05: whole-number art scales the player can step through (art px per CSS px), the pinch ratio
+ * and wheel travel that make one step.
+ */
+export const ZOOM = { phone: [1, 2, 3], desk: [2, 3, 4], pinchStep: 1.3, wheelStep: 60 } as const;
+
+/**
+ * canon §18 M7-05: the Mountain view. Rows of sky above the grass, rows below the deepest worker,
+ * CSS px kept clear for the HUD at the top and bottom, and how often the map is redrawn (ms).
+ */
+export const MOUNTAIN = { sky: 6, below: 6, padTop: 84, padBottom: 124, redrawMs: 250 } as const;

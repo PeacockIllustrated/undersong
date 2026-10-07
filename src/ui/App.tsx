@@ -45,6 +45,9 @@ export interface UiBridge {
   clearAway(): void;
   /** M7-03: the tile under an idle mouse, and since when (performance.now ms). Never set by touch. */
   readonly hover: { x: number; y: number; t0: number } | null;
+  /** M7-05: the whole mountain as a map, instead of the close view. */
+  readonly mountain: boolean;
+  setMountain(on: boolean): void;
 }
 
 /** Big centre-screen announcements (ADR-020), one at a time, each for a couple of seconds. */
@@ -122,6 +125,17 @@ export function App({ ui }: { ui: UiBridge }) {
   const [sheet, setSheet] = useState<Sheet>(null);
   useApplySettings();
   const [toolsOpen, setToolsOpen] = useState(false);
+  // M7-06: Escape closes the open sheet first; only with nothing open does it reach the dig queue (main.ts)
+  useEffect(() => {
+    if (!sheet) return undefined;
+    const on = (e: KeyboardEvent): void => {
+      if (e.key !== 'Escape') return;
+      e.stopImmediatePropagation();
+      setSheet(null);
+    };
+    window.addEventListener('keydown', on, true);
+    return () => window.removeEventListener('keydown', on, true);
+  }, [sheet]);
   const g = ui.game;
   const s = g.state;
   const d = g.world.depth(s.foreman.y);
@@ -289,9 +303,9 @@ export function App({ ui }: { ui: UiBridge }) {
       <EndingChoice ui={ui} />
       <Toasts />
       <BiomeBanner />
-      {!sheet && <EdgeMarkers ui={ui} />}
-      {!sheet && <HoverLabel ui={ui} />}
-      {!sheet && <DepthRuler ui={ui} />}
+      {!sheet && !ui.mountain && <EdgeMarkers ui={ui} />}
+      {!sheet && !ui.mountain && <HoverLabel ui={ui} />}
+      {!sheet && !ui.mountain && <DepthRuler ui={ui} />}
       {(s.foreman.queue.length > 0 || s.foreman.target) && (
         <button
           class="panel qchip"
@@ -338,14 +352,31 @@ export function App({ ui }: { ui: UiBridge }) {
           </button>
         )}
         <div class="row nav">
-          <button class="btn" onClick={() => ui.recenter()} aria-label="Follow the Foreman">
-            ⌖
+          <button
+            class="btn ibtn"
+            onClick={() => ui.recenter()}
+            aria-label="Follow the Foreman"
+            title="Follow the Foreman"
+          >
+            <img src={spriteURL('icon-follow')} alt="" />
+            <span class="il">Foreman</span>
           </button>
           {s.surface.tansy && (
-            <button class="btn" onClick={lookUp} aria-label="Look up at the fields" title="Look up">
-              ▲
+            <button class="btn ibtn" onClick={lookUp} aria-label="Look up at the fields" title="Look up">
+              <img src={spriteURL('barley')} alt="" />
+              <span class="il">Fields</span>
             </button>
           )}
+          <button
+            class={`btn ibtn ${ui.mountain ? 'primary' : ''}`}
+            onClick={() => ui.setMountain(!ui.mountain)}
+            aria-label="See the whole mountain"
+            aria-pressed={ui.mountain}
+            title="The whole mountain (tap the map to go there)"
+          >
+            <img src={spriteURL('icon-mountain')} alt="" />
+            <span class="il">Mountain</span>
+          </button>
           <button
             class={`btn ${sheet === 'village' ? 'primary' : ''} ${newInVillage && sheet !== 'village' ? 'new' : ''}`}
             onClick={() => setSheet(sheet === 'village' ? null : 'village')}
@@ -358,8 +389,9 @@ export function App({ ui }: { ui: UiBridge }) {
           >
             Survey
           </button>
-          <button class="btn" onClick={() => setSheet('menu')} aria-label="Menu">
-            ☰
+          <button class="btn ibtn" onClick={() => setSheet('menu')} aria-label="Menu" title="Menu">
+            <img src={spriteURL('icon-menu')} alt="" />
+            <span class="il">Menu</span>
           </button>
         </div>
       </div>

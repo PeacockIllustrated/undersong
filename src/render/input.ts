@@ -4,7 +4,7 @@ import type { Tile } from '../sim/state';
 import type { Camera } from './camera';
 import { line4 } from '../sim/geom';
 import { settings } from '../settings';
-import { AIM, HAPTICS, SMART_DIG } from '../data/touch';
+import { AIM, HAPTICS, SMART_DIG, ZOOM } from '../data/touch';
 
 export interface InputHooks {
   /** Screen → art pixels. */
@@ -20,12 +20,16 @@ export interface InputHooks {
   onPath(tiles: Tile[]): void;
   /** The player moved the camera themselves. */
   onPan(): void;
+  /** M7-05: one zoom step in (1) or out (-1). */
+  onZoom(dir: 1 | -1): void;
+  /** M7-05: a press while the Mountain view is up (CSS px in the canvas). True if it was taken. */
+  mountainTap(x: number, y: number): boolean;
 }
 
 export const HOLD_MS = 280;
 const SLOP_PX = 8;
 
-type Mode = 'idle' | 'pending' | 'pan' | 'dig';
+type Mode = 'idle' | 'pending' | 'pan' | 'dig' | 'pinch';
 
 export class Input {
   mode: Mode = 'idle';
@@ -47,6 +51,11 @@ export class Input {
   private holdTimer = 0;
   private veinTimer = 0;
   private id = -1;
+  /** M7-05: the second finger of a pinch, and the spread at the last zoom step. */
+  private id2 = -1;
+  private p2 = { x: 0, y: 0 };
+  private spread = 0;
+  private wheelAcc = 0;
   private keys = new Set<string>();
 
   constructor(
@@ -64,6 +73,9 @@ export class Input {
     window.addEventListener('keydown', (e) => {
       if ((e.target as HTMLElement | null)?.closest('input,textarea')) return;
       this.keys.add(e.key.toLowerCase());
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === '+' || e.key === '=') this.hooks.onZoom(1);
+      else if (e.key === '-' || e.key === '_') this.hooks.onZoom(-1);
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
     window.addEventListener('blur', () => this.keys.clear());
@@ -106,7 +118,23 @@ export class Input {
   }
 
   private down = (e: PointerEvent): void => {
-    if (this.id !== -1) return;
+    if (this.id !== -1) {
+      // M7-05: a second finger turns whatever the first was doing into a pinch
+      if (e.pointerType === 'mouse' || this.id2 !== -1) return;
+      this.stopTimers();
+      this.id2 = e.pointerId;
+      this.el.setPointerCapture(e.pointerId);
+      this.p2 = { x: e.clientX, y: e.clientY };
+      this.spread = Math.hypot(e.clientX - this.lx, e.clientY - this.ly);
+      this.mode = 'pinch';
+      this.path = [];
+      this.hold = null;
+      this.touch = null;
+      this.aimTile = null;
+      return;
+    }
+    const r = this.el.getBoundingClientRect();
+    if (this.hooks.mountainTap(e.clientX - r.left, e.clientY - r.top)) return;
     this.id = e.pointerId;
     this.el.setPointerCapture(e.pointerId);
     this.sx = this.lx = e.clientX;
@@ -155,6 +183,19 @@ export class Input {
       const t = this.tileAt(e.clientX, e.clientY);
       if (this.hover?.x !== t.x || this.hover.y !== t.y) this.hover = { ...t, t0: performance.now() };
     } else this.hover = null;
+    if (this.mode === 'pinch') {
+      if (e.pointerId === this.id2) this.p2 = { x: e.clientX, y: e.clientY };
+      else if (e.pointerId === this.id) {
+        this.lx = e.clientX;
+        this.ly = e.clientY;
+      } else return;
+      const d = Math.hypot(this.p2.x - this.lx, this.p2.y - this.ly);
+      if (this.spread > 0 && (d / this.spread > ZOOM.pinchStep || this.spread / d > ZOOM.pinchStep)) {
+        this.hooks.onZoom(d > this.spread ? 1 : -1);
+        this.spread = d;
+      }
+      return;
+    }
     if (e.pointerId !== this.id) return;
     const moved = Math.hypot(e.clientX - this.sx, e.clientY - this.sy);
     if (this.mode === 'pending' && moved > SLOP_PX) {
@@ -186,6 +227,8 @@ export class Input {
   };
 
   private up = (e: PointerEvent): void => {
+    if (this.mode === 'pinch' && (e.pointerId === this.id || e.pointerId === this.id2))
+      return this.endPinch();
     if (e.pointerId !== this.id) return;
     window.clearTimeout(this.holdTimer);
     window.clearTimeout(this.veinTimer);
@@ -205,10 +248,24 @@ export class Input {
     this.cancel(e);
   };
 
-  private cancel = (e: PointerEvent): void => {
-    if (e.pointerId !== this.id) return;
+  private stopTimers(): void {
     window.clearTimeout(this.holdTimer);
     window.clearTimeout(this.veinTimer);
+  }
+
+  /** Either finger lifting ends a pinch; the other one does nothing until it is put down again. */
+  private endPinch(): void {
+    this.id = -1;
+    this.id2 = -1;
+    this.mode = 'idle';
+    this.path = [];
+  }
+
+  private cancel = (e: PointerEvent): void => {
+    if (this.mode === 'pinch' && (e.pointerId === this.id || e.pointerId === this.id2))
+      return this.endPinch();
+    if (e.pointerId !== this.id) return;
+    this.stopTimers();
     this.hold = null;
     this.touch = null;
     this.aimTile = null;
@@ -221,6 +278,15 @@ export class Input {
     e.preventDefault();
     const k = this.cssToArt();
     const unit = e.deltaMode === 1 ? 16 : 1;
+    // M7-05: Ctrl + wheel (and a trackpad pinch, which arrives the same way) zooms in whole steps
+    if (e.ctrlKey) {
+      this.wheelAcc += e.deltaY * unit;
+      if (Math.abs(this.wheelAcc) >= ZOOM.wheelStep) {
+        this.hooks.onZoom(this.wheelAcc < 0 ? 1 : -1);
+        this.wheelAcc = 0;
+      }
+      return;
+    }
     if (e.shiftKey) this.cam.x += e.deltaY * unit * k;
     else {
       this.cam.y += e.deltaY * unit * k;
