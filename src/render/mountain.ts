@@ -3,6 +3,7 @@
 import { MOUNTAIN } from '../data/touch';
 import { M, MATERIALS } from '../data/materials';
 import { SKY_ROWS } from '../data/constants';
+import { BIOMES } from '../data/biomes';
 import type { Game } from '../sim/game';
 
 const SKY = '#7FD6FF';
@@ -91,8 +92,10 @@ export class MountainView {
       dot(s.foreman.x, s.foreman.y, hex(FOREMAN));
       this.bctx.putImageData(img, 0, 0);
     }
-    const top = MOUNTAIN.padTop * dpr;
-    const avail = Math.max(1, H - top - MOUNTAIN.padBottom * dpr);
+    // on a wide screen the HUD keeps to the corners, so the map can use the full height
+    const wide = W / dpr >= MOUNTAIN.wideCss;
+    const top = (wide ? MOUNTAIN.padWide : MOUNTAIN.padTop) * dpr;
+    const avail = Math.max(1, H - top - (wide ? MOUNTAIN.padWide : MOUNTAIN.padBottom) * dpr);
     const k = Math.max(1, Math.floor(Math.min(W / w.w, avail / rows)));
     const ox = Math.floor((W - w.w * k) / 2);
     const oy = Math.floor(top + Math.max(0, (avail - rows * k) / 2));
@@ -102,6 +105,19 @@ export class MountainView {
     ctx.fillStyle = DUG;
     ctx.fillRect(0, 0, W, H);
     ctx.drawImage(this.buf, ox, oy, w.w * k, rows * k);
+    // where each biome begins, named down the left edge of the map
+    ctx.font = `${Math.round(11 * dpr)}px 'Pixelify Sans', sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (const b of BIOMES) {
+      const r = SKY_ROWS + Math.max(0, b.d0) - y0;
+      if (b.d0 < 0 || r < 0 || r >= rows) continue;
+      const y = oy + r * k;
+      ctx.fillStyle = '#5F6487';
+      ctx.fillRect(ox - 6 * dpr, y, 4 * dpr, Math.max(1, Math.round(dpr)));
+      ctx.fillStyle = '#E8F4F0';
+      ctx.fillText(b.name, ox - 10 * dpr, y);
+    }
   }
 
   /** The tile under a device-pixel point, or null off the map. */

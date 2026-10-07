@@ -112,7 +112,11 @@ function boot(): void {
       }
       const cx = cam.x + renderer.viewW / 2;
       const cy = cam.y + renderer.viewH / 2;
-      if (!renderer.zoom(dir)) return;
+      // past the farthest step, out goes to the whole mountain
+      if (!renderer.zoom(dir)) {
+        if (dir === -1) setMountain(true);
+        return;
+      }
       cam.x = cx - renderer.viewW / 2;
       cam.y = cy - renderer.viewH / 2;
     },

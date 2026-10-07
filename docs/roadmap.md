@@ -312,7 +312,7 @@ Tom approved all forty ideas from https://claude.ai/artifact/UsaEt12C1SSRMKns5xG
 
 **Exit:** on a phone you can always see the tile you are about to dig, and on a desktop you can see what is under the mouse.
 
-### [ ] M7-01 · The loupe · M
+### [x] M7-01 · The loupe · M · PR #19
 Goal: a touch on rock shows a magnifier above the finger, so the target is never hidden.
 Acceptance:
   1. A touch held on rock shows a round loupe about 100 CSS px above the finger, showing the tiles under the finger at 2× their on-screen size with the target tile outlined; it flips to the side near the top edge.
@@ -322,28 +322,28 @@ Acceptance:
 Out of scope: pinch zoom (M7-05), smart dig (M7-02).
 Depends on: none.
 
-### [ ] M7-02 · Smart dig · S
+### [x] M7-02 · Smart dig · S · PR #19
 Goal: taps snap to ore and a long press takes the whole vein.
 Acceptance:
-  1. A tool-bar toggle Smart dig (default on). With it on, a tap on rock within 1 tile of exposed, diggable ore targets the ore instead.
+  1. A Smart dig toggle in Settings (default on; ADR-031). With it on, a tap on rock within 1 tile of exposed, diggable ore targets the ore instead.
   2. A press held 600 ms on an ore tile without dragging queues every connected (8-way) visible ore tile of that vein the pick can break, nearest first, up to the queue limit.
   3. Tests cover the snap and the vein queue in a pure helper.
 Out of scope: Vein Break (M8-02).
 
-### [ ] M7-03 · Hover highlight · S
+### [x] M7-03 · Hover highlight · S · PR #19
 Goal: the mouse shows what it is over.
 Acceptance:
   1. On a mouse, the tile under the pointer is outlined. After 400 ms a small label shows material name, Foreman time to break it and what it drops, or "Needs the X pick" in red.
   2. No label on touch devices. Label text lives in `src/story`.
 
-### [ ] M7-04 · Tips out of the way · S
+### [x] M7-04 · Tips out of the way · S · PR #19
 Goal: tips never cover the dig face.
 Acceptance:
   1. Tip cards show as a slim strip under the header, one at a time.
   2. A tip only shows once its system is in play this run (water: flooded tiles reached; and so on), and tips not yet shown are dropped when their act is behind the player.
   3. Checked at both layouts.
 
-### [ ] M7-05 · Pinch zoom and the whole mountain · M
+### [x] M7-05 · Pinch zoom and the whole mountain · M · PR #19
 Goal: zoom in to aim, out to see the crew working.
 Acceptance:
   1. Pinch on touch, or Ctrl + wheel and +/− keys on desktop, step through whole-number render scales (phone ×1 to ×3 art scale, desktop ×2 to ×4).
@@ -351,7 +351,7 @@ Acceptance:
   3. Frame time stays inside the dev-bible budget at the far zoom with 40 miners.
 Note: covers idea 8 "See the whole mountain".
 
-### [ ] M7-06 · Small fixes · S
+### [x] M7-06 · Small fixes · S · PR #19
 Acceptance:
   1. Escape closes the open sheet before it clears the queue.
   2. ⌖, ▲ and ☰ get pixel icons with labels on phones ("Foreman", "Fields", "Menu").

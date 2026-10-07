@@ -239,6 +239,19 @@ export function App({ ui }: { ui: UiBridge }) {
     s.story.ever.includes(`used:${id}`) || s.stats.firsts[id] !== undefined;
   const cur = toolList.find((t) => t.id === ui.tool) ?? toolList[0]!;
 
+  const mountainBtn = (extra: string) => (
+    <button
+      class={`btn ibtn ${extra} ${ui.mountain ? 'primary' : ''}`}
+      onClick={() => ui.setMountain(!ui.mountain)}
+      aria-label="See the whole mountain"
+      aria-pressed={ui.mountain}
+      title="The whole mountain (tap the map to go there)"
+    >
+      <img src={spriteURL('icon-mountain')} alt="" />
+      <span class="il">Mountain</span>
+    </button>
+  );
+
   return (
     <>
       <div class="hud-top">
@@ -294,7 +307,11 @@ export function App({ ui }: { ui: UiBridge }) {
             </button>
           )}
           {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
-          {!sheet && <TipStrip ui={ui} />}
+          {!sheet && !ui.mountain && (
+            <div class="tip-slot">
+              <TipStrip ui={ui} />
+            </div>
+          )}
         </div>
         <ResChips s={s} biome={biome.id} wide={wide} />
       </div>
@@ -303,6 +320,7 @@ export function App({ ui }: { ui: UiBridge }) {
       <EndingChoice ui={ui} />
       <Toasts />
       <BiomeBanner />
+      {!wide && mountainBtn('panel mtn-float')}
       {!sheet && !ui.mountain && <EdgeMarkers ui={ui} />}
       {!sheet && !ui.mountain && <HoverLabel ui={ui} />}
       {!sheet && !ui.mountain && <DepthRuler ui={ui} />}
@@ -367,16 +385,7 @@ export function App({ ui }: { ui: UiBridge }) {
               <span class="il">Fields</span>
             </button>
           )}
-          <button
-            class={`btn ibtn ${ui.mountain ? 'primary' : ''}`}
-            onClick={() => ui.setMountain(!ui.mountain)}
-            aria-label="See the whole mountain"
-            aria-pressed={ui.mountain}
-            title="The whole mountain (tap the map to go there)"
-          >
-            <img src={spriteURL('icon-mountain')} alt="" />
-            <span class="il">Mountain</span>
-          </button>
+          {wide && mountainBtn('')}
           <button
             class={`btn ${sheet === 'village' ? 'primary' : ''} ${newInVillage && sheet !== 'village' ? 'new' : ''}`}
             onClick={() => setSheet(sheet === 'village' ? null : 'village')}

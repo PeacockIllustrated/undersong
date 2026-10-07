@@ -1449,16 +1449,49 @@ table.tally td + td {
   display: none;
 }
 @media (max-width: 600px) {
+  .nav .btn {
+    min-width: 0;
+    padding: 6px 4px;
+  }
   .nav .ibtn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
-    padding: 4px 6px;
+    gap: 2px;
+    padding: 4px 2px;
   }
   .ibtn .il {
     display: block;
-    font-size: calc(9px * var(--ts));
+    font-size: calc(8px * var(--ts));
     line-height: 1;
   }
+  /* M7-04: on a phone the tip takes the width of the screen, text above its buttons */
+  .tip-slot {
+    position: relative;
+    align-self: stretch;
+  }
+  .tip {
+    /* out of the column's flow, at its place in it, so it never squeezes the chips beside the column */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    flex-wrap: wrap;
+    width: calc(100vw - 20px);
+    max-width: none;
+  }
+  .tip span {
+    flex-basis: 100%;
+  }
+  .tip .btn:first-of-type {
+    margin-left: auto;
+  }
+}
+/* M7-05: on a phone the Mountain button sits by the depth ruler, out of the crowded nav */
+.mtn-float {
+  position: absolute;
+  z-index: 5;
+  right: 30px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 128px);
+  pointer-events: auto;
 }

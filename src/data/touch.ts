@@ -35,4 +35,13 @@ export const ZOOM = { phone: [1, 2, 3], desk: [2, 3, 4], pinchStep: 1.3, wheelSt
  * canon §18 M7-05: the Mountain view. Rows of sky above the grass, rows below the deepest worker,
  * CSS px kept clear for the HUD at the top and bottom, and how often the map is redrawn (ms).
  */
-export const MOUNTAIN = { sky: 6, below: 6, padTop: 84, padBottom: 124, redrawMs: 250 } as const;
+export const MOUNTAIN = {
+  sky: 6,
+  below: 6,
+  padTop: 84,
+  padBottom: 124,
+  /** From this CSS width up the HUD sits in the corners and the map only keeps a small margin. */
+  wideCss: 900,
+  padWide: 16,
+  redrawMs: 250,
+} as const;
