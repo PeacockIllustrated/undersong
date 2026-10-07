@@ -10,6 +10,12 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M12-05 (Enough aquamarine)
+Done: while the village has the silver pick but less aquamarine than the aquamarine pick needs, every tinker's cart carries a crate, and it holds aquamarine instead of bars. The crate is named for it, and the bot takes it. No mountain changes, so old saves are untouched (ADR-040). Canon §21.1.
+State: `npm run check` is green (144 tests). Act III, 9 seeds, 600 min: all finish, 140 to 240 min, median 182. Seed 48514 went from 306 to 238 min and no longer needs a fourth Cave-in. The slowest seed (24757, 240 min) does not stall at a gate; its third run just digs slowly. No village sits at the aquamarine gate any more.
+Next: every planned ticket is built. The Parking lot holds what is left.
+Questions for Tom: none.
+
 ## 2026-10-07 · M12-01 to M12-04 (Keep it)
 Done:
 - Saves: Copy save, Download save (a dated .txt), and Open a file or paste to import. Import checks the save, shows its cycle, depth, Echoes and verses, and replaces the game only after "Load this save". Plain JSON is accepted too.

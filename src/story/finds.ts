@@ -61,6 +61,9 @@ export const CART_TEXT: Record<CartOfferId, { name: string; text: (n: string) =>
   echo: { name: 'A memory in a jar', text: (n) => `+${n} Echo` },
 };
 
+/** M12-05: the crate when it carries aquamarine for the next pick. */
+export const CART_AQUA_NAME = 'A crate of aquamarine';
+
 export const CART_UI = {
   here: 'The tinker’s cart',
   hereShort: 'Cart',

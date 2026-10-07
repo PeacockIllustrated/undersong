@@ -46,6 +46,12 @@ export const CART_FX = {
   echo: 1,
 } as const;
 
+/**
+ * M12-05: while the village has the silver pick but not the aquamarine for the next, every cart carries a crate of
+ * aquamarine instead of bars, so a mountain thin in aquamarine never stops Act III. canon §21.1
+ */
+export const AQUA_CRATE = { pickTier: 4, res: 'aquamarine' as ResKey };
+
 /** The metal a cart crate holds, by the biome of your deepest tile this run. */
 export const CRATE_METAL: Record<number, ResKey> = {
   0: 'copperBar',

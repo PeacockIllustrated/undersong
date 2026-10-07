@@ -508,7 +508,7 @@ Acceptance:
   1. The bot places pumps so cress paddies appear in sims; it buys plots so the feast bell can ring; whether 150 crops is reachable in an ordinary run is answered in progress.md.
   2. The slow Act III seeds are explained in progress.md, with a fix ticketed if the cause is the game.
 
-### [ ] M12-05 · Enough aquamarine in every mountain · S
+### [x] M12-05 · Enough aquamarine in every mountain · S · PR #25
 Found by M12-04: the aquamarine pick needs 30 aquamarine (15 tiles at 2 each), but 4 of 45 sim mountains (9 seeds × 5 cycles) hold fewer than 15 aquamarine tiles in the Flooded Halls, and more hold fewer within reach. A village there cannot finish Act III that cycle and has to cave in.
 Acceptance:
   1. Every mountain can pay for the aquamarine pick: either the tinker's cart crate carries aquamarine while the Halls are the deepest biome, or the Halls' aquamarine has a floor. Existing saves keep their mountains (a generator change must not move tiles under an old save's diffs).

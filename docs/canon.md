@@ -492,16 +492,17 @@ Values live in `src/data/finds.ts`; names and notes in `src/story/finds.ts`.
 
 ### 21.1 The tinker's cart
 
-| Thing      | Value                                                                                                                                                            |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Visits     | first at 6 min into a run, then 6–10 min after you take an offer. The cart parks at column 43 and waits, away or not, until you take one; it leaves on a Cave-in |
-| Offers     | three different ones, drawn by weight: crate 4, tonic 3, grindstone 3, lamps 2, map 2, echo 1. The map is only offered while a verse is unfound this run         |
-| Crate      | 12 bars of the deepest biome's metal this run (copper, iron, silver, gold), × (1 + 0.5 × Cave-ins)                                                               |
-| Lamps      | 15 torches, or 5 lanterns from the Glowroot down                                                                                                                 |
-| Tonic      | miners dig ×2 for 2 min                                                                                                                                          |
-| Grindstone | you dig ×2 for 2 min                                                                                                                                             |
-| Map        | the nearest unfound verse glints, wherever the Foreman is, for 3 min                                                                                             |
-| Echo       | +1 Echo                                                                                                                                                          |
+| Thing            | Value                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Visits           | first at 6 min into a run, then 6–10 min after you take an offer. The cart parks at column 43 and waits, away or not, until you take one; it leaves on a Cave-in                     |
+| Offers           | three different ones, drawn by weight: crate 4, tonic 3, grindstone 3, lamps 2, map 2, echo 1. The map is only offered while a verse is unfound this run                             |
+| Crate            | 12 bars of the deepest biome's metal this run (copper, iron, silver, gold), × (1 + 0.5 × Cave-ins)                                                                                   |
+| Aquamarine crate | while the village has the silver pick but less aquamarine than the aquamarine pick needs, every cart carries a crate, and it holds aquamarine instead of bars (same amount) (M12-05) |
+| Lamps            | 15 torches, or 5 lanterns from the Glowroot down                                                                                                                                     |
+| Tonic            | miners dig ×2 for 2 min                                                                                                                                                              |
+| Grindstone       | you dig ×2 for 2 min                                                                                                                                                                 |
+| Map              | the nearest unfound verse glints, wherever the Foreman is, for 3 min                                                                                                                 |
+| Echo             | +1 Echo                                                                                                                                                                              |
 
 ### 21.2 The curio shelf
 

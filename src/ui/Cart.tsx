@@ -3,13 +3,16 @@ import { PICKS } from '../data/items';
 import { RES_NAMES } from '../data/resources';
 import { spriteURL } from '../render/sprites';
 import { offerValue } from '../sim/finds';
-import { CART_TEXT, CART_UI } from '../story/finds';
+import { CART_AQUA_NAME, CART_TEXT, CART_UI } from '../story/finds';
+import { AQUA_CRATE } from '../data/finds';
 import type { UiBridge } from './App';
 import { RES_ICON } from './icons';
 
 const mins = (ms: number): string => `${Math.round(ms / 60_000)} min`;
+/** Gems and stone are counted as they are: "+12 Aquamarine", not "Aquamarines". */
+const MASS = new Set(['aquamarine', 'crystal', 'heartstone']);
 const plural = (name: string, n: number): string =>
-  n === 1 ? name : name.endsWith('ch') ? `${name}es` : `${name}s`;
+  n === 1 || MASS.has(name.toLowerCase()) ? name : name.endsWith('ch') ? `${name}es` : `${name}s`;
 
 export function CartSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
   const s = ui.game.state;
@@ -46,7 +49,7 @@ export function CartSheet({ ui, close }: { ui: UiBridge; close: () => void }) {
                 }}
               >
                 <img src={spriteURL(icon)} alt="" />
-                <b>{t.name}</b>
+                <b>{id === 'crate' && v.res === AQUA_CRATE.res ? CART_AQUA_NAME : t.name}</b>
                 <span>{detail}</span>
               </button>
             );

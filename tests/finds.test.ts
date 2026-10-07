@@ -185,3 +185,30 @@ describe('rain (M10-04)', () => {
     expect(raining(g.state)).toBe(true);
   });
 });
+
+describe('the aquamarine crate (M12-05)', () => {
+  it('rides on every cart while the silver pick waits on aquamarine, and pays in it', async () => {
+    const { needsAqua } = await import('../src/sim/finds');
+    const { AQUA_CRATE } = await import('../src/data/finds');
+    const { PICKS } = await import('../src/data/items');
+    for (const seed of [1, 2, 3, 4, 5, 6]) {
+      const g = createGame(seed);
+      const s = g.state;
+      s.pickTier = AQUA_CRATE.pickTier;
+      s.stats.maxDepthD = BIOMES[3]!.d0 + 10;
+      expect(needsAqua(s)).toBe(true);
+      jump(g, CART.firstMs);
+      const i = s.cart.offers!.indexOf('crate');
+      expect(i).toBeGreaterThanOrEqual(0);
+      expect(offerValue(s, 'crate').res).toBe('aquamarine');
+      apply(g, { type: 'cart', i });
+      expect(s.res.aquamarine.toNumber()).toBe(CART_FX.crate.bars);
+    }
+    // once the aquamarine is in hand, the crate is bars again
+    const g = createGame(9);
+    g.state.pickTier = AQUA_CRATE.pickTier;
+    g.state.res.aquamarine = D(PICKS[AQUA_CRATE.pickTier + 1]!.cost[0]!.n);
+    expect(needsAqua(g.state)).toBe(false);
+    expect(offerValue(g.state, 'crate').res).not.toBe('aquamarine');
+  });
+});
