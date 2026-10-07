@@ -1,6 +1,7 @@
 // Draws the world, objects, characters and light. Reads game state; never writes it. dev-bible §1.6
 import { AIM, ZOOM } from '../data/touch';
 import { HEAP } from '../data/ui';
+import { ledByForeman } from '../sim/miners';
 import { HAULED, RES_KEYS } from '../data/resources';
 
 const BAR_KEYS = RES_KEYS.filter((k) => k.endsWith('Bar'));
@@ -308,6 +309,7 @@ export class Renderer {
 
     this.drawLight(w, tx0, ty0, tx1, ty1, now);
     this.drawHeat(game, tx0, ty0, tx1, ty1, now);
+    this.drawLed(game, now);
     this.fx.drawOverlay(ctx, now);
     const h = this.hover;
     if (h && !this.aimTile) {
@@ -719,6 +721,24 @@ export class Renderer {
   }
 
   /** canon §15: faces too hot to work shimmer; slowed ones glow faintly. Drawn over the dark so heat reads unlit. */
+  /** M9-06: miners the Foreman is leading glow gold, drawn over the dark so it reads in any light. */
+  private drawLed(game: Game, now: number): void {
+    const ctx = this.ctx;
+    const pulse = 0.35 + 0.25 * Math.sin(now / 260);
+    for (const m of game.state.miners) {
+      if (!m.target || m.stalledBy !== null || !ledByForeman(game, m)) continue;
+      const x = m.x * T;
+      const y = m.y * T;
+      ctx.fillStyle = `rgba(255,214,90,${pulse.toFixed(2)})`;
+      // a pixel halo round the miner and a spark over his head
+      ctx.fillRect(x + 3, y - 1, T - 6, 1);
+      ctx.fillRect(x + 2, y, 1, T - 1);
+      ctx.fillRect(x + T - 3, y, 1, T - 1);
+      ctx.fillStyle = '#FFF2A8';
+      ctx.fillRect(x + T / 2 - 1, y - 4 - (Math.floor(now / 300 + m.id) % 2), 2, 2);
+    }
+  }
+
   private drawHeat(game: Game, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
     const w = game.world;
     if (w.depth(ty1) < HEAT.fromD - HEAT.hotR) return;

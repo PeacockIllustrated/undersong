@@ -43,6 +43,7 @@ export function caveIn(g: Game): boolean {
   const s = g.state;
   if (!canCaveIn(s)) return false;
   const gain = echoGain(s);
+  const sung = s.verses.run.flatMap((k, i) => (k ? [i] : []));
   s.echoes = s.echoes.add(gain);
   s.echoesEver = s.echoesEver.add(gain);
   s.survey.push({
@@ -53,12 +54,14 @@ export function caveIn(g: Game): boolean {
     hand: 'yours',
   });
   s.stats.caveIns++;
+  s.lastRun = { miners: s.miners.length, depthByMin: s.runDepth };
+  s.runDepth = [];
   s.cycle++;
   s.seed = cycleSeed(s.seed, s.cycle);
   resetRun(s);
   attach(g, freshWorld(s));
-  g.events.push({ kind: 'caveIn' });
-  s.story.events.push({ kind: 'caveIn' });
+  g.events.push({ kind: 'caveIn', verses: sung });
+  s.story.events.push({ kind: 'caveIn', verses: sung });
   return true;
 }
 
@@ -73,6 +76,7 @@ export function resetRun(s: GameState): void {
   s.buildings = { forge: 1, lampworks: 0, kiln: 0, songloom: 0 };
   s.pickTier = s.heirloomTier;
   s.whetstone = 0;
+  s.metalwork = {};
   s.haulTier = s.upgrades.rememberedRope ? 1 : 0;
   s.forge = { progress: 0, recipe: 'auto', next: 0 };
   s.haulAcc = 0;

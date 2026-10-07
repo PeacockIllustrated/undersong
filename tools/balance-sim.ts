@@ -5,10 +5,19 @@ import { MATERIALS, canDig, isMineable } from '../src/data/materials';
 import { lightFactor } from '../src/data/light';
 import { apply } from '../src/sim/actions';
 import { canCaveIn, echoGain } from '../src/sim/cavein';
-import { minerCost, nextHaul, nextPick, canPay, whetstoneCost } from '../src/sim/economy';
+import {
+  minerCost,
+  metalworkCost,
+  metalworkOffered,
+  nextHaul,
+  nextPick,
+  canPay,
+  whetstoneCost,
+} from '../src/sim/economy';
+import { METALWORK } from '../src/data/economy';
 import { buildingCost, buildingOffered, canCraft } from '../src/sim/village';
 import { UPGRADES } from '../src/data/upgrades';
-import { BIOMES } from '../src/data/biomes';
+import { BIOMES, biomeAt } from '../src/data/biomes';
 import { createGame, loadGame, type Game } from '../src/sim/game';
 import { shaftFloor } from '../src/sim/miners';
 import { reach, workable } from '../src/sim/reach';
@@ -23,7 +32,7 @@ import { CHARMS } from '../src/data/charms';
 import { PUMP } from '../src/data/water';
 import { canWeave, weaveCost } from '../src/sim/charms';
 import { flooded } from '../src/sim/water';
-import { surfaceAffordable, villageAffordable } from '../src/ui/feedback';
+import { echoAffordable, surfaceAffordable, villageAffordable } from '../src/ui/feedback';
 import { helperCost, helperOffered } from '../src/sim/helpers';
 import { heatAt } from '../src/sim/heat';
 import { HEAT } from '../src/data/heat';
@@ -316,6 +325,19 @@ function sharpen(g: Game): void {
   }
 }
 
+/** M9-02: the deep metals' repeatable buys, from spare metal only (a fifth of what is in hand). */
+function polish(g: Game): void {
+  const s = g.state;
+  for (const m of METALWORK) {
+    for (;;) {
+      if (!metalworkOffered(s, m.id)) break;
+      const c = metalworkCost(s, m.id)[0]!.amount;
+      if (s.res[m.res].lt(c) || c.gt(s.res[m.res].mul(0.2))) break;
+      apply(g, { type: 'metalwork', id: m.id });
+    }
+  }
+}
+
 /** Act I shopping. */
 function shop(g: Game): void {
   const s = g.state;
@@ -563,6 +585,9 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
   let lastBuyable = 0;
   let gap = 0;
   let gapAt = 0;
+  // M9-01: the longest wait with nothing to buy in each act, over the whole run, by the act the village has reached
+  const actGap: Record<string, number> = {};
+  let anyBuyable = 0;
   const act2: {
     glowroot?: number;
     verse4?: number;
@@ -610,6 +635,10 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         if (s.t - lastBuyable > gap) gapAt = lastBuyable;
         gap = Math.max(gap, s.t - lastBuyable);
       }
+      if (villageAffordable(g) || surfaceAffordable(g) || echoAffordable(g)) anyBuyable = t;
+      const act = biomeAt(s.stats.bestDepthD).act;
+      actGap[act] = Math.max(actGap[act] ?? 0, t - anyBuyable);
+      polish(g);
       if (act2Mode) shopA2(g);
       else shop(g);
       placeTorches(g);
@@ -702,6 +731,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
     depth: s.stats.maxDepthD * 4,
     gap,
     gapAt,
+    ...Object.fromEntries(Object.entries(actGap).map(([a, v]) => [`wait${a}`, v])),
     miners: s.miners.length,
     ...(act2.glowroot !== undefined ? { glowroot: act2.glowroot } : {}),
     ...(act2.act3 !== undefined ? { act3: act2.act3 } : {}),
@@ -735,6 +765,19 @@ if (wait > MAX_WAIT_S) ok = false;
 console.log(
   `${'Longest wait, nothing to buy'.padEnd(28)}  first 15 min · median ${wait.toFixed(0)} s (≤${MAX_WAIT_S}) · ${runs.map((r) => ((r.gap ?? 0) / 1000).toFixed(0) + 's@' + ((r.gapAt ?? 0) / 60000).toFixed(1)).join(' ')} ${wait <= MAX_WAIT_S ? '✓' : '✗'}`,
 );
+// M9-01: in the long runs, no act may leave the median player more than this long with nothing to buy
+const MAX_ACT_WAIT_MIN = 10;
+if (ACT2)
+  for (const a of ['I', 'II', 'III', 'IV']) {
+    const k = `wait${a}`;
+    const ws = runs.map((r) => (r[k] ?? NaN) / 60000).filter((v) => !Number.isNaN(v));
+    if (!ws.length) continue;
+    const m = median(ws);
+    if (m > MAX_ACT_WAIT_MIN) ok = false;
+    console.log(
+      `${`Longest wait, Act ${a}`.padEnd(28)} ≤${MAX_ACT_WAIT_MIN}m  ${m.toFixed(1).padStart(6)}m  ${ws.map((v) => v.toFixed(1).padStart(5)).join(' ')} ${m <= MAX_ACT_WAIT_MIN ? '✓' : '✗'}`,
+    );
+  }
 if (!ACT2)
   console.log(
     `${'Echoes at first Cave-in'.padEnd(28)}  6–10   ${String(ech).padStart(6)}   ${runs.map((r) => String(r.echoes).padStart(5)).join(' ')} ${ech >= 6 && ech <= 10 ? '✓' : '✗'}`,

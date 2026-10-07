@@ -1,5 +1,5 @@
 // Multipliers from Echoes and Echo upgrades, in one place so every rate reads them the same way. canon §4.11, §10
-import { ECHO_POWER, VEIN_RUSH, WHETSTONE } from '../data/economy';
+import { ECHO_POWER, METALWORK, VEIN_RUSH, WHETSTONE } from '../data/economy';
 import { UPGRADE_FX } from '../data/upgrades';
 import { CHARM_FX, type CharmId } from '../data/charms';
 import { PICKS } from '../data/items';
@@ -49,8 +49,19 @@ export function rushStep(s: GameState): number {
 
 export function minerMult(s: GameState): number {
   return (
-    villageMult(s) * (s.upgrades.strongBacks ? UPGRADE_FX.strongBacks : 1) * charm(s, 'name') * minerFood(s)
+    villageMult(s) *
+    (s.upgrades.strongBacks ? UPGRADE_FX.strongBacks : 1) *
+    charm(s, 'name') *
+    minerFood(s) *
+    metalworkMult(s, 'miners')
   );
+}
+
+/** M9-02: speed from the deep metals' buys, for miners or for hand-mining. */
+export function metalworkMult(s: GameState, fx: 'miners' | 'hands'): number {
+  let k = 1;
+  for (const m of METALWORK) if (m.fx === fx) k += m.per * (s.metalwork[m.id] ?? 0);
+  return k;
 }
 
 export function handsMult(s: GameState): number {
@@ -59,7 +70,8 @@ export function handsMult(s: GameState): number {
     (s.upgrades.steadyHands ? UPGRADE_FX.steadyHands : 1) *
     (1 + WHETSTONE.perLevel * s.whetstone) *
     charm(s, 'hush') *
-    handFood(s)
+    handFood(s) *
+    metalworkMult(s, 'hands')
   );
 }
 

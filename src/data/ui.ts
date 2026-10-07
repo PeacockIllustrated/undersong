@@ -1,4 +1,4 @@
-// Numbers for the shop UI. canon §19.
+// Numbers for the shop UI and the Cave-in. canon §19, §20.
 import type { ResKey } from './resources';
 
 /** canon §19 M8-03: income for "ready in" is averaged over this many seconds of gains. */
@@ -42,3 +42,9 @@ export const RES_COLOUR: Partial<Record<ResKey, string>> = {
   barley: '#F2A35E',
   timber: '#6B4329',
 };
+
+/**
+ * canon §20 M9-04: the Cave-in's beats, in ms from the tap. The shaft folds in, the Echoes count up over the run's
+ * verses, a stone drops on the cairn, then the last line; the run opens at `end`.
+ */
+export const CEREMONY = { fold: 1600, count: 4000, stone: 4900, line: 5000, end: 6600 } as const;

@@ -2,10 +2,19 @@
 import { HEAT } from '../data/heat';
 import { lightFactor } from '../data/light';
 import { HELPERS } from '../data/helpers';
-import { BUILDINGS } from '../data/economy';
+import { BUILDINGS, METALWORK } from '../data/economy';
 import { HAULED } from '../data/resources';
 import { UPGRADES } from '../data/upgrades';
-import { canPay, haulRate, minerCost, nextHaul, nextPick, whetstoneCost } from '../sim/economy';
+import {
+  canPay,
+  haulRate,
+  metalworkCost,
+  metalworkOffered,
+  minerCost,
+  nextHaul,
+  nextPick,
+  whetstoneCost,
+} from '../sim/economy';
 import { helperCost, helperOffered } from '../sim/helpers';
 import { buildingCost, buildingOffered } from '../sim/village';
 import { mealCost, plotCost, saplingCost } from '../sim/surface';
@@ -79,6 +88,7 @@ export function villageAffordable(g: Game): boolean {
   const mc = minerCost(s);
   if (s.res[mc.res].gte(mc.amount)) return true;
   if (canPay(s, whetstoneCost(s))) return true;
+  if (METALWORK.some((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id)))) return true;
   const p = nextPick(s);
   if (p && canPay(s, p)) return true;
   const h = nextHaul(s);

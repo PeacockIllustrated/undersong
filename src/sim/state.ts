@@ -3,11 +3,11 @@ import type { ObjKind } from '../data/objects';
 import { RES_KEYS, type ResKey } from '../data/resources';
 import { SHAFT_X, SKY_ROWS } from '../data/constants';
 import { Decimal, ZERO } from './decimal';
-import type { Recipe } from '../data/economy';
+import type { MetalworkId, Recipe } from '../data/economy';
 import type { HelperId } from '../data/helpers';
 import type { CropId, MealId, WoodBuyId } from '../data/surface';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 export interface Tile {
   x: number;
@@ -142,7 +142,8 @@ export type StoryEvent =
   | { kind: 'chest'; res: ResKey; n: string }
   | { kind: 'unlock'; id: string }
   | { kind: 'collapse'; x: number; y: number }
-  | { kind: 'caveIn' }
+  /** verses (M9-04): found this run, for the Cave-in's song. Optional: older saves have none. */
+  | { kind: 'caveIn'; verses?: number[] }
   | { kind: 'ending'; which: 'seal' | 'sing' };
 
 export interface GameState {
@@ -161,6 +162,8 @@ export interface GameState {
   pickTier: number;
   /** Whetstone levels this run (canon §9.2). */
   whetstone: number;
+  /** M9-02: levels of each deep metal's repeatable buy this run (canon §20). */
+  metalwork: Partial<Record<MetalworkId, number>>;
   haulTier: number;
   forge: { progress: number; recipe: Recipe; next: number };
   /** Fractional ore waiting to be hauled up this tick. */
@@ -213,6 +216,10 @@ export interface GameState {
   surface: Surface;
   /** Wall-clock ms when last saved, for offline progress. Set by the save layer, never the sim. */
   savedAt: number;
+  /** M9-05: deepest depth (tiles) reached by the end of each minute of this run, capped at GHOST.capMin. */
+  runDepth: number[];
+  /** M9-03 and M9-05: what the last run left behind: its miner count and its depth by minute. */
+  lastRun: { miners: number; depthByMin: number[] };
 }
 
 /** The Survey Book is never empty: earlier cycles left pages, in the Foreman's own hand. */
@@ -241,6 +248,7 @@ export function newGame(seed: number): GameState {
     buildings: { forge: 1, lampworks: 0, kiln: 0, songloom: 0 },
     pickTier: 0,
     whetstone: 0,
+    metalwork: {},
     haulTier: 0,
     forge: { progress: 0, recipe: 'auto', next: 0 },
     haulAcc: 0,
@@ -286,5 +294,7 @@ export function newGame(seed: number): GameState {
     heirloomTier: 0,
     surface: newSurface(),
     savedAt: 0,
+    runDepth: [],
+    lastRun: { miners: 0, depthByMin: [] },
   };
 }

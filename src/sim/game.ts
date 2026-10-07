@@ -16,6 +16,7 @@ import type { Tile } from './state';
 export type SimEvent =
   | { kind: 'mined'; x: number; y: number; m: number; by: 'foreman' | 'miner' }
   | { kind: 'refused'; x: number; y: number; needs?: string }
+  | { kind: 'ahead'; min: number }
   | { kind: 'drop'; x: number; y: number; res: string; n: number }
   | { kind: 'smelt'; bar: string }
   /** Holloway above (canon §17): a plot reaped, a tree felled. x is the tile column. */
@@ -34,7 +35,8 @@ export type SimEvent =
   | { kind: 'collapse'; x: number; y: number }
   /** A new depth record since the last Cave-in. */
   | { kind: 'record'; ft: number }
-  | { kind: 'caveIn' };
+  /** verses: the verses found this run, for the Cave-in's song (M9-04). */
+  | { kind: 'caveIn'; verses: number[] };
 
 export interface Game {
   state: GameState;
@@ -61,6 +63,10 @@ export interface Game {
   tally?: Tally;
   /** M8-02: a Vein Break under way (not saved: a save mid-break just leaves the rest of the vein standing). */
   shatter?: { tiles: Tile[]; i: number; ms: number; m: number };
+  /** M9-03: run time of the last miner Bunkhouse Roll hired. */
+  rehiredAt?: number;
+  /** M9-05: ahead of last run's ghost at the last step. */
+  ahead?: boolean;
 }
 
 export function worldFor(state: GameState): World {

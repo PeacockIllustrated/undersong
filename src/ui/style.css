@@ -27,6 +27,8 @@ body {
   background: var(--night);
   color: var(--ink);
   font-family: var(--body);
+  /* the pixel fonts draw a broken "fi" ligature ("find" read as "And") */
+  font-variant-ligatures: none;
   overflow: hidden;
   overscroll-behavior: none;
   -webkit-user-select: none;
@@ -1643,4 +1645,136 @@ button.neck {
   .depth .biome .bname {
     display: none;
   }
+}
+
+/* M9-05: last run's ghost on the depth ruler, a pale notch on the left */
+.ruler .ghost-mark {
+  left: -8px;
+  width: 8px;
+  height: 4px;
+  background: var(--ink);
+  opacity: 0.7;
+}
+
+/* M9-04: the Cave-in ceremony */
+.ceremony {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+.ceremony.dark,
+.ceremony.still {
+  background: var(--night);
+}
+/* the shaft folds in from the top: rock bands drop in whole steps */
+.ceremony .fold {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: repeating-linear-gradient(180deg, #373a52 0 24px, #262940 24px 48px, #4b4f6b 48px 56px);
+  transform-origin: top;
+  animation: fold 1.6s steps(8) forwards;
+}
+@keyframes fold {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.ceremony.dark .fold {
+  display: none;
+}
+.ceremony-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  text-align: center;
+}
+.ceremony .forget {
+  font-family: var(--display);
+  font-size: calc(clamp(15px, 3vw, 22px) * var(--ts));
+  color: var(--ink-dim);
+  margin: 0;
+}
+.ceremony .echo-count {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: calc(clamp(26px, 6vw, 44px) * var(--ts));
+  color: var(--glow);
+  font-variant-numeric: tabular-nums;
+}
+.ceremony .echo-count img {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+.ceremony .sung {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: calc(16px * var(--ts));
+  color: var(--slate-3);
+}
+.ceremony .sung .on {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(255, 214, 90, 0.6);
+}
+.ceremony .cairn {
+  width: 96px;
+  height: auto;
+  image-rendering: pixelated;
+}
+.ceremony .cairn.dropping {
+  animation: drop 0.9s steps(6) both;
+}
+@keyframes drop {
+  from {
+    transform: translateY(-120px);
+  }
+  70% {
+    transform: translateY(0);
+  }
+  85% {
+    transform: translateY(-6px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.ceremony .last {
+  font-family: var(--display);
+  font-size: calc(clamp(15px, 3vw, 20px) * var(--ts));
+  color: var(--gold-pale);
+  margin: 0;
+  animation: rise 0.8s ease-out;
+}
+.ceremony .skip {
+  font-size: calc(12px * var(--ts));
+  color: var(--ink-dim);
+  margin: 12px 0 0;
+}
+:root[data-motion='reduced'] .ceremony .last {
+  animation: none;
+}
+/* a direct child of #ui, which turns pointer events off for its children: tap to skip needs them back */
+#ui > .ceremony {
+  pointer-events: auto;
+}
+button {
+  font-variant-ligatures: none;
 }

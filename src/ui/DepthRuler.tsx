@@ -1,8 +1,10 @@
 // Polish item 7: a depth ruler on the right edge, to scale, with a band per biome.
-// Reached bands show their colour; the next one is hatched and unnamed. Markers: you, your best, the Homecoming line.
+// Reached bands show their colour; the next one is hatched and unnamed. Markers: you, your best, the Homecoming line,
+// and (M9-05) last run's ghost at this minute.
 import { BIOMES, BIOME_BAND, biomeAt } from '../data/biomes';
 import { SHAFT_X, ftFromDepthTiles } from '../data/constants';
 import { homecoming, homeUntilD } from '../sim/power';
+import { ghostDepth } from '../sim/memory';
 import type { UiBridge } from './App';
 
 export function DepthRuler({ ui }: { ui: UiBridge }) {
@@ -18,6 +20,8 @@ export function DepthRuler({ ui }: { ui: UiBridge }) {
   // hidden in Holloway: the ruler is for the dig
   if (you < 1) return null;
   const home = homecoming(s) > 1 ? homeUntilD(s) : null;
+  // M9-05: where you were at this minute of the last run
+  const ghost = ghostDepth(s);
   return (
     <div class="ruler" aria-label="Depth ruler">
       {BIOMES.filter((b) => b.id > 0 && b.d0 < bottom).map((b) => {
@@ -40,6 +44,13 @@ export function DepthRuler({ ui }: { ui: UiBridge }) {
         );
       })}
       {home !== null && <i class="mark home-mark" style={{ top: pct(home) }} title="Homecoming ends here" />}
+      {ghost !== null && ghost >= 1 && (
+        <i
+          class="mark ghost-mark"
+          style={{ top: pct(ghost) }}
+          title={`Last cycle at this minute: ${ftFromDepthTiles(ghost)} ft`}
+        />
+      )}
       <i class="mark best-mark" style={{ top: pct(best) }} title={`Deepest: ${ftFromDepthTiles(best)} ft`} />
       <i class="mark you-mark" style={{ top: pct(you) }} title={`You: ${ftFromDepthTiles(you)} ft`} />
     </div>

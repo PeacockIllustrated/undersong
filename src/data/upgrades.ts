@@ -120,13 +120,22 @@ export const UPGRADES: readonly UpgradeDef[] = [
     text: 'Start each run with 30 copper bars and 10 tin bars.',
     requires: 'rememberedRope',
   },
+  // M9-03: the bunkhouse remembers who worked last time
+  {
+    id: 'bunkhouseRoll',
+    name: 'Bunkhouse Roll',
+    branch: 'memory',
+    cost: 12,
+    text: 'After a Cave-in, miners hire themselves as bars come in, up to last run’s count.',
+    requires: 'bramsLedger',
+  },
   {
     id: 'oldShafts',
     name: 'Old Shafts',
     branch: 'memory',
     cost: 16,
     text: 'The shaft is already dug to half your best depth.',
-    requires: 'bramsLedger',
+    requires: 'bunkhouseRoll',
   },
   {
     id: 'longShift',

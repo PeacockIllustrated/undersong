@@ -10,6 +10,23 @@ Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
 
+## 2026-10-07 · M9-01 to M9-06 (The deep game)
+Done:
+- The sim reports the longest wait with nothing to buy in each act; Act II runs fail above 10 minutes.
+- Metalwork: a cheap repeatable buy for silver, crystal, ember ore and gold (canon §20).
+- Bunkhouse Roll (Memory, 12 Echoes): after a Cave-in, miners rehire themselves up to last run's count.
+- The Cave-in ceremony: the shaft folds, Echoes count up over this run's verse notes, a stone drops on the cairn, "Last cycle you reached N ft". Tap skips; reduced motion shows a still card.
+- A ghost mark on the depth ruler for last run at this minute, and an "ahead of last cycle" toast.
+- Miners near the Foreman dig ×1.25 with a gold halo. Save v8 with migration and test. ADR-034.
+- UI fix: ligatures are off, so "fi" no longer renders as a stray glyph.
+State:
+- `npm run check` is green.
+- 8 ending seeds: median about 620 against 690 (−10%). Per-act median waits are under 10 minutes; single seeds still hit 10.8 (Act II) and 17.3 (Act III).
+- Act III median is about 300 against 390 (−23%). It was already 240 before M9 (M8 runs), so this is old and needs its own tune.
+- Seed 32676 reaches 1000 ft but never learns verses IX–XII in 1000 minutes; that is a bot problem, not a game one, and is in the Parking lot.
+Next: M10.
+Questions for Tom: none.
+
 ## 2026-10-07 · M8-01 to M8-06 (Payoffs)
 Done:
 - The first 15 minutes are busier. The first miner costs 12, the whetstone costs 1 × 1.4^n, a torch craft makes 5, and the copper pick costs 22.

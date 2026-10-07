@@ -181,6 +181,8 @@ export const VERSE_PHRASE = 5;
 export const VERSE_NOTE_S = 0.24;
 export const VERSE_RING_S = 1.3;
 export const VERSE_GAIN = 0.12;
+/** canon §20 M9-04: the Cave-in sings this run's verses, one note each, starting this long after the fold. */
+export const CAVEIN_SONG = { delayS: 1.6, gapS: 0.3 } as const;
 
 /** The drone under the mountain, per biome id (canon §2): its root in Hz. Holloway, on the surface, has none. */
 export const DRONE_ROOTS: readonly number[] = [0, 55, 65.41, 49, 73.42, 46.25, 55];

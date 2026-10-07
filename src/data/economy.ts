@@ -133,6 +133,26 @@ export const HAULS: readonly HaulDef[] = [
 /** canon §9.2 Whetstone (ADR-020): a cheap, always-there buy. Each level sharpens the Foreman's hand-mining. */
 export const WHETSTONE = { base: 1, growth: 1.4, perLevel: 0.12 };
 
+/**
+ * canon §20 M9-02: a cheap repeatable buy for each deep metal, like the whetstone. Level n costs base × growth^n of
+ * its resource; each level adds `per` to miners' or hand-mining speed. All reset on a Cave-in.
+ */
+export type MetalworkId = 'silvered' | 'tuned' | 'banked' | 'gilded';
+export const METALWORK: readonly {
+  id: MetalworkId;
+  name: string;
+  res: ResKey;
+  base: number;
+  growth: number;
+  fx: 'miners' | 'hands';
+  per: number;
+}[] = [
+  { id: 'silvered', name: 'Silvered bits', res: 'silverBar', base: 1, growth: 1.6, fx: 'miners', per: 0.05 },
+  { id: 'tuned', name: 'Tuning fork', res: 'crystal', base: 2, growth: 1.6, fx: 'hands', per: 0.1 },
+  { id: 'banked', name: 'Banked embers', res: 'emberOre', base: 2, growth: 1.6, fx: 'miners', per: 0.05 },
+  { id: 'gilded', name: 'Gilded handles', res: 'goldBar', base: 1, growth: 1.6, fx: 'hands', per: 0.1 },
+];
+
 /** canon §9 Torch: 1 copper bar makes 3. */
 export const TORCH_CRAFT = { cost: { res: 'copperBar', n: 1 } as Cost, makes: 5 };
 

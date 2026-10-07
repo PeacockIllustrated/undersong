@@ -11,6 +11,7 @@ import { ECHO } from '../data/economy';
 import { nextTip } from '../story/tips';
 import { CHOICE, SCENES, SUNG_BACK } from '../story/ending';
 import { endingReady } from '../sim/ending';
+import { Ceremony } from './Ceremony';
 
 const PORTRAIT: Record<string, string> = {
   pell: 'pell',
@@ -35,24 +36,24 @@ export function StoryLayer({ ui }: { ui: UiBridge }) {
     }
     if (ev.kind === 'caveIn') {
       setCave(1);
-      const a = window.setTimeout(() => setCave(2), 1600);
-      const b = window.setTimeout(() => {
-        setCave(0);
-        ui.dispatch({ type: 'ackStory' });
-        window.dispatchEvent(new Event('undersong:cavein-done'));
-      }, 4200);
-      return () => (window.clearTimeout(a), window.clearTimeout(b));
+      return undefined;
     }
     if (ev.kind !== 'verse' && ev.kind !== 'ending') ui.dispatch({ type: 'ackStory' });
     return undefined;
   }, [ev]);
   void shownAt;
 
-  if (cave)
+  if (cave && ev?.kind === 'caveIn')
     return (
-      <div class={`collapse stage${cave}`} aria-live="assertive">
-        {cave === 2 && <p>The mountain settles. The village forgets.</p>}
-      </div>
+      <Ceremony
+        s={ui.game.state}
+        verses={ev.verses ?? []}
+        done={() => {
+          setCave(0);
+          ui.dispatch({ type: 'ackStory' });
+          window.dispatchEvent(new Event('undersong:cavein-done'));
+        }}
+      />
     );
   if (!ev) return null;
   if (ev.kind === 'line') {

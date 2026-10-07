@@ -5,7 +5,9 @@ import {
   DRONE,
   DRONE_ROOTS,
   MASTER_GAIN,
+  CAVEIN_SONG,
   VERSE_GAIN,
+  VERSE_MOTIF,
   VERSE_NOTE_S,
   VERSE_RING_S,
   type Cue,
@@ -133,6 +135,24 @@ export class Sound {
         o.start(at);
         o.stop(at + VERSE_RING_S + 0.1);
       }
+    });
+  }
+
+  /** M9-04: the Cave-in sings one note for each verse found this run, under the Echo count. */
+  song(verses: readonly number[], nowMs: number): void {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state !== 'running' || this.sfxLevel <= 0 || !verses.length) return;
+    if (!this.throttle.allow('song', 3000, nowMs)) return;
+    const t0 = ctx.currentTime + CAVEIN_SONG.delayS;
+    verses.forEach((v, i) => {
+      const f = VERSE_MOTIF[Math.min(VERSE_MOTIF.length - 1, v)]!;
+      const at = t0 + i * CAVEIN_SONG.gapS;
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      o.connect(this.envelope(at, 0.01, VERSE_RING_S, VERSE_GAIN, this.sfx));
+      o.start(at);
+      o.stop(at + VERSE_RING_S + 0.1);
     });
   }
 

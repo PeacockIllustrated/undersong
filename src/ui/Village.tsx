@@ -6,12 +6,24 @@ import {
   LAMPWORKS,
   TORCH_CRAFT,
   WHETSTONE,
+  METALWORK,
   type BuildingId,
   type CraftId,
   type Recipe,
 } from '../data/economy';
 import { PICKS } from '../data/items';
-import { canPay, haulRate, minerCost, nextHaul, nextPick, torchCost, whetstoneCost } from '../sim/economy';
+import {
+  canPay,
+  haulRate,
+  metalworkCost,
+  metalworkOffered,
+  minerCost,
+  nextHaul,
+  nextPick,
+  torchCost,
+  whetstoneCost,
+} from '../sim/economy';
+import { metalFx } from '../story/shop';
 import { minerOreRate } from '../sim/miners';
 import { buildingCost, buildingDef, buildingOffered, craftCost, lanterns, lumenUpkeep } from '../sim/village';
 import { lumenMult } from '../sim/power';
@@ -228,7 +240,9 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
     {
       id: 'build',
       label: 'Build',
-      n: [minerC, pickC, haulC, whetC].filter((c) => c && canPay(s, c)).length,
+      n:
+        [minerC, pickC, haulC, whetC].filter((c) => c && canPay(s, c)).length +
+        METALWORK.filter((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))).length,
     },
   ];
   if (s.surface.tansy) tabs.push({ id: 'fields', label: 'Fields', n: fieldsReady(s) });
@@ -351,7 +365,11 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
             <section
               class="card"
               data-card="pick"
-              style={first(canPay(s, whetC) || (!!pickC && canPay(s, pickC)))}
+              style={first(
+                canPay(s, whetC) ||
+                  (!!pickC && canPay(s, pickC)) ||
+                  METALWORK.some((m) => metalworkOffered(s, m.id) && canPay(s, metalworkCost(s, m.id))),
+              )}
             >
               <img class="icon" src={spriteURL(PICKS[s.pickTier]!.sprite)} alt="" />
               <div class="grow">
@@ -364,6 +382,18 @@ export function VillageSheet({ ui, close }: { ui: UiBridge; close: () => void })
                   Sharpen it <em>+{Math.round(WHETSTONE.perLevel * 100)}% hand-mining</em>
                 </BuyRow>
                 {s.whetstone > 0 && <p class="small">Whetstone level {s.whetstone}</p>}
+                {METALWORK.filter((m) => metalworkOffered(s, m.id)).map((m) => (
+                  <div key={m.id}>
+                    <BuyRow ui={ui} of={{ k: 'metal', id: m.id }}>
+                      {m.name} <em>{metalFx(m.fx, m.per)}</em>
+                    </BuyRow>
+                    {(s.metalwork[m.id] ?? 0) > 0 && (
+                      <p class="small">
+                        Level {s.metalwork[m.id]} · {metalFx(m.fx, m.per * (s.metalwork[m.id] ?? 0))} this run
+                      </p>
+                    )}
+                  </div>
+                ))}
                 {pickC ? (
                   <PriceButton s={s} costs={pickC} onClick={() => ui.dispatch({ type: 'buyPick' })}>
                     Forge the {nextP!.name.toLowerCase()}{' '}

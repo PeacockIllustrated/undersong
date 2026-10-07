@@ -66,6 +66,9 @@ export function cuesFor(e: SimEvent, seen: boolean, chain: number): Play[] {
     case 'verse':
     case 'rush':
       return [];
+    // M9-05: passing last run's ghost sounds like a find
+    case 'ahead':
+      return [{ id: 'chest' }];
     // M8-02: a vein gives way like a find, then each tile pops higher; Geode veins ring instead of crunch
     case 'veinBreak':
       return [{ id: 'chest' }];
