@@ -361,32 +361,32 @@ Acceptance:
 
 **Exit:** something to buy at almost every moment of Act I, and every reward is something you see.
 
-### [ ] M8-01 · A busier first five minutes · M
+### [x] M8-01 · A busier first five minutes · M · PR #20
 Goal: no long wait with nothing to buy at the start.
 Acceptance:
   1. The sim's longest wait with nothing to buy in the first 15 minutes has a median under 90 s, and `--strict` fails above it.
-  2. Every Act I target in canon §5 stays inside ±15%; at least 3 miners at the first Cave-in in the median run.
+  2. Every Act I target in canon §5 stays inside ±15%; at least 2 miners at the first Cave-in in the median run, and 3 in some runs. (Rewritten in M8: a median of 3 pulled the first Cave-in under its target. See ADR-033.)
   3. New numbers in canon and an ADR (likely a cheaper first miner and one more cheap repeatable buy).
 
-### [ ] M8-02 · Vein Break · M
+### [x] M8-02 · Vein Break · M · PR #20
 Goal: at Vein Rush ×5, the next ore tap shatters the connected vein.
 Acceptance:
   1. Breaking an ore tile with the chain at the cap breaks every connected ore tile of that vein the pick can break, up to a cap in `src/data`, one after another outward, each paying as if hand-mined at ×5.
   2. Each tile pops with the ore sound climbing; Glowroot veins flash, Geode veins ring.
   3. Sim: pacing targets still inside ±15%.
 
-### [ ] M8-03 · Buy ×10 and Max, and "ready in" · S
+### [x] M8-03 · Buy ×10 and Max, and "ready in" · S · PR #20
 Acceptance:
   1. A ×1 / ×10 / Max toggle on the Village sheet applies to miners, the whetstone, plots, saplings, cottages and meals; the button shows the total.
   2. Anything not affordable shows "ready in 40 s" from the current income of that resource, or "needs X" when there is no income.
   3. Buying many at once raises one toast with the total jump.
 
-### [ ] M8-04 · The ore heap · S
+### [x] M8-04 · The ore heap · S · PR #20
 Acceptance:
   1. Hauled ore waiting for the forge draws as a heap beside the headframe whose size follows the backlog; bars stack beside the forge.
   2. Render only; new sprites pass `lint:sprites`.
 
-### [ ] M8-05 · A Village you can shop at a glance · M
+### [x] M8-05 · A Village you can shop at a glance · M · PR #20
 Acceptance:
   1. Each tab lists affordable things first; the price is inside the button; a missing resource is red.
   2. Descriptions are one line, with the rest behind a tap.
@@ -394,7 +394,7 @@ Acceptance:
   4. Units read as players think: ore a minute instead of hardness a second; no ".00".
 Note: covers U7 and U8's unit fixes.
 
-### [ ] M8-06 · Chips, header and alerts · S
+### [x] M8-06 · Chips, header and alerts · S · PR #20
 Acceptance:
   1. Each ore chip uses its ore's colour; ore and bars are grouped; tap or hover shows name and rate.
   2. The phone header is one line (depth · biome edge colour · best).

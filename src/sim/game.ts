@@ -11,6 +11,8 @@ import type { ResKey } from '../data/resources';
 import { newTally, type Tally } from './tally';
 
 /** Something the renderer, audio or UI may want to react to. Never saved. */
+import type { Tile } from './state';
+
 export type SimEvent =
   | { kind: 'mined'; x: number; y: number; m: number; by: 'foreman' | 'miner' }
   | { kind: 'refused'; x: number; y: number; needs?: string }
@@ -19,11 +21,16 @@ export type SimEvent =
   /** Holloway above (canon §17): a plot reaped, a tree felled. x is the tile column. */
   | { kind: 'harvest'; x: number; n: number; golden: boolean }
   | { kind: 'chop'; x: number; n: number }
-  | { kind: 'bought'; what: string }
+  /** n: how many at once (M8-03), when more than one. */
+  | { kind: 'bought'; what: string; n?: number }
   | { kind: 'pest'; x: number; y: number; cleared: boolean }
   | { kind: 'chest'; x: number; y: number }
   | { kind: 'verse'; verse: number; x: number; y: number }
   | { kind: 'rush'; mult: number; x: number; y: number }
+  /** M8-02: the Rush cap broke a vein open. */
+  | { kind: 'veinBreak'; x: number; y: number; n: number }
+  /** M8-02: one tile of a Vein Break pops; i counts up from 0. Glowroot veins flash, Geode veins ring. */
+  | { kind: 'shatter'; x: number; y: number; i: number; m: number; flash: boolean; ring: boolean }
   | { kind: 'collapse'; x: number; y: number }
   /** A new depth record since the last Cave-in. */
   | { kind: 'record'; ft: number }
@@ -52,6 +59,8 @@ export interface Game {
   hauled: Partial<Record<ResKey, number>>;
   /** The tally board's running counts (not saved). */
   tally?: Tally;
+  /** M8-02: a Vein Break under way (not saved: a save mid-break just leaves the rest of the vein standing). */
+  shatter?: { tiles: Tile[]; i: number; ms: number; m: number };
 }
 
 export function worldFor(state: GameState): World {

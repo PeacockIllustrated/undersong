@@ -23,7 +23,7 @@ import { CHARMS } from '../src/data/charms';
 import { PUMP } from '../src/data/water';
 import { canWeave, weaveCost } from '../src/sim/charms';
 import { flooded } from '../src/sim/water';
-import { villageAffordable } from '../src/ui/feedback';
+import { surfaceAffordable, villageAffordable } from '../src/ui/feedback';
 import { helperCost, helperOffered } from '../src/sim/helpers';
 import { heatAt } from '../src/sim/heat';
 import { HEAT } from '../src/data/heat';
@@ -263,7 +263,7 @@ function hireHelpers(g: Game): void {
   for (const id of ['lamps', 'pell', 'props', 'pumps', 'vents', 'tansy', 'rook'] as const) {
     const c = helperCost(s, id);
     if (!c || !helperOffered(s, id) || (s.helpers[id] ?? 0) > 0) continue;
-    if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 2) continue;
+    if (id !== 'props' && id !== 'pumps' && id !== 'vents' && s.miners.length < 3) continue;
     if (canPay(s, c)) apply(g, { type: 'hireHelper', id });
   }
 }
@@ -330,7 +330,8 @@ function shop(g: Game): void {
   } else {
     if (s.res.copperBar.gte(mc) && s.miners.length < 10) apply(g, { type: 'hireMiner' });
     const haul = nextHaul(s);
-    if (haul && s.miners.length >= 3 && canPay(s, haul)) apply(g, { type: 'buyHaul' });
+    if (haul && (s.miners.length >= 3 || s.underground.copperOre.gte(15)) && canPay(s, haul))
+      apply(g, { type: 'buyHaul' });
     if (s.pickTier === 1) {
       const spare = s.miners.length >= 4 && s.res.copperBar.gte(mc.mul(0.5).add(2)) && s.res.tinBar.gte(1);
       apply(g, { type: 'setRecipe', recipe: spare ? 'bronze' : 'auto' });
@@ -605,7 +606,7 @@ function playOne(seed: number): Record<string, number> & { echoes: number } {
         }
       }
       if (s.cycle === 1 && s.t <= 15 * 60_000) {
-        if (villageAffordable(g)) lastBuyable = s.t;
+        if (villageAffordable(g) || surfaceAffordable(g)) lastBuyable = s.t;
         if (s.t - lastBuyable > gap) gapAt = lastBuyable;
         gap = Math.max(gap, s.t - lastBuyable);
       }
@@ -727,8 +728,12 @@ for (const [k, name, target, atMost] of TARGETS) {
   );
 }
 const ech = median(runs.map((r) => r.echoes));
+// M8-01: the median longest wait with nothing to buy in the first 15 minutes must stay under this
+const MAX_WAIT_S = 90;
+const wait = median(runs.map((r) => r.gap ?? 0)) / 1000;
+if (wait > MAX_WAIT_S) ok = false;
 console.log(
-  `${'Longest wait, nothing to buy'.padEnd(28)}  first 15 min · median ${(median(runs.map((r) => r.gap ?? 0)) / 1000).toFixed(0)} s · ${runs.map((r) => ((r.gap ?? 0) / 1000).toFixed(0) + 's@' + ((r.gapAt ?? 0) / 60000).toFixed(1)).join(' ')}`,
+  `${'Longest wait, nothing to buy'.padEnd(28)}  first 15 min · median ${wait.toFixed(0)} s (≤${MAX_WAIT_S}) · ${runs.map((r) => ((r.gap ?? 0) / 1000).toFixed(0) + 's@' + ((r.gapAt ?? 0) / 60000).toFixed(1)).join(' ')} ${wait <= MAX_WAIT_S ? '✓' : '✗'}`,
 );
 if (!ACT2)
   console.log(

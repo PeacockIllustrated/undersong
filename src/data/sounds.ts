@@ -166,6 +166,8 @@ export const CHIP_EVERY_MS = 270;
 export const RUSH_SEMITONES = 2;
 /** Highest a Vein Rush can raise it, in semitones. */
 export const RUSH_SEMITONES_MAX = 12;
+/** M8-02: each tile of a Vein Break pops a semitone higher than the last, up to an octave. */
+export const SHATTER_SEMITONES = 1;
 
 /**
  * The Undersong itself: one note per verse, I to XII (a minor pentatonic that climbs and comes home).

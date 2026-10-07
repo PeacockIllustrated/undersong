@@ -13,6 +13,7 @@ import { equip, weave } from './charms';
 import type { HelperId } from '../data/helpers';
 import { hireHelper, hitPest } from './helpers';
 import { D } from './decimal';
+import { bulkAction, bulkCost, type BulkKind } from './bulk';
 import { minerCost, nextHaul, nextPick, pay, torchCost, whetstoneCost } from './economy';
 import { syncWorld, type Game } from './game';
 import { reachable, workable } from './reach';
@@ -77,7 +78,9 @@ export type Action =
   /** The UI has shown the oldest story event. */
   | { type: 'ackStory' }
   /** Remember, for good, that the player has seen something: a tip (`tip:<id>`) or a Village tab (`tab:<id>`). */
-  | { type: 'note'; key: string };
+  | { type: 'note'; key: string }
+  /** M8-03: buy several of a repeatable thing at once (a count, or as many as can be paid for). */
+  | { type: 'buyMany'; of: BulkKind; n: number | 'max' };
 
 export function queued(g: Game, x: number, y: number): boolean {
   const f = g.state.foreman;
@@ -188,6 +191,28 @@ function openChest(g: Game, x: number, y: number, key: string): void {
 export function apply(g: Game, a: Action): void {
   const s = g.state;
   switch (a.type) {
+    case 'buyMany': {
+      const want = a.n === 'max' ? (bulkCost(s, a.of, 'max')?.n ?? 0) : Math.max(0, Math.floor(a.n));
+      const from = g.events.length;
+      let got = 0;
+      for (let i = 0; i < want; i++) {
+        const before = g.events.length;
+        apply(g, bulkAction(a.of));
+        if (!g.events.slice(before).some((e) => e.kind === 'bought')) break;
+        got++;
+      }
+      // one announcement for the lot
+      const bought = g.events.slice(from).filter((e) => e.kind === 'bought');
+      if (got > 1 && bought.length) {
+        g.events.splice(
+          from,
+          g.events.length - from,
+          ...g.events.slice(from).filter((e) => e.kind !== 'bought'),
+        );
+        g.events.push({ kind: 'bought', what: (bought[0] as { what: string }).what, n: got });
+      }
+      return;
+    }
     case 'dig':
       enqueue(g, a.x, a.y, true);
       return;

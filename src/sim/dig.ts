@@ -1,11 +1,11 @@
 // Digging: the Foreman's hand-mining with Vein Rush, and the shared tile-removal that pays out drops. canon §4.6, §4.7
 import { tally } from './tally';
 import { MATERIALS, M, canDig, isMineable } from '../data/materials';
-import { VEIN_RUSH } from '../data/economy';
+import { VEIN_BREAK, VEIN_RUSH } from '../data/economy';
 import { UPGRADE_FX } from '../data/upgrades';
 import { charm, deepMult, handsMult, pickPower, rushStep } from './power';
 import { lightFactor } from '../data/light';
-import { BIOMES } from '../data/biomes';
+import { BIOMES, biomeAt } from '../data/biomes';
 import { COARSE_STEP_S, FT_PER_TILE } from '../data/constants';
 import { VERSE_CACHE } from '../data/helpers';
 import { NEIGH4, type Carving } from '../world/world';
@@ -18,6 +18,7 @@ import { first, say } from './story';
 import { maybeCollapse } from './village';
 import { GOLEMS } from '../data/water';
 import { makeRng } from './rng';
+import { veinAround } from './smartdig';
 import { heatAt, heatFactor } from './heat';
 import { HEAT } from '../data/heat';
 
@@ -96,6 +97,25 @@ export function stepForeman(g: Game, dt: number): void {
   if (f.work >= need) mineTile(g, t.x, t.y, 'foreman');
 }
 
+/** M8-02: pop the next tiles of a Vein Break, one every VEIN_BREAK.gapMs, each paid as if the Foreman broke it. */
+export function stepShatter(g: Game, dt: number): void {
+  const sh = g.shatter;
+  if (!sh) return;
+  sh.ms += dt * 1000;
+  while (sh.i < sh.tiles.length && sh.ms >= VEIN_BREAK.gapMs) {
+    sh.ms -= VEIN_BREAK.gapMs;
+    const t = sh.tiles[sh.i]!;
+    if (g.world.get(t.x, t.y) === sh.m) {
+      // Glowroot Caverns (2) flash, Singing Geodes (4) ring
+      const id = biomeAt(g.world.depth(t.y)).id;
+      g.events.push({ kind: 'shatter', x: t.x, y: t.y, i: sh.i, m: sh.m, flash: id === 2, ring: id === 4 });
+      mineTile(g, t.x, t.y, 'foreman');
+    }
+    sh.i++;
+  }
+  if (sh.i >= sh.tiles.length) g.shatter = undefined;
+}
+
 /** Remove a tile and pay out its drop: straight into the pack for the Foreman, to the shaft bottom for miners. */
 export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner'): void {
   const { world, state } = g;
@@ -134,6 +154,15 @@ export function mineTile(g: Game, x: number, y: number, by: 'foreman' | 'miner')
       if (f.chain > 0) {
         g.events.push({ kind: 'rush', mult: rushMult(f.chain, rushStep(state)), x, y });
         if (f.chain >= 2) say(g, 'rush');
+      }
+      // M8-02: at the Rush cap the vein gives way
+      if (!g.shatter && !g.offline && rushMult(f.chain, rushStep(state)) >= VEIN_RUSH.max) {
+        const tiles = veinAround(g, x, y, m, VEIN_BREAK.max);
+        if (tiles.length) {
+          g.shatter = { tiles, i: 0, ms: 0, m };
+          g.events.push({ kind: 'veinBreak', x, y, n: tiles.length });
+          first(g, 'veinBreak');
+        }
       }
     } else {
       f.chain = 0;

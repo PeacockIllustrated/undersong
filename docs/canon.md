@@ -60,23 +60,24 @@ These are the final text. Each verse is two lines in folk metre. Don't paraphras
 
 ## §4 Formulas (v0)
 
-| §    | Name                      | Formula                                                                                                                                                                                                                        |
-| ---- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 4.1  | Building cost             | `cost(n) = base × 1.15^n` (n = number already owned)                                                                                                                                                                           |
-| 4.2  | Rock hardness at depth    | `H(d) = H_material × (1 + d_ft / 60)^1.3`                                                                                                                                                                                      |
-| 4.3  | Echo gain on Cave-in      | `floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × versesFoundThisRun) )`                                                                                                                                                            |
-| 4.4  | Miner output              | `ore_per_s = pickPower × lightFactor / H(d)`                                                                                                                                                                                   |
-| 4.5  | Light factor              | `L ≥ 0.6 → 1.0`, `0.3 ≤ L < 0.6 → 0.7`, `L < 0.3 → 0.4`                                                                                                                                                                        |
-| 4.6  | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult × lightFactor)` (was 2.5; tuned by the balance sim, ADR-015). `lightFactor` (§4.5) applies only from 150 ft down (ADR-017); above that it is 1                              |
-| 4.7  | Vein Rush                 | `mult = min(5, 1 + 0.25 × chain)`; the chain grows with each ore tile mined next to (8-way) the last one, and resets on non-ore or after the Foreman stands idle 1.2 s                                                         |
-| 4.8  | Offline gain              | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; Long Shift 16 h, eff 0.75; max cap 24 h, eff 1.0. Absences under 60 s play on at full speed, with no summary (ADR-026). Pests and collapses wait while you are away         |
-| 4.9  | Haul throughput           | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles`                                                                                                                                                       |
-| 4.10 | Cave-in unlock            | `maxDepth_ft ≥ 300` **and** Verse II found                                                                                                                                                                                     |
-| 4.11 | Echo power                | every worker's rate × `(1 + 0.03 × echoesEverEarned)` (ADR-017)                                                                                                                                                                |
-| 4.12 | Homecoming                | after a Cave-in, every worker, the forge and the haul run ×3 until this run is 60% as deep as your best (ADR-020)                                                                                                              |
-| 4.13 | Verse power and cache     | every verse ever known speeds every worker by 5%. Each verse found in a run pays its cache: I 10 and II 15 copper bars; III 8, IV 10, V 12 iron bars; VI–X 8, 10, 12, 15, 20 silver bars; XI 15 and XII 25 gold bars (ADR-020) |
-| 4.14 | Whetstone                 | `cost(n) = 2 × 1.45^n` copper bars; each level +12% hand-mining. Resets on a Cave-in (ADR-020)                                                                                                                                 |
-| 4.15 | Village power             | `echo power × verse power × homecoming` multiplies every worker                                                                                                                                                                |
+| §     | Name                      | Formula                                                                                                                                                                                                                         |
+| ----- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4.1   | Building cost             | `cost(n) = base × 1.15^n` (n = number already owned)                                                                                                                                                                            |
+| 4.2   | Rock hardness at depth    | `H(d) = H_material × (1 + d_ft / 60)^1.3`                                                                                                                                                                                       |
+| 4.3   | Echo gain on Cave-in      | `floor( sqrt(maxDepth_ft / 10) × (1 + 0.25 × versesFoundThisRun) )`                                                                                                                                                             |
+| 4.4   | Miner output              | `ore_per_s = pickPower × lightFactor / H(d)`                                                                                                                                                                                    |
+| 4.5   | Light factor              | `L ≥ 0.6 → 1.0`, `0.3 ≤ L < 0.6 → 0.7`, `L < 0.3 → 0.4`                                                                                                                                                                         |
+| 4.6   | Hand-mining time per tile | `seconds = H(d) / (pickPower × 1.15 × veinRushMult × lightFactor)` (was 2.5; tuned by the balance sim, ADR-015). `lightFactor` (§4.5) applies only from 150 ft down (ADR-017); above that it is 1                               |
+| 4.7   | Vein Rush                 | `mult = min(5, 1 + 0.25 × chain)`; the chain grows with each ore tile mined next to (8-way) the last one, and resets on non-ore or after the Foreman stands idle 1.2 s                                                          |
+| 4.7.1 | Vein Break                | an ore tile broken by hand with the Rush at its ×5 cap breaks every connected (8-way) tile of the same ore the pick can break, nearest first, up to 12, one every 90 ms, each paying as hand-mined at ×5. Not offline (ADR-033) |
+| 4.8   | Offline gain              | `rate × min(t, cap) × eff`; base cap 8 h, eff 0.5; Long Shift 16 h, eff 0.75; max cap 24 h, eff 1.0. Absences under 60 s play on at full speed, with no summary (ADR-026). Pests and collapses wait while you are away          |
+| 4.9   | Haul throughput           | `ore_per_s_max = carrierSpeed_tiles_per_s × capacity / shaftDepth_tiles`                                                                                                                                                        |
+| 4.10  | Cave-in unlock            | `maxDepth_ft ≥ 300` **and** Verse II found                                                                                                                                                                                      |
+| 4.11  | Echo power                | every worker's rate × `(1 + 0.03 × echoesEverEarned)` (ADR-017)                                                                                                                                                                 |
+| 4.12  | Homecoming                | after a Cave-in, every worker, the forge and the haul run ×3 until this run is 60% as deep as your best (ADR-020)                                                                                                               |
+| 4.13  | Verse power and cache     | every verse ever known speeds every worker by 5%. Each verse found in a run pays its cache: I 10 and II 15 copper bars; III 8, IV 10, V 12 iron bars; VI–X 8, 10, 12, 15, 20 silver bars; XI 15 and XII 25 gold bars (ADR-020)  |
+| 4.14  | Whetstone                 | `cost(n) = 1 × 1.4^n` copper bars (ADR-033); each level +12% hand-mining. Resets on a Cave-in (ADR-020)                                                                                                                         |
+| 4.15  | Village power             | `echo power × verse power × homecoming` multiplies every worker                                                                                                                                                                 |
 
 ## §5 Pacing targets
 
@@ -202,15 +203,15 @@ Topsoil: copper `n1 > 0.7`, tin `n2 > 0.76`. Glowroot: iron `n1 > 0.7`, copper `
 
 | Thing             | Base cost                                      | Effect                                                                               |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Miner (Bunkhouse) | 15 Copper bars, ×1.15 per miner                | Mines one assigned face                                                              |
+| Miner (Bunkhouse) | 12 Copper bars, ×1.15 per miner (ADR-033)      | Mines one assigned face                                                              |
 | Forge             | free at start                                  | Turns 5 ore into 1 bar every 2 s. Copper, tin and bronze (2 copper bars + 1 tin bar) |
 | Wooden pick       | start                                          | pickPower 1                                                                          |
-| Copper pick       | 10 Copper bars                                 | pickPower 2                                                                          |
+| Copper pick       | 22 Copper bars (ADR-033)                       | pickPower 2                                                                          |
 | Bronze pick       | 25 Bronze bars                                 | pickPower 3                                                                          |
 | Rope haul         | start                                          | carrierSpeed 1 tile/s, capacity 5                                                    |
 | Winch lift        | 40 Copper bars                                 | carrierSpeed 3 tiles/s, capacity 10                                                  |
 | Rails (Act II)    | 8 Iron bars per 10 tiles, at most 80 (ADR-021) | carrierSpeed 8 tiles/s, capacity 25                                                  |
-| Torch             | 1 Copper bar for 3                             | Light 1.0, no upkeep, radius limited by decay                                        |
+| Torch             | 1 Copper bar for 5 (ADR-033)                   | Light 1.0, no upkeep, radius limited by decay                                        |
 
 ### 9.1 Act I extras (v0)
 
@@ -310,8 +311,8 @@ Each helper takes over a chore soon after it first appears, and stays through a 
 | Bram’s props               | 10 Bricks                   | A roof about to fall is propped with a support from stock instead. The kiln keeps 2 supports in hand                                                        |
 | Bram’s pump crew (Act III) | 8 Silver bars + 4 Iron bars | Moves pumps to the water and keeps one in hand (§12)                                                                                                        |
 | Wren’s cold lamps (Act IV) | 6 Gold bars + 20 Bricks     | Sets a vent beside the hottest face nobody can work and keeps one in hand (§15). Offered once a face has been too hot                                       |
-| Tansy’s hands              | 10 Copper bars              | Tansy reaps one ripe plot every 2 s, and can ring the feast bell when it is full (§17). Offered after the 5th harvest                                      |
-| Rook’s axe                 | 12 Copper bars              | Rook fells old trees and replants, about once a second. He leaves any tree that has stood through a Cave-in (§17). Offered after the first felling       |
+| Tansy’s hands              | 10 Copper bars              | Tansy reaps one ripe plot every 2 s, and can ring the feast bell when it is full (§17). Offered after the 5th harvest                                       |
+| Rook’s axe                 | 12 Copper bars              | Rook fells old trees and replants, about once a second. He leaves any tree that has stood through a Cave-in (§17). Offered after the first felling          |
 
 ### 14.1 Feedback
 
@@ -378,37 +379,37 @@ Everything on the surface only adds: no hunger, no spoiling, no penalty for an e
 
 ### 17.1 Tansy's fields
 
-| Thing          | Value                                                                       |
-| -------------- | --------------------------------------------------------------------------- |
-| Tansy arrives  | with the first miner, bringing 1 free plot                                  |
-| Plots          | up to 12, at columns 45–56; each after the free one costs 6 Copper × 1.15ⁿ  |
-| Barley         | ripens in 90 s; a harvest gives 3, or 6 reaped by hand (tap a ripe plot)    |
-| Golden ear     | 1 in 25 ripe crops (seeded RNG); pays ×10                                   |
-| Tansy’s hands  | §14; one plot every 2 s                                                     |
+| Thing         | Value                                                                      |
+| ------------- | -------------------------------------------------------------------------- |
+| Tansy arrives | with the first miner, bringing 1 free plot                                 |
+| Plots         | up to 12, at columns 45–56; each after the free one costs 6 Copper × 1.15ⁿ |
+| Barley        | ripens in 90 s; a harvest gives 3, or 6 reaped by hand (tap a ripe plot)   |
+| Golden ear    | 1 in 25 ripe crops (seeded RNG); pays ×10                                  |
+| Tansy’s hands | §14; one plot every 2 s                                                    |
 
 ### 17.2 The cookhouse and the feast bell
 
-| Thing              | Cost                 | Effect                       |
-| ------------------ | -------------------- | ---------------------------- |
-| Miner’s bread      | 10 × 1.8ⁿ barley     | miners +5% a level, up to 3  |
-| Foreman’s porridge | 8 × 1.8ⁿ barley      | hand-mining +5% a level, up to 3 |
-| Cress soup         | 10 × 1.8ⁿ cress      | haulage +20% a level, up to 3 |
+| Thing              | Cost                 | Effect                                             |
+| ------------------ | -------------------- | -------------------------------------------------- |
+| Miner’s bread      | 10 × 1.8ⁿ barley     | miners +5% a level, up to 3                        |
+| Foreman’s porridge | 8 × 1.8ⁿ barley      | hand-mining +5% a level, up to 3                   |
+| Cress soup         | 10 × 1.8ⁿ cress      | haulage +20% a level, up to 3                      |
 | Pepper broth       | 10 × 1.8ⁿ firepepper | miners take 0.1 off a face's heat a level, up to 3 |
 
 Meals reset on a Cave-in. The feast bell fills by 1 per harvest (10 for a golden ear) and needs 150, ×1.6 per feast this run. Ringing it gives 45 s of every worker ×2 (the village multiplier) with crops growing ×3.
 
 ### 17.3 Rook's woodlot
 
-| Thing            | Value                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| Rook arrives     | at 20 tiles (80 ft), or at once to a woodlot that stood through the Cave-in            |
-| Slots            | 5, at columns 1.5, 4, 58.5, 60.5, 62.5; Rook plants 2 free saplings in a bare woodlot  |
-| Saplings         | 3 Copper × 1.15ⁿ (n = trees standing)                                                 |
-| Stages           | young at 3 min, grown at 8 min, old at 20 min                                         |
-| Felling          | 0 / 4 / 12 / 40 timber for sapling / young / grown / old; ×2 by hand (tap a tree)     |
-| Charcoal hearth  | 20 × 1.8ⁿ timber; the forge works +25% a level, up to 2                               |
-| Cottage          | 5 × 1.3ⁿ timber; miners +2% each, up to 5; drawn in a back row                        |
-| Pit prop         | a support for 3 timber instead of bricks, whenever timber is the more plentiful       |
+| Thing           | Value                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------- |
+| Rook arrives    | at 20 tiles (80 ft), or at once to a woodlot that stood through the Cave-in           |
+| Slots           | 5, at columns 1.5, 4, 58.5, 60.5, 62.5; Rook plants 2 free saplings in a bare woodlot |
+| Saplings        | 3 Copper × 1.15ⁿ (n = trees standing)                                                 |
+| Stages          | young at 3 min, grown at 8 min, old at 20 min                                         |
+| Felling         | 0 / 4 / 12 / 40 timber for sapling / young / grown / old; ×2 by hand (tap a tree)     |
+| Charcoal hearth | 20 × 1.8ⁿ timber; the forge works +25% a level, up to 2                               |
+| Cottage         | 5 × 1.3ⁿ timber; miners +2% each, up to 5; drawn in a back row                        |
+| Pit prop        | a support for 3 timber instead of bricks, whenever timber is the more plentiful       |
 
 Hearth and cottage levels reset on a Cave-in. Trees do not.
 
@@ -424,11 +425,11 @@ The cairn by the headframe holds a stone for each of the last 5 Cave-ins. Each s
 
 Each act's crop hangs off a system that act already has. Paddies and hot-beds are barley plots turned over to another crop (the last barley plot is used); they ripen in the same 90 s, yield 3 (6 by hand), never come up golden, and count 1 toward the feast bell.
 
-| Act | Thing | Cost | Effect |
-| --- | ----- | ---- | ------ |
-| II  | Root cellar under the cookhouse | 4 Iron bars + 6 Bricks to dig, then 10 spores to seed; offered once the Lamp-works stands | 1 spore every 5 s |
-| III | Cress paddy | 3 Silver bars × 1.15ⁿ (n = paddies) | grows cress; each pump in the mine waters 2 paddies, the rest stand dry |
-| IV  | Firepepper hot-bed | 3 Gold bars × 1.15ⁿ (n = hot-beds), up to 4; offered from the Ember Deep (250 tiles) | grows firepeppers while ember ore is in hand; each harvest burns 1 ember ore |
+| Act | Thing                           | Cost                                                                                      | Effect                                                                       |
+| --- | ------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| II  | Root cellar under the cookhouse | 4 Iron bars + 6 Bricks to dig, then 10 spores to seed; offered once the Lamp-works stands | 1 spore every 5 s                                                            |
+| III | Cress paddy                     | 3 Silver bars × 1.15ⁿ (n = paddies)                                                       | grows cress; each pump in the mine waters 2 paddies, the rest stand dry      |
+| IV  | Firepepper hot-bed              | 3 Gold bars × 1.15ⁿ (n = hot-beds), up to 4; offered from the Ember Deep (250 tiles)      | grows firepeppers while ember ore is in hand; each harvest burns 1 ember ore |
 
 The cellar, paddies, hot-beds, soup and broth reset on a Cave-in.
 
@@ -436,14 +437,27 @@ The cellar, paddies, hot-beds, soup and broth reset on a Cave-in.
 
 Values live in `src/data/touch.ts`.
 
-| Thing | Value |
-| ----- | ----- |
-| Loupe | circle of radius 58 CSS px, 104 CSS px above the finger (beside it near the top edge), ×2 magnification, gold outline on the aimed tile |
-| Crosshair | aims 64 CSS px above the finger |
-| Smart dig snap | a tap on rock within 1 tile of workable ore the pick can break digs the ore; on a mouse, only when the clicked rock cannot be worked |
-| Vein long-press | 600 ms held still on ore queues every 8-way connected ore tile the pick can break, nearest first, up to the dig-queue limit |
-| Haptics (ms) | hold to dig 12 · Foreman breaks rock 6 · ore 14 · ore during a Vein Rush 24 · vein queued 24; one buzz a frame at most |
-| Hover label | mouse rests 400 ms on a tile: name, Foreman seconds to break it now, the drop; or "Needs the X pick" |
-| Zoom steps (art px per CSS px) | phone ×1, ×2, ×3 (default ×2) · desktop ×2, ×3, ×4 (default ×3, ×4 above 1400 CSS px) |
-| Zoom input | pinch ratio 1.3 per step · Ctrl + wheel 60 px per step · + and − keys; one step out past the farthest opens the Mountain view |
-| Mountain view | 6 rows of sky to 6 rows below the deepest worker or dug tile; whole device pixels per tile; HUD margins 84 / 124 CSS px on phones, 16 from 900 CSS px wide; redrawn every 250 ms |
+| Thing                          | Value                                                                                                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Loupe                          | circle of radius 58 CSS px, 104 CSS px above the finger (beside it near the top edge), ×2 magnification, gold outline on the aimed tile                                          |
+| Crosshair                      | aims 64 CSS px above the finger                                                                                                                                                  |
+| Smart dig snap                 | a tap on rock within 1 tile of workable ore the pick can break digs the ore; on a mouse, only when the clicked rock cannot be worked                                             |
+| Vein long-press                | 600 ms held still on ore queues every 8-way connected ore tile the pick can break, nearest first, up to the dig-queue limit                                                      |
+| Haptics (ms)                   | hold to dig 12 · Foreman breaks rock 6 · ore 14 · ore during a Vein Rush 24 · vein queued 24; one buzz a frame at most                                                           |
+| Hover label                    | mouse rests 400 ms on a tile: name, Foreman seconds to break it now, the drop; or "Needs the X pick"                                                                             |
+| Zoom steps (art px per CSS px) | phone ×1, ×2, ×3 (default ×2) · desktop ×2, ×3, ×4 (default ×3, ×4 above 1400 CSS px)                                                                                            |
+| Zoom input                     | pinch ratio 1.3 per step · Ctrl + wheel 60 px per step · + and − keys; one step out past the farthest opens the Mountain view                                                    |
+| Mountain view                  | 6 rows of sky to 6 rows below the deepest worker or dug tile; whole device pixels per tile; HUD margins 84 / 124 CSS px on phones, 16 from 900 CSS px wide; redrawn every 250 ms |
+
+## §19 Shop and HUD (v0, ADR-033)
+
+Values live in `src/data/ui.ts`.
+
+| Thing        | Value                                                                                                                                                                                                                                                                        |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Buy steps    | ×1, ×10, Max (as many as can be paid for now, at most 1000) for miners, the whetstone, plots, saplings, meals, the hearth and cottages                                                                                                                                       |
+| Ready in     | income of each resource averaged over the last 60 s of gains; "needs X" when none is coming in                                                                                                                                                                               |
+| Shop order   | on each Village tab, cards with something you can buy now come first                                                                                                                                                                                                         |
+| Ore heap     | ore waiting at the forge: sizes from 1, 15, 60, 200 ore; drawn at tile column 36.5 beside the headframe                                                                                                                                                                      |
+| Bar stack    | bars in hand: heights from 1, 6, 25, 80 bars; drawn at tile column 16.6 beside the forge                                                                                                                                                                                     |
+| Chip colours | copper #D9823B · tin #878E9A · bronze #B8902A · iron #A46D48 · silver #E8F4F0 · aquamarine #7FD6FF · crystal #C4F0FF · ember #E0532F · gold #FFD65A · heartstone #FF9A3C · spores #5FF0D8 · Lumen #FFF2A8 · rubble #6D7480 · brick #7A2A1E · barley #F2A35E · timber #6B4329 |

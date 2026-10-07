@@ -1,6 +1,6 @@
 // The HUD and menus. Reads the game, dispatches actions; never mutates state directly.
 import { useEffect, useState } from 'preact/hooks';
-import { BIOMES, biomeAt } from '../data/biomes';
+import { BIOMES, BIOME_BAND, biomeAt } from '../data/biomes';
 import { BIOME_LINES } from '../story/biomes';
 import { SKY_ROWS, ftFromDepthTiles } from '../data/constants';
 import { RES_KEYS, type ResKey } from '../data/resources';
@@ -9,8 +9,10 @@ import type { Game } from '../sim/game';
 import type { GameState } from '../sim/state';
 import type { AwaySummary } from '../save/offline';
 import { spriteURL } from '../render/sprites';
-import { fmt } from './format';
-import { VillageSheet, villageTab, type VillageTab } from './Village';
+import { fmt, mult } from './format';
+import { rushMult } from '../sim/dig';
+import { rushStep } from '../sim/power';
+import { VillageSheet, villageFocus, villageTab, type VillageTab } from './Village';
 import { SurveyBook } from './SurveyBook';
 import { MenuSheet } from './Menu';
 import { useApplySettings } from './Settings';
@@ -25,7 +27,7 @@ import { HoverLabel } from './HoverLabel';
 import { DepthRuler } from './DepthRuler';
 import { FEAST, FIELDS } from '../data/surface';
 import { feasting, ripe } from '../sim/surface';
-import { bottleneck, echoAffordable, villageAffordable } from './feedback';
+import { bottleneck, echoAffordable, villageAffordable, type Fix } from './feedback';
 
 export interface UiBridge {
   readonly game: Game;
@@ -150,6 +152,13 @@ export function App({ ui }: { ui: UiBridge }) {
   const eels = s.pests.filter((p) => p.kind === 'eel');
   const golems = s.pests.filter((p) => p.kind === 'golem');
   const ripeN = ripe(s);
+  /** M8-06: an alert takes you to its fix. */
+  const goFix = (f: Fix): void => {
+    if ('card' in f) {
+      villageFocus(f.card);
+      setSheet('village');
+    } else ui.lookAt(f.x, f.y);
+  };
   /** M6-01: pan up to the grass line over the fields; ⌖ comes back down. */
   const lookUp = (): void => {
     const x = FIELDS.plotX0 + Math.max(0, Math.min(s.surface.plots.length, 8) - 1) / 2;
@@ -256,13 +265,18 @@ export function App({ ui }: { ui: UiBridge }) {
     <>
       <div class="hud-top">
         <div class="hud-left">
-          <div class="panel depth" aria-live="polite">
+          <div
+            class="panel depth"
+            aria-live="polite"
+            style={d >= 1 && BIOME_BAND[biome.id] ? { borderLeftColor: BIOME_BAND[biome.id] } : undefined}
+          >
             <div class="ft">{ftFromDepthTiles(d)} ft</div>
             <div class="biome">
-              {d < 1 ? 'Holloway' : biome.name} · deepest {ftFromDepthTiles(s.stats.maxDepthD)} ft
+              <span class="bname">{d < 1 ? 'Holloway' : biome.name} · </span>deepest{' '}
+              {ftFromDepthTiles(s.stats.maxDepthD)} ft
             </div>
             {s.foreman.chain > 0 && (
-              <div class="rush">Vein Rush ×{(1 + 0.25 * s.foreman.chain).toFixed(2).replace(/0$/, '')}</div>
+              <div class="rush">Vein Rush ×{mult(rushMult(s.foreman.chain, rushStep(s)))}</div>
             )}
             {home > 1 && (
               <div class="home" title="After a Cave-in the village remembers the way down">
@@ -275,9 +289,9 @@ export function App({ ui }: { ui: UiBridge }) {
               </div>
             )}
             {neck && (
-              <div class="neck" title={neck.hint}>
-                Held back by: {neck.what}
-              </div>
+              <button class="neck" title={neck.hint} onClick={() => goFix(neck.fix)}>
+                Held back by: {neck.what} ›
+              </button>
             )}
           </div>
           {s.pests.length > 0 && (
@@ -306,7 +320,11 @@ export function App({ ui }: { ui: UiBridge }) {
               <img src={spriteURL('barley')} alt="" /> {ripeN} ripe · reap
             </button>
           )}
-          {lumenOut(ui) && <div class="panel alert dark">Out of Lumen · the lanterns are dark</div>}
+          {lumenOut(ui) && (
+            <button class="panel alert dark" onClick={() => goFix({ card: 'lampworks' })}>
+              Out of Lumen · the lanterns are dark ›
+            </button>
+          )}
           {!sheet && !ui.mountain && (
             <div class="tip-slot">
               <TipStrip ui={ui} />
@@ -320,7 +338,7 @@ export function App({ ui }: { ui: UiBridge }) {
       <EndingChoice ui={ui} />
       <Toasts />
       <BiomeBanner />
-      {!wide && mountainBtn('panel mtn-float')}
+      {!wide && !sheet && mountainBtn('panel mtn-float')}
       {!sheet && !ui.mountain && <EdgeMarkers ui={ui} />}
       {!sheet && !ui.mountain && <HoverLabel ui={ui} />}
       {!sheet && !ui.mountain && <DepthRuler ui={ui} />}

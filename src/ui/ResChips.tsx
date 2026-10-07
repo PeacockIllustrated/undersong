@@ -6,7 +6,12 @@ import { RES_NAMES, type ResKey } from '../data/resources';
 import type { GameState } from '../sim/state';
 import { spriteURL } from '../render/sprites';
 import { RES_ICON } from './icons';
-import { fmt } from './format';
+import { fmt, num } from './format';
+import { RES_COLOUR } from '../data/ui';
+
+/** M8-06: the chip whose name and rate are showing (one at a time), and when it was opened. */
+let told: ResKey | null = null;
+const group = (k: ResKey): number => (BARS.includes(k) ? 0 : ORE.includes(k) ? 1 : 2);
 
 const BARS: readonly ResKey[] = ['copperBar', 'tinBar', 'bronzeBar', 'ironBar', 'silverBar', 'goldBar'];
 const ORE: readonly ResKey[] = [
@@ -57,15 +62,29 @@ function loadTray(): boolean {
   }
 }
 
-function Chip({ k, s, now }: { k: ResKey; s: GameState; now: number }) {
+function Chip({ k, s, now, gap }: { k: ResKey; s: GameState; now: number; gap?: boolean }) {
+  const [, set] = useState(0);
   const r = rate(k);
   const up = (flashUntil.get(k) ?? 0) > now;
+  const c = RES_COLOUR[k];
   return (
-    <div class={`panel chip ${up ? 'up' : ''}`} title={RES_NAMES[k]}>
+    <button
+      class={`panel chip ${up ? 'up' : ''} ${gap ? 'gap' : ''} ${told === k ? 'told' : ''}`}
+      style={c ? { borderLeftColor: c } : undefined}
+      aria-label={`${RES_NAMES[k]}: ${fmt(s.res[k])}`}
+      onClick={() => {
+        told = told === k ? null : k;
+        set((n) => n + 1);
+      }}
+    >
       <img src={spriteURL(RES_ICON[k])} alt="" />
       {fmt(s.res[k])}
       {r >= 1 && <small class="rate">+{Math.round(r)}/m</small>}
-    </div>
+      <span class="tell" role="tooltip">
+        {RES_NAMES[k]}
+        {r > 0 ? ` · +${num(r)} a minute` : ' · none coming in'}
+      </span>
+    </button>
   );
 }
 
@@ -76,7 +95,10 @@ export function ResChips({ s, biome, wide }: { s: GameState; biome: number; wide
   for (const k of held) sample(k, s.res[k].toNumber(), now);
   const head = (BIOME_RES[biome] ?? []).filter((k) => held.includes(k));
   const room = wide ? 7 : 2;
-  const shown = [...head, ...held.filter((k) => !head.includes(k))].slice(0, room);
+  // ore and bars stay together: the biome's own first, then the shown chips sorted bars, ore, the rest
+  const shown = [...head, ...held.filter((k) => !head.includes(k))]
+    .slice(0, room)
+    .sort((a, b) => group(a) - group(b));
   const rest = held.filter((k) => !shown.includes(k));
   const toggle = (): void => {
     setOpen(!open);
@@ -94,8 +116,8 @@ export function ResChips({ s, biome, wide }: { s: GameState; biome: number; wide
           {fmt(s.echoes)}
         </div>
       )}
-      {shown.map((k) => (
-        <Chip key={k} k={k} s={s} now={now} />
+      {shown.map((k, i) => (
+        <Chip key={k} k={k} s={s} now={now} gap={i > 0 && group(k) !== group(shown[i - 1]!)} />
       ))}
       {rest.length > 0 && (
         <button

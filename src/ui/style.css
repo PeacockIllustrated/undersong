@@ -1495,3 +1495,152 @@ table.tally td + td {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 128px);
   pointer-events: auto;
 }
+
+/* M8-03: the ×1 / ×10 / Max toggle and "ready in" */
+.seg.bulk {
+  align-self: flex-start;
+  margin: 0 0 8px;
+}
+.cost + .ready {
+  color: var(--ink-dim);
+  font-style: italic;
+}
+.btn .many {
+  color: var(--gold);
+}
+
+/* M8-05: a Village you can shop at a glance */
+.shop {
+  display: flex;
+  flex-direction: column;
+}
+.shop > * {
+  order: 2;
+}
+.btn.buy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  text-align: left;
+}
+.btn.buy .cost {
+  font-family: var(--body);
+  font-size: calc(14px * var(--ts));
+  padding-left: 10px;
+  border-left: 2px solid var(--slate-3);
+}
+.btn.buy:disabled {
+  opacity: 1;
+  color: var(--ink-dim);
+  background: var(--slate-0);
+}
+.btn.buy:disabled .cost img {
+  opacity: 0.6;
+}
+.cost .short {
+  color: var(--ember);
+  font-weight: bold;
+}
+.btn.buy:disabled .cost .short {
+  color: var(--ember);
+}
+.desc {
+  cursor: pointer;
+}
+.desc:not(.open) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 600px) {
+  /* the sheet takes the bottom half so the mine stays in view */
+  .sheet-wrap.side.half {
+    place-items: end stretch;
+    background: rgba(6, 8, 18, 0.2);
+  }
+  .sheet-wrap.side.half .sheet {
+    width: 100%;
+    height: 52vh;
+    height: 52dvh;
+    padding-top: 12px;
+    border-left: 0;
+  }
+}
+
+/* M8-06: chips in their ore's colour, grouped, with a name and rate on tap or hover */
+button.chip {
+  position: relative;
+  cursor: pointer;
+  border-left-width: 5px;
+}
+.chip.gap {
+  margin-left: 8px;
+}
+.chip .tell {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 6;
+  white-space: nowrap;
+  padding: 4px 8px;
+  background: var(--night);
+  border: 2px solid var(--panel-edge);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: calc(13px * var(--ts));
+}
+.chip.told .tell {
+  display: block;
+}
+@media (hover: hover) {
+  .chip:hover .tell {
+    display: block;
+  }
+}
+button.neck,
+button.alert {
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.neck {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline dotted;
+}
+.card.pulse {
+  animation: pulse-card 1.6s ease-out 1;
+}
+@keyframes pulse-card {
+  0%,
+  40% {
+    box-shadow: inset 0 0 0 2px var(--gold);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+@media (max-width: 600px) {
+  /* one line: depth · best, with the biome's colour as the panel's edge */
+  .depth {
+    min-width: 0;
+    padding: 4px 8px;
+    border-left-width: 6px;
+  }
+  .depth .ft,
+  .depth .biome {
+    display: inline;
+    margin: 0 8px 0 0;
+    white-space: nowrap;
+  }
+  .depth .ft {
+    font-size: calc(16px * var(--ts));
+  }
+  .depth .biome .bname {
+    display: none;
+  }
+}
