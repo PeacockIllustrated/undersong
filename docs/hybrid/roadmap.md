@@ -44,8 +44,10 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 ## H8 · Company Rules and launch
 - [x] Four hard modes (Company Rules) with badges
 - [x] About 60 achievements with a panel
-- [ ] Balance pass with a headless bot (`npm run sim:co`)
-- [ ] Both layouts, the smoke test, a static build for itch, and the holloway-co repo updated
+- [x] Balance pass with a headless bot (`npm run sim:co`)
+- [x] Both layouts, the smoke test, a static build for itch, and the holloway-co repo updated
 
 ## Parking lot
+- The balance bot does not use the tool belt, Foremen or Seams; teach it so tool shares mean something
+- A second contract barely goes further than the first (day 11 both); consider a stronger first Survey Book row
 - Settings panel for the sprite cap beyond the default

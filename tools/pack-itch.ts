@@ -5,7 +5,8 @@ import { join, relative } from 'node:path';
 import { crc32, deflateRawSync } from 'node:zlib';
 
 const DIST = 'dist';
-const OUT = 'undersong-itch.zip';
+/** `--out=name.zip` names the zip; the hybrid branch ships it as holloway-co-itch.zip. */
+const OUT = process.argv.find((a) => a.startsWith('--out='))?.slice(6) ?? 'undersong-itch.zip';
 /** 1 Jan 1980, so the zip is the same byte for byte on every build. */
 const DOS_DATE = (1 << 5) | 1;
 

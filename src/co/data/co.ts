@@ -312,7 +312,7 @@ export const CREW = {
 /** Every verse ever found speeds every crew by this much. canon §4.13 */
 export const VERSE_POWER = 0.05;
 /** Every Echo ever earned adds this much to every crew and to hand digging. */
-export const ECHO_POWER = 0.01;
+export const ECHO_POWER = 0.03;
 
 /** hybrid canon §9: the Company Store at night. cost(n) = base × growth^n, in scrip. */
 export interface ShopDef {
@@ -959,10 +959,10 @@ export type RuleId = 'tightLedger' | 'shortShifts' | 'noMercy' | 'deadLamps';
 export const RULE_IDS: readonly RuleId[] = ['tightLedger', 'shortShifts', 'noMercy', 'deadLamps'];
 export const RULES_OPEN = 3;
 export const RULES: Record<RuleId, { name: string; blurb: string; echo: number }> = {
-  tightLedger: { name: 'Tight Ledger', blurb: 'Every quota is half as big again.', echo: 0.5 },
-  shortShifts: { name: 'Short Shifts', blurb: 'Days are 40% shorter.', echo: 0.5 },
-  noMercy: { name: 'No Mercy', blurb: 'No Union pardons and no easy first days.', echo: 0.3 },
-  deadLamps: { name: 'Dead Lamps', blurb: 'The crew digs at half pace.', echo: 0.5 },
+  tightLedger: { name: 'Tight Ledger', blurb: 'Every quota is half as big again.', echo: 0.2 },
+  shortShifts: { name: 'Short Shifts', blurb: 'Days are 40% shorter.', echo: 0.1 },
+  noMercy: { name: 'No Mercy', blurb: 'No Union pardons and no easy first days.', echo: 0.1 },
+  deadLamps: { name: 'Dead Lamps', blurb: 'The crew digs at half pace.', echo: 0.2 },
 };
 export const RULE_FX = { quota: 1.5, day: 0.6, crew: 0.5 } as const;
 

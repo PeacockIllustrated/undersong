@@ -3,6 +3,11 @@
 Newest entry first. Add one at the end of every working session. Keep each entry short; the roadmap holds the detail.
 
 ```
+## 2026-10-08 · Holloway & Co. H2 to H8 (hybrid branch)
+Done: the whole dev-plan scope for Holloway & Co. is built. Crews tunnel after veins and have a promotion ladder (H2); a tool belt with the scatter pick, mortar, drill rig, cold lance and platforms, chests in every band and Vein Break (H3); eight Foremen and the Union (H4); six Seams, heat and badges (H5); wings, the Overman and night-shift ore (H6); the Tallyman's lines and the two endings with New Song+ (H7); four Company Rules, 65 feats, the `npm run sim:co` balance bot, and `npm run build:itch:co` (H8). Each ore now has a job in the store, and the 16 picks have their own sprites. Save v6. ADR-H008 to H016, canon §14 to §24.
+Balance: first Cave-in at 37 min on day 11; Echoes now give +3% each (was 1%) so later contracts reach day 30. Company Rules pay +10 to 20% Echoes each.
+Next: Tom plays it. Open: the bot does not use tools, Foremen or Seams, so their balance is untested by sim; the second contract goes no further than the first.
+
 ## YYYY-MM-DD · ticket ID(s)
 Done: what changed, with PR links.
 State: is `npm run check` green? Is anything stubbed or known to be broken?
