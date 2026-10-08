@@ -7,6 +7,10 @@ import {
   DAY,
   ECHO,
   ENDLESS,
+  RULES,
+  RULE_IDS,
+  RULES_OPEN,
+  type RuleId,
   OVERMAN,
   GRADES,
   HEART_ECHOES,
@@ -30,6 +34,7 @@ import {
 } from '../data/co';
 import { idleControl } from './body';
 import { startDay, stepDay } from './day';
+import { checkFeats, countFeat, countTally } from './feats';
 import { newContract, type CaveIn, type Game } from './state';
 import {
   bookCost,
@@ -80,6 +85,8 @@ export function settleDusk(g: Game): void {
   g.day = null;
   g.world = null;
   if (passed) earnBadges(g);
+  countTally(g);
+  checkFeats(g);
   if (passed || pardoned) {
     if (passed) c.survived++;
     s.meta.bestDay = Math.max(s.meta.bestDay, c.day);
@@ -97,6 +104,7 @@ function earnBadges(g: Game): void {
   };
   if (c.day >= BADGE_DAY) add(`fm:${c.foreman}`);
   if (c.day >= SEAM_UNLOCK_DAY) add(`seam:${c.seam}`);
+  if (c.day >= BADGE_DAY) for (const r of c.rules) add(`rule:${r}`);
 }
 
 /** Has the village met an unlock condition? */
@@ -186,6 +194,7 @@ function contractEchoes(g: Game): Decimal {
     .add(c.ores.heart * HEART_ECHOES)
     .add(picket)
     .mul(1 + ENDLESS.newSongEcho * g.s.meta.newSong)
+    .mul(1 + c.rules.reduce((a, r) => a + RULES[r].echo, 0))
     .floor();
 }
 
@@ -198,6 +207,7 @@ export function chooseEnding(g: Game, which: 'quota' | 'song'): boolean {
   if (!s.meta.endings.includes(which)) s.meta.endings.push(which);
   if (which === 'quota') {
     c.endless = c.day;
+    checkFeats(g);
     return true;
   }
   const before = s.meta.echoes;
@@ -208,6 +218,7 @@ export function chooseEnding(g: Game, which: 'quota' | 'song'): boolean {
   s.meta.echoesEver = s.meta.echoesEver.add(extra);
   s.caveIn!.echoes = s.caveIn!.echoes.mul(ENDLESS.songEchoes);
   s.meta.newSong++;
+  checkFeats(g);
   return true;
 }
 
@@ -242,6 +253,8 @@ export function caveIn(g: Game, why: CaveIn['why'] = 'short'): void {
   s.meta.contracts++;
   s.caveIn = { contract: c.n, days: c.survived, coal: c.coal, verses: c.versesFound.length, echoes, why };
   s.phase = 'cavein';
+  if (why === 'sung') countFeat(g, 'sungDown');
+  checkFeats(g);
   g.day = null;
   g.world = null;
 }
@@ -266,6 +279,8 @@ export function buy(g: Game, id: ShopId): boolean {
   s.contract.scrip = s.contract.scrip.sub(shopCost(s, id)!);
   for (const o of shopOres(s, id)) s.contract.ores[o.id] -= o.n;
   s.contract.levels[id]++;
+  countFeat(g, 'bought');
+  checkFeats(g);
   return true;
 }
 
@@ -288,7 +303,11 @@ export function nextDay(g: Game): void {
 export interface SignOpts {
   foreman?: ForemanId;
   seam?: SeamId;
+  rules?: RuleId[];
 }
+
+/** Company Rules open once the village has done a few contracts (H8). */
+export const rulesOpen = (g: Game): boolean => g.s.meta.contracts >= RULES_OPEN;
 
 /** Sign a new contract with the Company and start its first day. */
 export function signContract(g: Game, seed: number, opts: SignOpts = {}): void {
@@ -297,6 +316,7 @@ export function signContract(g: Game, seed: number, opts: SignOpts = {}): void {
   c.foreman = opts.foreman && foremanOpen(g, opts.foreman) ? opts.foreman : 'apprentice';
   c.seam = opts.seam && seamOpen(g, opts.seam) ? opts.seam : 'openCut';
   c.bestBefore = s.meta.bestDay;
+  c.rules = rulesOpen(g) ? RULE_IDS.filter((r) => opts.rules?.includes(r)) : [];
   if (c.foreman !== 'lone') c.levels.hand = BOOK_FX.oldHands * s.meta.book.oldHands;
   // Seniority: start part-way up, with the crew those days would have hired
   if (s.meta.book.seniority > 0) {
@@ -313,6 +333,7 @@ export function signContract(g: Game, seed: number, opts: SignOpts = {}): void {
   s.caveIn = null;
   s.tally = null;
   startDay(g);
+  checkFeats(g);
 }
 
 /** Night-shift pay: time away pays a share of the crew's day as scrip, and a little copper, tin and iron.
@@ -343,6 +364,7 @@ export function overmanDay(g: Game): boolean {
   while (running()) stepDay(g, idle, OVERMAN.stepS);
   d.dusk = DAY.duskS;
   g.events.length = 0;
+  countFeat(g, 'overmanDays');
   settleDusk(g);
   return true;
 }

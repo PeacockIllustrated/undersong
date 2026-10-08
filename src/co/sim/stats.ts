@@ -7,6 +7,7 @@ import {
   DAY,
   ECHO_POWER,
   ENDLESS,
+  RULE_FX,
   KIT,
   CO_PICKS,
   QUOTA,
@@ -23,6 +24,7 @@ import {
   type BookId,
   type ForemanId,
   type OreId,
+  type RuleId,
   type ShopId,
 } from '../data/co';
 import type { CoState } from './state';
@@ -79,7 +81,8 @@ export function dayLength(s: CoState): number {
     DAY.hourS * lvl(s, 'hours') +
     BOOK_FX.longLight * book(s, 'longLight') +
     (has(s, 'flask') ? 15 : 0);
-  return s.contract.seam === 'chimney' ? Math.round(t * SEAM_FX.chimney.dayMult) : t;
+  const r = ruled(s, 'shortShifts') ? RULE_FX.day : 1;
+  return Math.round(t * r * (s.contract.seam === 'chimney' ? SEAM_FX.chimney.dayMult : 1));
 }
 
 /** How deep the shaft goes: the village's ladder, sunk further on the Hanging Geode and the Hollow Heart. */
@@ -118,6 +121,9 @@ export const oreMult = (s: CoState): number => scripMult(s) * (has(s, 'lamp') ? 
 export const chestMult = (s: CoState): number => scripMult(s) * (has(s, 'button') ? 2 : 1);
 
 /** Coal a second from the whole crew. hybrid canon §8 */
+/** Is a Company Rule signed into this contract? (H8) */
+export const ruled = (s: CoState, id: RuleId): boolean => s.contract.rules.includes(id);
+
 export function crewRate(s: CoState): number {
   const n = hewers(s);
   if (n <= 0) return 0;
@@ -126,7 +132,8 @@ export function crewRate(s: CoState): number {
   const verse = 1 + VERSE_POWER * s.meta.verses.length;
   const union = 1 + BOOK_FX.union * book(s, 'union');
   const lit = (1 + ROLE_FX.lampman * lampmen(s)) * (led(s, 'lamplighter') ? FOREMAN_FX.lampCrew : 1);
-  return (n + gang * CREW.deputyBoost) * per * verse * union * lit * echoMult(s);
+  const dark = ruled(s, 'deadLamps') ? RULE_FX.crew : 1;
+  return (n + gang * CREW.deputyBoost) * per * verse * union * lit * dark * echoMult(s);
 }
 
 export const isAudit = (day: number): boolean => day % QUOTA.auditEvery === 0;
@@ -137,7 +144,8 @@ export function quota(s: CoState, day: number): Decimal {
     .pow(day - 1)
     .mul(QUOTA.base);
   if (isAudit(day)) q = q.mul(QUOTA.audit);
-  if (day <= QUOTA.softDays) q = q.mul(QUOTA.soft);
+  if (day <= QUOTA.softDays && !ruled(s, 'noMercy')) q = q.mul(QUOTA.soft);
+  if (ruled(s, 'tightLedger')) q = q.mul(RULE_FX.quota);
   if (has(s, 'pen')) q = q.mul(0.9);
   // the Endless Contract: the quota climbs faster every day after it was signed
   if (s.contract.endless > 0 && day > s.contract.endless)
@@ -187,4 +195,4 @@ export function bookCost(s: CoState, id: BookId): Decimal | null {
   return D(def.growth).pow(l).mul(def.base).floor();
 }
 
-export const pardons = (s: CoState): number => book(s, 'pardon');
+export const pardons = (s: CoState): number => (ruled(s, 'noMercy') ? 0 : book(s, 'pardon'));

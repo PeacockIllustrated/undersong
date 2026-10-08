@@ -135,6 +135,9 @@ export const SIGNING = {
   foreman: 'Who leads it',
   seam: 'Where',
   locked: 'Locked',
+  rules: 'Company Rules',
+  rulesOn: 'The Company will pay {n}% more Echoes for it.',
+  rulesLocked: 'The Company offers its harder contracts after your third Cave-in.',
   song: 'The song so far',
   songEmpty: 'No verses found yet. They are carved into the rock, deeper each band.',
 } as const;

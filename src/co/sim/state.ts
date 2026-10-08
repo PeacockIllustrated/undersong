@@ -6,11 +6,13 @@ import {
   ORE_IDS,
   SHOP,
   type BookId,
+  type FeatKey,
   type ForemanId,
   type SeamId,
   type GemId,
   type OreId,
   type RelicId,
+  type RuleId,
   type ShopId,
   type ToolId,
 } from '../data/co';
@@ -31,6 +33,9 @@ export interface Meta {
   /** Endings reached ('quota', 'song'), and how many times the song has been sung (New Song+). */
   endings: string[];
   newSong: number;
+  /** Feats earned, and the counters they read (H8). */
+  feats: string[];
+  stats: Partial<Record<FeatKey, number>>;
 }
 
 export interface Contract {
@@ -61,6 +66,8 @@ export interface Contract {
   /** Verse XII was found this contract and the choice waits (H7); and the day the Endless Contract began (0: not). */
   choice: boolean;
   endless: number;
+  /** Company Rules signed into this contract (H8). */
+  rules: RuleId[];
 }
 
 export interface Tally {
@@ -181,7 +188,8 @@ export type CoEvent =
   | { t: 'dusk' }
   | { t: 'jump' }
   | { t: 'land'; speed: number }
-  | { t: 'ladder'; x: number; y: number };
+  | { t: 'ladder'; x: number; y: number }
+  | { t: 'feat'; id: string };
 
 /** One day underground. Never saved: a reload mid-day starts that day again at dawn. */
 export interface DayRun {
@@ -275,6 +283,7 @@ export function newContract(n: number, seed: number): Contract {
     firstDay: 1,
     choice: false,
     endless: 0,
+    rules: [],
   };
 }
 
@@ -291,6 +300,8 @@ export function newState(seed: number): CoState {
       badges: [],
       endings: [],
       newSong: 0,
+      feats: [],
+      stats: {},
     },
     contract: newContract(1, seed),
     rng: seed ^ 0x9e3779b9,
@@ -347,6 +358,8 @@ export function fromSave(raw: unknown, seed: number): CoState {
   if (!Array.isArray(s.meta.badges)) s.meta.badges = [];
   if (!Array.isArray(s.meta.endings)) s.meta.endings = [];
   s.meta.newSong = Number(s.meta.newSong) || 0;
+  if (!Array.isArray(s.meta.feats)) s.meta.feats = [];
+  if (!s.meta.stats || typeof s.meta.stats !== 'object') s.meta.stats = {};
   s.contract.levels = { ...zeroLevels(), ...s.contract.levels };
   // save v1 had no streak or tinker (ADR-H008); the spread over a fresh contract fills them
   const tk = s.contract.tinker as Partial<Contract['tinker']> | undefined;

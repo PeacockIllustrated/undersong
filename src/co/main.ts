@@ -9,6 +9,7 @@ import { breakCue } from '../audio/cues';
 import { VERSES } from '../story/verses';
 import {
   CO_PICKS,
+  FEATS,
   GEMS,
   MAX_STEPS_PER_FRAME,
   ORES,
@@ -74,6 +75,7 @@ function boot(): void {
   const sound = new Sound(0.55, 0);
   let muted = false;
   let paused = false;
+  let featsOpen = false;
   const fit = (): void => view.resize(window.innerWidth, window.innerHeight, window.devicePixelRatio || 1);
   fit();
   window.addEventListener('resize', fit);
@@ -119,6 +121,12 @@ function boot(): void {
     setPaused: (p) => {
       paused = p;
       input.reset();
+    },
+    get feats() {
+      return featsOpen;
+    },
+    setFeats: (o: boolean) => {
+      featsOpen = o;
     },
     setMuted: (m) => {
       muted = m;
@@ -305,6 +313,14 @@ function boot(): void {
           toast(`${GEMS[e.gem].name}! The chest pays +${fmt(e.scrip)} scrip`, 'gold');
         }
         break;
+      case 'feat': {
+        const f = FEATS.find((k) => k.id === e.id);
+        if (f) {
+          toast(`Feat: ${f.name}. ${f.blurb}`, 'gold');
+          play('record');
+        }
+        break;
+      }
       case 'verse': {
         const v = VERSES[e.verse];
         if (v) {
@@ -453,6 +469,9 @@ function boot(): void {
     } else {
       acc = 0;
       if (g.day) ctl = input.control(view, g.day.body);
+      // night, the title and the Cave-in: only feats are worth showing; the rest belonged to a finished day
+      for (const e of g.events) if (e.t === 'feat') onEvent(e, now);
+      g.events.length = 0;
     }
     view.draw(g, ctl, now, dt, input.usingTouch);
     requestAnimationFrame(frame);

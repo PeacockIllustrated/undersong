@@ -6,7 +6,7 @@ export const STEP_S = 1 / 60;
 export const MAX_STEPS_PER_FRAME = 8;
 
 export const SAVE_KEY = 'hollowayco.save';
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** hybrid canon §2: the day. */
 export const DAY = {
@@ -951,3 +951,192 @@ export const HEAT = { fromD: 250, rise: 0.08, fall: 0.25 } as const;
 /** hybrid canon §22 (H7): the endings. The Endless Contract's quota grows by `growth` more a day; singing the last
  * verse pays `songEchoes` times the Echoes; every New Song+ adds `newSongEcho` to all Echoes earned after it. */
 export const ENDLESS = { growth: 1.8, songEchoes: 3, newSongEcho: 0.5, verse: 11 } as const;
+
+/** hybrid canon §23 (H8): Company Rules, the hard modes. Chosen at signing once `RULES_OPEN` contracts are done;
+ * each makes the contract harder and pays `echo` more Echoes, and surviving day `BADGE_DAY` under it earns
+ * the badge `rule:<id>`. */
+export type RuleId = 'tightLedger' | 'shortShifts' | 'noMercy' | 'deadLamps';
+export const RULE_IDS: readonly RuleId[] = ['tightLedger', 'shortShifts', 'noMercy', 'deadLamps'];
+export const RULES_OPEN = 3;
+export const RULES: Record<RuleId, { name: string; blurb: string; echo: number }> = {
+  tightLedger: { name: 'Tight Ledger', blurb: 'Every quota is half as big again.', echo: 0.5 },
+  shortShifts: { name: 'Short Shifts', blurb: 'Days are 40% shorter.', echo: 0.5 },
+  noMercy: { name: 'No Mercy', blurb: 'No Union pardons and no easy first days.', echo: 0.3 },
+  deadLamps: { name: 'Dead Lamps', blurb: 'The crew digs at half pace.', echo: 0.5 },
+};
+export const RULE_FX = { quota: 1.5, day: 0.6, crew: 0.5 } as const;
+
+/** hybrid canon §24 (H8): feats, the achievements. Each one is a counter or a record reaching `n`. Counters are
+ * kept in `meta.stats` (from the day's events and the nightly tally); the rest are read off the save. */
+export type FeatKey =
+  | 'badges'
+  | 'bestDay'
+  | 'bestRush'
+  | 'bestStreak'
+  | 'booms'
+  | 'bought'
+  | 'bumper'
+  | 'chests'
+  | 'coal'
+  | 'contracts'
+  | 'days'
+  | 'echoesEver'
+  | 'endQuota'
+  | 'endSong'
+  | 'fmBadges'
+  | 'gems'
+  | 'good'
+  | 'hands'
+  | 'ladders'
+  | 'maxRules'
+  | 'mortars'
+  | 'newSong'
+  | 'ore'
+  | 'overcome'
+  | 'overmanDays'
+  | 'pick'
+  | 'platforms'
+  | 'record'
+  | 'relics'
+  | 'rigs'
+  | 'rocketJumps'
+  | 'ruleBadges'
+  | 'seamBadges'
+  | 'sungDown'
+  | 'tiles'
+  | 'veinBreaks'
+  | 'verseSet';
+export interface FeatDef {
+  id: string;
+  name: string;
+  blurb: string;
+  key: FeatKey;
+  n: number;
+}
+export const FEATS: readonly FeatDef[] = [
+  { id: 'firstCoal', name: 'First Coal', blurb: 'Dig a lump of coal.', key: 'coal', n: 1 },
+  { id: 'hewer', name: 'Hewer', blurb: 'Dig 500 coal with your own pick.', key: 'coal', n: 500 },
+  { id: 'coalFace', name: 'Coal Face', blurb: 'Dig 5,000 coal.', key: 'coal', n: 5000 },
+  { id: 'blackSeam', name: 'Black Seam', blurb: 'Dig 50,000 coal.', key: 'coal', n: 50000 },
+  { id: 'coalBaron', name: 'Coal Baron', blurb: 'Dig a million coal.', key: 'coal', n: 1e6 },
+  { id: 'breakRock', name: 'Break Rock', blurb: 'Break 100 tiles.', key: 'tiles', n: 100 },
+  { id: 'tunneller', name: 'Tunneller', blurb: 'Break 2,000 tiles.', key: 'tiles', n: 2000 },
+  { id: 'mountainMover', name: 'Mountain Mover', blurb: 'Break 25,000 tiles.', key: 'tiles', n: 25000 },
+  { id: 'firstColour', name: 'First Colour', blurb: 'Dig your first ore.', key: 'ore', n: 1 },
+  { id: 'rockHound', name: 'Rock Hound', blurb: 'Dig 200 ore.', key: 'ore', n: 200 },
+  { id: 'prospector', name: 'Prospector', blurb: 'Dig 2,000 ore.', key: 'ore', n: 2000 },
+  { id: 'luckyLid', name: 'Lucky Lid', blurb: 'Open a chest.', key: 'chests', n: 1 },
+  { id: 'treasureHunter', name: 'Treasure Hunter', blurb: 'Open 50 chests.', key: 'chests', n: 50 },
+  { id: 'hoarder', name: 'Hoarder', blurb: 'Open 300 chests.', key: 'chests', n: 300 },
+  { id: 'curio', name: 'Curio', blurb: 'Find a relic in a chest.', key: 'relics', n: 1 },
+  { id: 'collector', name: 'Collector', blurb: 'Find 10 relics in chests.', key: 'relics', n: 10 },
+  { id: 'gemEye', name: 'Gem Eye', blurb: 'Find 5 gems.', key: 'gems', n: 5 },
+  {
+    id: 'veinBreaker',
+    name: 'Vein Breaker',
+    blurb: 'Shatter a vein with a long rush.',
+    key: 'veinBreaks',
+    n: 1,
+  },
+  { id: 'shatterer', name: 'Shatterer', blurb: 'Shatter 50 veins.', key: 'veinBreaks', n: 50 },
+  { id: 'rush', name: 'Rush', blurb: 'Chain 6 tiles in a Vein Rush.', key: 'bestRush', n: 6 },
+  { id: 'longRush', name: 'Long Rush', blurb: 'Chain 10 tiles in a Vein Rush.', key: 'bestRush', n: 10 },
+  {
+    id: 'rocketJump',
+    name: 'Rocket Jump',
+    blurb: 'Fire the scatter pick down in mid-air.',
+    key: 'rocketJumps',
+    n: 1,
+  },
+  { id: 'skyMiner', name: 'Sky Miner', blurb: 'Rocket-jump 50 times.', key: 'rocketJumps', n: 50 },
+  { id: 'artillery', name: 'Artillery', blurb: 'Fire 25 mortar shells.', key: 'mortars', n: 25 },
+  { id: 'rigger', name: 'Rigger', blurb: 'Set 10 drill rigs.', key: 'rigs', n: 10 },
+  { id: 'carpenter', name: 'Carpenter', blurb: 'Drop 50 platforms.', key: 'platforms', n: 50 },
+  { id: 'ladderMan', name: 'Ladder Man', blurb: 'Drop 100 ladders.', key: 'ladders', n: 100 },
+  { id: 'boom', name: 'Boom', blurb: 'Set off 50 blasts.', key: 'booms', n: 50 },
+  { id: 'tooHot', name: 'Too Hot', blurb: 'Get hauled up by the heat.', key: 'overcome', n: 1 },
+  { id: 'firstVerse', name: 'First Verse', blurb: 'Find a verse carved in the rock.', key: 'verseSet', n: 1 },
+  { id: 'halfSong', name: 'Half a Song', blurb: 'Find six verses.', key: 'verseSet', n: 6 },
+  { id: 'wholeSong', name: 'The Whole Song', blurb: 'Find all twelve verses.', key: 'verseSet', n: 12 },
+  { id: 'dayOne', name: 'Day One Done', blurb: 'Meet your first quota.', key: 'days', n: 1 },
+  { id: 'week', name: 'A Week’s Work', blurb: 'Reach day 7 of a contract.', key: 'bestDay', n: 7 },
+  { id: 'fortnight', name: 'Fortnight', blurb: 'Reach day 14.', key: 'bestDay', n: 14 },
+  { id: 'oldHand', name: 'Old Hand', blurb: 'Reach day 25.', key: 'bestDay', n: 25 },
+  { id: 'lifer', name: 'Lifer', blurb: 'Reach day 40.', key: 'bestDay', n: 40 },
+  { id: 'goodShift', name: 'Good Shift', blurb: 'Grade a Good shift.', key: 'good', n: 1 },
+  { id: 'bumperCrop', name: 'Bumper Crop', blurb: 'Grade a Bumper shift.', key: 'bumper', n: 1 },
+  { id: 'recordBreaker', name: 'Record Breaker', blurb: 'Grade a Record shift.', key: 'record', n: 1 },
+  { id: 'recordHabit', name: 'Record Habit', blurb: 'Grade ten Record shifts.', key: 'record', n: 10 },
+  { id: 'onARoll', name: 'On a Roll', blurb: 'Meet 5 quotas in a row.', key: 'bestStreak', n: 5 },
+  { id: 'unbroken', name: 'Unbroken', blurb: 'Meet 15 quotas in a row.', key: 'bestStreak', n: 15 },
+  {
+    id: 'companyMan',
+    name: 'Company Man',
+    blurb: 'Buy 50 things at the Company Store.',
+    key: 'bought',
+    n: 50,
+  },
+  {
+    id: 'bigSpender',
+    name: 'Big Spender',
+    blurb: 'Buy 500 things at the Company Store.',
+    key: 'bought',
+    n: 500,
+  },
+  { id: 'firstRoof', name: 'The First Roof', blurb: 'Bring the roof down once.', key: 'contracts', n: 1 },
+  { id: 'manyRoofs', name: 'Many Roofs', blurb: 'Finish 10 contracts.', key: 'contracts', n: 10 },
+  { id: 'echo', name: 'Echo', blurb: 'Earn 10 Echoes.', key: 'echoesEver', n: 10 },
+  { id: 'echoChamber', name: 'Echo Chamber', blurb: 'Earn 1,000 Echoes.', key: 'echoesEver', n: 1000 },
+  { id: 'firstHire', name: 'First Hire', blurb: 'Hire a hand.', key: 'hands', n: 1 },
+  { id: 'payroll', name: 'Payroll', blurb: 'Have 100 hands on one contract.', key: 'hands', n: 100 },
+  { id: 'army', name: 'An Army', blurb: 'Have 1,000 hands on one contract.', key: 'hands', n: 1000 },
+  { id: 'ironPick', name: 'Iron in Hand', blurb: 'Own the fourth pick.', key: 'pick', n: 3 },
+  { id: 'topPick', name: 'The Last Pick', blurb: 'Own the sixteenth pick.', key: 'pick', n: 15 },
+  { id: 'badge', name: 'Badge', blurb: 'Earn any badge.', key: 'badges', n: 1 },
+  {
+    id: 'everyForeman',
+    name: 'Every Foreman',
+    blurb: 'Earn the badge for all eight Foremen.',
+    key: 'fmBadges',
+    n: 8,
+  },
+  {
+    id: 'everySeam',
+    name: 'Every Seam',
+    blurb: 'Earn the badge for all six Seams.',
+    key: 'seamBadges',
+    n: 6,
+  },
+  {
+    id: 'ruleBreaker',
+    name: 'Rule Breaker',
+    blurb: 'Survive day 15 under a Company Rule.',
+    key: 'ruleBadges',
+    n: 1,
+  },
+  {
+    id: 'rulebook',
+    name: 'The Rulebook',
+    blurb: 'Earn all four Company Rule badges.',
+    key: 'ruleBadges',
+    n: 4,
+  },
+  {
+    id: 'allRules',
+    name: 'Read the Small Print',
+    blurb: 'Sign a contract under all four Rules.',
+    key: 'maxRules',
+    n: 4,
+  },
+  { id: 'endless', name: 'Endless', blurb: 'Sign the Endless Contract.', key: 'endQuota', n: 1 },
+  { id: 'lastVerse', name: 'The Last Verse', blurb: 'Sing the last verse.', key: 'endSong', n: 1 },
+  { id: 'newSong', name: 'New Song', blurb: 'Sing the last verse twice.', key: 'newSong', n: 2 },
+  { id: 'sungDown', name: 'Sung Down', blurb: 'Bring the roof down on purpose.', key: 'sungDown', n: 1 },
+  {
+    id: 'overmansDay',
+    name: 'The Overman’s Day',
+    blurb: 'Let the Overman run a day.',
+    key: 'overmanDays',
+    n: 1,
+  },
+];

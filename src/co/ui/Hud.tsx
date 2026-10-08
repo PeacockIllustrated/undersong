@@ -10,6 +10,7 @@ import { CONTROLS, HINTS, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
 import { crewRate, isAudit, packCap, pickIndex } from '../sim/stats';
 import type { Bridge } from './App';
+import { FeatsButton } from './Feats';
 
 const clock = (s: number): string => {
   const t = Math.max(0, Math.ceil(s));
@@ -187,6 +188,7 @@ export function PauseMenu({ bridge }: { bridge: Bridge }) {
         >
           Crew drawn: up to {bridge.crowd}
         </button>
+        <FeatsButton g={bridge.g} bridge={bridge} />
         <Controls />
         {!sure ? (
           <button class="quiet" onClick={() => setSure(true)}>

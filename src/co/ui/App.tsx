@@ -7,6 +7,7 @@ import type { Game } from '../sim/state';
 import { CaveInScreen, TitleScreen } from './Contract';
 import { Hud, PauseMenu } from './Hud';
 import { NightScreen } from './Night';
+import { FeatsPanel } from './Feats';
 import { TouchControls } from './Touch';
 import { onToast, toasts } from './toasts';
 
@@ -15,6 +16,9 @@ export interface Bridge {
   input: Input;
   readonly paused: boolean;
   readonly muted: boolean;
+  /** The feats panel is open. */
+  readonly feats: boolean;
+  setFeats(open: boolean): void;
   /** Most crew sprites drawn at once: 50, 100, 200 or 400. */
   readonly crowd: number;
   setCrowd(n: number): void;
@@ -59,6 +63,7 @@ export function App({ bridge }: { bridge: Bridge }) {
       {phase === 'night' && <NightScreen g={g} bridge={bridge} />}
       {phase === 'cavein' && <CaveInScreen g={g} bridge={bridge} />}
       {phase === 'title' && <TitleScreen g={g} bridge={bridge} />}
+      {bridge.feats && <FeatsPanel g={g} bridge={bridge} />}
       <div class="toasts" aria-live="polite">
         {toasts(now).map((t) => (
           <div key={t.id} class={`toast toast-${t.kind}`}>

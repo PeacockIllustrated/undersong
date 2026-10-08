@@ -1,4 +1,5 @@
 // One day underground: dig, carry, deposit at the kibble, beat the clock. hybrid canon §2–§11. Pure.
+import { checkFeats, countEvents } from './feats';
 import { SHAFT_X, SKY_ROWS, ftFromDepthTiles } from '../../data/constants';
 import { M, MATERIALS, canDig } from '../../data/materials';
 import { D, ZERO, type Decimal } from '../../sim/decimal';
@@ -705,6 +706,13 @@ function haul(g: Game, dt: number): void {
 
 /** Advance the day by dt seconds under the player's control. */
 export function stepDay(g: Game, c: Control, dt: number): void {
+  const from = g.events.length;
+  stepDayInner(g, c, dt);
+  countEvents(g, from);
+  checkFeats(g);
+}
+
+function stepDayInner(g: Game, c: Control, dt: number): void {
   const s = g.s;
   const d = g.day;
   if (!d || !g.world) return;

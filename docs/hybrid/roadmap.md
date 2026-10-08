@@ -42,8 +42,8 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Ending A, Fill the Last Quota: the Endless Contract. Ending B, Sing the Last Verse: New Song+
 
 ## H8 · Company Rules and launch
-- [ ] Four hard modes (Company Rules) with badges
-- [ ] About 60 achievements with a panel
+- [x] Four hard modes (Company Rules) with badges
+- [x] About 60 achievements with a panel
 - [ ] Balance pass with a headless bot (`npm run sim:co`)
 - [ ] Both layouts, the smoke test, a static build for itch, and the holloway-co repo updated
 

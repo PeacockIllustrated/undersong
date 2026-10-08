@@ -3,7 +3,18 @@ import { SHAFT_X } from '../src/data/constants';
 import { M } from '../src/data/materials';
 import { biomeAt } from '../src/data/biomes';
 import { D } from '../src/sim/decimal';
-import { CO_PICKS, DAY, ENDLESS, GOLD_SCRIP, SEAM_IDS, STEP_S, type SeamId } from '../src/co/data/co';
+import {
+  CO_PICKS,
+  DAY,
+  ENDLESS,
+  FEATS,
+  RULES,
+  RULE_FX,
+  GOLD_SCRIP,
+  SEAM_IDS,
+  STEP_S,
+  type SeamId,
+} from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
 import {
   awayPay,
@@ -26,6 +37,7 @@ import {
 } from '../src/co/sim/contract';
 import { aimTile, breakTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
+import { checkFeats, countEvents } from '../src/co/sim/feats';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
 import {
   charges,
@@ -713,5 +725,78 @@ describe('the Company and the Song (H7)', () => {
     expect(s.meta.newSong).toBe(0);
     expect(s.contract.choice).toBe(false);
     expect(s.contract.endless).toBe(0);
+  });
+});
+
+describe('Company Rules and feats (H8)', () => {
+  it('Rules open after three contracts and each makes the contract harder for more Echoes', () => {
+    const g = newGame(5);
+    signContract(g, 1, { rules: ['tightLedger'] });
+    expect(g.s.contract.rules).toEqual([]);
+    g.s.meta.contracts = 3;
+    const plain = { q: quota(g.s, 5), len: dayLength(g.s), crew: 0 };
+    signContract(g, 2, { rules: ['tightLedger', 'shortShifts', 'noMercy', 'deadLamps'] });
+    const s = g.s;
+    expect(s.contract.rules).toHaveLength(4);
+    expect(quota(s, 5).toNumber()).toBeCloseTo(plain.q.mul(RULE_FX.quota).toNumber(), -1);
+    expect(dayLength(s)).toBe(Math.round(plain.len * RULE_FX.day));
+    s.contract.levels.hand = 10;
+    const dark = crewRate(s);
+    s.contract.rules = [];
+    expect(dark).toBeCloseTo(crewRate(s) * RULE_FX.crew, 6);
+    // Echoes: +50 +50 +30 +50 = ×2.8
+    s.contract.coal = D(10000);
+    const base = echoesIfTonight(g);
+    s.contract.rules = ['tightLedger', 'shortShifts', 'noMercy', 'deadLamps'];
+    const sum = Object.values(RULES).reduce((a, r) => a + r.echo, 0);
+    expect(echoesIfTonight(g).toNumber()).toBe(Math.floor(base.toNumber() * (1 + sum)));
+  });
+
+  it('No Mercy takes the Union pardon away', () => {
+    const g = started();
+    g.s.meta.book.pardon = 1;
+    g.s.contract.rules = ['noMercy'];
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(g.s.phase).toBe('cavein');
+  });
+
+  it('feats count from the day and the tally, once each', () => {
+    const g = started();
+    expect(FEATS.length).toBeGreaterThanOrEqual(60);
+    expect(new Set(FEATS.map((f) => f.id)).size).toBe(FEATS.length);
+    const w = g.world!;
+    let coal: { x: number; y: number } | null = null;
+    for (let y = 0; y < w.h && !coal; y++)
+      for (let x = 0; x < w.w; x++)
+        if (w.get(x, y) === M.COAL) {
+          coal = { x, y };
+          break;
+        }
+    breakTile(g, coal!.x, coal!.y, true);
+    countEvents(g, 0);
+    checkFeats(g);
+    expect(g.s.meta.stats.tiles).toBe(1);
+    expect(g.s.meta.feats).toContain('firstCoal');
+    g.events.length = 0;
+    run(g, {}, STEP_S);
+    expect(g.events.filter((e) => e.t === 'feat')).toHaveLength(0);
+    g.s.contract.levels.hand = 40;
+    run(g, {}, DAY.baseS);
+    settleDusk(g);
+    expect(g.s.meta.stats.days).toBe(1);
+    expect(g.s.meta.feats).toContain('dayOne');
+  });
+
+  it('an old save gains feats and stats', () => {
+    const g = started();
+    const raw = JSON.parse(JSON.stringify(toSave(g.s)));
+    delete raw.meta.feats;
+    delete raw.meta.stats;
+    delete raw.contract.rules;
+    const s = fromSave(raw, 1);
+    expect(s.meta.feats).toEqual([]);
+    expect(s.meta.stats).toEqual({});
+    expect(s.contract.rules).toEqual([]);
   });
 });

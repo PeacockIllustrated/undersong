@@ -8,19 +8,23 @@ import {
   ECHO_POWER,
   FOREMEN,
   FOREMAN_IDS,
+  RULES,
+  RULE_IDS,
   SEAM_DEFS,
   SEAM_IDS,
   SEAM_UNLOCK_DAY,
   type BookId,
   type ForemanId,
+  type RuleId,
   type SeamId,
 } from '../data/co';
-import { foremanOpen, seamOpen } from '../sim/contract';
+import { foremanOpen, rulesOpen, seamOpen } from '../sim/contract';
 import { CAVEIN, ENDINGS, SIGNING, TALLY_LINES, TITLE, unlockText } from '../story/company';
 import type { Game } from '../sim/state';
 import { bookCost } from '../sim/stats';
 import type { Bridge } from './App';
 import { Controls } from './Hud';
+import { FeatsButton } from './Feats';
 
 export function TitleScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
   return (
@@ -48,6 +52,7 @@ export function TitleScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
             {TITLE.sign}
           </button>
         )}
+        {g.s.meta.contracts > 0 && <FeatsButton g={g} bridge={bridge} />}
         <Controls />
         <p class="muted small">On a phone: left thumb moves, right thumb aims and digs.</p>
       </div>
@@ -143,6 +148,10 @@ export function SignTable({ g, bridge, label }: { g: Game; bridge: Bridge; label
   const last = g.s.contract;
   const [fm, setFm] = useState<ForemanId>(foremanOpen(g, last.foreman) ? last.foreman : 'apprentice');
   const [seam, setSeam] = useState<SeamId>(seamOpen(g, last.seam) ? last.seam : 'openCut');
+  const [rules, setRules] = useState<RuleId[]>(rulesOpen(g) ? last.rules : []);
+  const toggle = (r: RuleId): void =>
+    setRules(rules.includes(r) ? rules.filter((x) => x !== r) : [...rules, r]);
+  const bonus = rules.reduce((a, r) => a + RULES[r].echo, 0);
   return (
     <div class="sign">
       <h3>{SIGNING.foreman}</h3>
@@ -197,7 +206,32 @@ export function SignTable({ g, bridge, label }: { g: Game; bridge: Bridge; label
           );
         })}
       </div>
-      <button class="big go" onClick={() => bridge.sign({ foreman: fm, seam })}>
+      <h3>{SIGNING.rules}</h3>
+      {rulesOpen(g) ? (
+        <>
+          <div class="rule-list">
+            {RULE_IDS.map((r) => (
+              <button key={r} class={`rule ${rules.includes(r) ? 'on' : ''}`} onClick={() => toggle(r)}>
+                <b>
+                  {RULES[r].name}
+                  {g.s.meta.badges.includes(`rule:${r}`) && (
+                    <span class="badge-dot inline" title="Badge earned" />
+                  )}
+                </b>
+                <small>
+                  {RULES[r].blurb} +{Math.round(RULES[r].echo * 100)}% Echoes
+                </small>
+              </button>
+            ))}
+          </div>
+          {bonus > 0 && (
+            <p class="muted small">{SIGNING.rulesOn.replace('{n}', String(Math.round(bonus * 100)))}</p>
+          )}
+        </>
+      ) : (
+        <p class="muted small">{SIGNING.rulesLocked}</p>
+      )}
+      <button class="big go" onClick={() => bridge.sign({ foreman: fm, seam, rules })}>
         {label}
       </button>
     </div>

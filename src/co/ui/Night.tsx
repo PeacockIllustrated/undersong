@@ -3,12 +3,13 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { spriteURL } from '../../render/sprites';
 import { D, type Decimal } from '../../sim/decimal';
 import { fmt } from '../../ui/format';
-import { CO_PICKS, ENDLESS, ORES, ORE_IDS, RELICS, SHOP, type OreId, type ShopId } from '../data/co';
+import { CO_PICKS, ENDLESS, ORES, RULES, ORE_IDS, RELICS, SHOP, type OreId, type ShopId } from '../data/co';
 import { canBuy, echoesIfTonight, relicCost, rerollCost, streakMult } from '../sim/contract';
 import { ENDINGS, NIGHT, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
 import { crewRate, dayLength, hands, isAudit, promoted, quota, shopCost, shopOres } from '../sim/stats';
 import type { Bridge } from './App';
+import { FeatsButton } from './Feats';
 
 /** Store icons borrowed from Undersong's item sheet; anything missing falls back to a letter. */
 const ICON: Partial<Record<ShopId, string>> = {
@@ -285,6 +286,12 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
           <p class="eyebrow">
             Night {s.contract.day} · Contract {s.contract.n}
             {s.contract.endless > 0 && <span class="endless"> · The Endless Contract</span>}
+            {s.contract.rules.map((r) => (
+              <span key={r} class="red">
+                {' '}
+                · {RULES[r].name}
+              </span>
+            ))}
           </p>
           <h2>The tally</h2>
           {t && (
@@ -366,6 +373,7 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
             </button>
           )}
           <p class="muted small">Enter also starts the day.</p>
+          <FeatsButton g={g} bridge={bridge} />
           <SingDown g={g} bridge={bridge} />
         </section>
         <section class="card store">
