@@ -16,7 +16,10 @@ import {
   UPGRADE,
   VERSE_POWER,
   BODY,
+  FOREMAN_FX,
+  UNION,
   type BookId,
+  type ForemanId,
   type OreId,
   type ShopId,
 } from '../data/co';
@@ -25,6 +28,8 @@ import type { CoState } from './state';
 const has = (s: CoState, r: string): boolean => s.contract.relics.includes(r as never);
 const lvl = (s: CoState, id: ShopId): number => s.contract.levels[id];
 const book = (s: CoState, id: BookId): number => s.meta.book[id];
+/** Is this Foreman leading the contract? */
+export const led = (s: CoState, id: ForemanId): boolean => s.contract.foreman === id;
 
 /** Index into CO_PICKS: the pick the Foreman carries. */
 export const pickIndex = (s: CoState): number => Math.min(CO_PICKS.length - 1, lvl(s, 'pick'));
@@ -42,11 +47,13 @@ export function pickPower(s: CoState): number {
 export const echoMult = (s: CoState): number => 1 + ECHO_POWER * s.meta.echoesEver.toNumber();
 
 export function handMult(s: CoState): number {
+  // the Lone Foreman counts every bonus to digging by hand five times
+  const k = led(s, 'lone') ? FOREMAN_FX.loneHand : 1;
   return (
-    (1 + UPGRADE.whetstone * lvl(s, 'whetstone')) *
-    (1 + BOOK_FX.steady * book(s, 'steady')) *
-    (has(s, 'ring') ? 1.3 : 1) *
-    echoMult(s)
+    (1 + UPGRADE.whetstone * lvl(s, 'whetstone') * k) *
+    (1 + BOOK_FX.steady * book(s, 'steady') * k) *
+    (has(s, 'ring') ? 1 + 0.3 * k : 1) *
+    (1 + (echoMult(s) - 1) * k)
   );
 }
 
@@ -59,7 +66,8 @@ export function packCap(s: CoState): number {
     KIT.pack *
       (1 + UPGRADE.pack * lvl(s, 'pack')) *
       (1 + BOOK_FX.pockets * book(s, 'pockets')) *
-      (has(s, 'collar') ? 1.3 : 1),
+      (has(s, 'collar') ? 1.3 : 1) *
+      (led(s, 'fieldhand') ? FOREMAN_FX.fieldPack : 1),
   );
 }
 
@@ -73,9 +81,12 @@ export function dayLength(s: CoState): number {
 }
 
 export const shaftDepth = (s: CoState): number => SHAFT.baseDepth + SHAFT.depthStep * lvl(s, 'shaft');
-export const ladders = (s: CoState): number => KIT.ladders + UPGRADE.ladders * lvl(s, 'ladders');
-export const platforms = (s: CoState): number => KIT.platforms + UPGRADE.platforms * lvl(s, 'ladders');
-export const charges = (s: CoState): number => KIT.charges + UPGRADE.charges * lvl(s, 'charges');
+const props = (s: CoState): number => (led(s, 'woodcutter') ? FOREMAN_FX.woodProps : 1);
+export const ladders = (s: CoState): number => (KIT.ladders + UPGRADE.ladders * lvl(s, 'ladders')) * props(s);
+export const platforms = (s: CoState): number =>
+  (KIT.platforms + UPGRADE.platforms * lvl(s, 'ladders')) * props(s);
+export const charges = (s: CoState): number =>
+  KIT.charges + UPGRADE.charges * lvl(s, 'charges') + (led(s, 'smith') ? FOREMAN_FX.smithCharges : 0);
 export const blastRadius = (s: CoState): number => KIT.blastRadius + lvl(s, 'blast');
 export const jetFuel = (s: CoState): number => BODY.jetFuelS * lvl(s, 'jetpack');
 export const hands = (s: CoState): number => lvl(s, 'hand');
@@ -100,11 +111,11 @@ export function crewRate(s: CoState): number {
   const n = hewers(s);
   if (n <= 0) return 0;
   const per = CREW.rate * Math.sqrt(pickPower(s));
-  const led = Math.min(deputies(s) * CREW.deputyGang, n);
+  const gang = Math.min(deputies(s) * CREW.deputyGang, n);
   const verse = 1 + VERSE_POWER * s.meta.verses.length;
   const union = 1 + BOOK_FX.union * book(s, 'union');
-  const lit = 1 + ROLE_FX.lampman * lampmen(s);
-  return (n + led * CREW.deputyBoost) * per * verse * union * lit * echoMult(s);
+  const lit = (1 + ROLE_FX.lampman * lampmen(s)) * (led(s, 'lamplighter') ? FOREMAN_FX.lampCrew : 1);
+  return (n + gang * CREW.deputyBoost) * per * verse * union * lit * echoMult(s);
 }
 
 export const isAudit = (day: number): boolean => day % QUOTA.auditEvery === 0;
@@ -129,7 +140,12 @@ export function shopCost(s: CoState, id: ShopId): Decimal | null {
     const c = CO_PICKS[l + 1];
     return c === undefined ? null : D(c.scrip);
   }
-  return D(def.growth).pow(l).mul(def.base).floor();
+  let k = 1;
+  if (id === 'hand' && led(s, 'fieldhand')) k *= FOREMAN_FX.fieldHire;
+  if (id === 'hours' && led(s, 'lamplighter')) k = 0;
+  if ((ROLE_IDS as readonly string[]).includes(id))
+    k *= Math.max(0, 1 - UNION.closedShop * book(s, 'closedShop'));
+  return D(def.growth).pow(l).mul(def.base).mul(k).floor();
 }
 
 /** The ore the next level of a store item also needs (ADR-H009). Empty when it needs none or is maxed. */
@@ -137,9 +153,14 @@ export function shopOres(s: CoState, id: ShopId): { id: OreId; n: number }[] {
   const def = SHOP.find((d) => d.id === id)!;
   const l = lvl(s, id);
   if (def.max !== undefined && l >= def.max) return [];
-  if (id === 'pick') return [...(CO_PICKS[l + 1]?.ores ?? [])];
+  const k = led(s, 'smith') ? FOREMAN_FX.smithOre : 1;
+  const cut = (o: { id: OreId; n: number }): { id: OreId; n: number } => ({
+    id: o.id,
+    n: Math.ceil(o.n * k),
+  });
+  if (id === 'pick') return (CO_PICKS[l + 1]?.ores ?? []).map(cut);
   if (!def.ore) return [];
-  return [{ id: def.ore.id, n: Math.floor(def.ore.base * Math.pow(def.ore.growth, l)) }];
+  return [cut({ id: def.ore.id, n: Math.floor(def.ore.base * Math.pow(def.ore.growth, l)) })];
 }
 
 export const hasOres = (s: CoState, need: readonly { id: OreId; n: number }[]): boolean =>

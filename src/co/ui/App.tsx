@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { BookId, RelicId, ShopId } from '../data/co';
 import type { Input } from '../input';
+import type { SignOpts } from '../sim/contract';
 import type { Game } from '../sim/state';
 import { CaveInScreen, TitleScreen } from './Contract';
 import { Hud, PauseMenu } from './Hud';
@@ -25,7 +26,7 @@ export interface Bridge {
   reroll(): boolean;
   singDown(): void;
   nextDay(): void;
-  sign(): void;
+  sign(opts?: SignOpts): void;
   startOver(): void;
 }
 

@@ -65,3 +65,29 @@ export const NIGHT = {
   singNo: 'Not tonight',
   heart: 'each heartstone still banked adds an Echo',
 } as const;
+
+/** The signing table: who leads the contract, and where (H4, H5). */
+export const SIGNING = {
+  title: 'Sign a contract',
+  foreman: 'Who leads it',
+  seam: 'Where',
+  locked: 'Locked',
+  song: 'The song so far',
+  songEmpty: 'No verses found yet. They are carved into the rock, deeper each band.',
+} as const;
+
+/** How an unlock reads on a locked card. */
+export function unlockText(u: { kind: string; n?: number; id?: string }): string {
+  switch (u.kind) {
+    case 'contracts':
+      return `After ${u.n} Cave-in${u.n === 1 ? '' : 's'}`;
+    case 'bestDay':
+      return `Reach day ${u.n}`;
+    case 'verses':
+      return `Find ${u.n} verses`;
+    case 'badge':
+      return u.id === 'fm:apprentice' ? 'Survive day 15 as the Apprentice' : 'Earn a badge';
+    default:
+      return '';
+  }
+}

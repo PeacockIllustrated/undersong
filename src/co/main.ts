@@ -32,6 +32,7 @@ import {
   rerollTinker,
   settleDusk,
   signContract,
+  type SignOpts,
   singDown,
 } from './sim/contract';
 import { pickIndex } from './sim/stats';
@@ -174,8 +175,8 @@ function boot(): void {
       play('biome');
       saveGame(g.s);
     },
-    sign: () => {
-      signContract(g, newSeed());
+    sign: (opts: SignOpts = {}) => {
+      signContract(g, newSeed(), opts);
       input.reset();
       play('biome');
       saveGame(g.s);

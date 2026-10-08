@@ -15,6 +15,7 @@ import {
   HOT,
   KIT,
   MORTAR,
+  FOREMAN_FX,
   ORE_IDS,
   RELICS,
   ROLE_FX,
@@ -39,6 +40,7 @@ import {
   hands,
   jetFuel,
   ladders,
+  led,
   oreMult,
   packCap,
   pickPower,
@@ -158,7 +160,9 @@ function take(g: Game, m: number, mult: number): { coal: number; ore: number; or
   const drop = DROPS[m];
   if (!drop) return { coal: 0, ore: 0, oreId: null };
   const room = Math.max(0, packCap(g.s) - packUsed(d));
-  const want = Math.round(drop.n * mult);
+  // the Stoker: hot rock pays double
+  const hot = led(g.s, 'stoker') && HOT.includes(m) ? FOREMAN_FX.stokerHot : 1;
+  const want = Math.round(drop.n * mult * hot);
   const n = Math.min(room, want);
   if (n < want) {
     // with putters, what does not fit waits at the face for them; without, it is lost
@@ -312,6 +316,13 @@ function dig(g: Game, c: Control, dt: number): void {
     g.events.push({ t: 'chip', x: t.x, y: t.y, m });
   if (d.dig.t >= d.dig.need) {
     breakTile(g, t.x, t.y, true, d.tool === 'lance' ? 'lance' : 'pick');
+    // the Woodcutter's axe cleaves: the rock above and below the cut goes too
+    if (led(g.s, 'woodcutter'))
+      for (const yy of [t.y - 1, t.y + 1]) {
+        const mm = w.get(t.x, yy);
+        if (mm !== M.AIR && mm !== M.BEDROCK && mm !== M.CARVING && canDig(mm, pickTier(g.s)))
+          if (w.objects[String(w.idx(t.x, yy))] !== 'rope') breakTile(g, t.x, yy, false, 'pick');
+      }
     d.dig = null;
   }
 }
@@ -393,13 +404,29 @@ function placeLadder(g: Game): void {
   g.events.push({ t: 'ladder', x, y });
 }
 
-function openChests(g: Game): void {
+/** Chests the Foreman stands in, or, for the Dog-handler, any chest Biscuit can reach. */
+function chestsInReach(g: Game): { x: number; y: number }[] {
   const d = g.day!;
   const w = g.world!;
   const b = d.body;
-  for (const yy of [b.y - 0.3, b.y - 1.1]) {
-    const x = Math.floor(b.x);
-    const y = Math.floor(yy);
+  const out = [b.y - 0.3, b.y - 1.1].map((yy) => ({ x: Math.floor(b.x), y: Math.floor(yy) }));
+  if (led(g.s, 'doghandler')) {
+    const r = FOREMAN_FX.dogFetch;
+    for (const k of Object.keys(w.objects)) {
+      if (w.objects[k] !== 'chest') continue;
+      const i = Number(k);
+      const x = i % w.w;
+      const y = Math.floor(i / w.w);
+      if (Math.hypot(x + 0.5 - b.x, y + 0.5 - (b.y - 0.7)) <= r) out.push({ x, y });
+    }
+  }
+  return out;
+}
+
+function openChests(g: Game): void {
+  const d = g.day!;
+  const w = g.world!;
+  for (const { x, y } of chestsInReach(g)) {
     const k = String(w.idx(x, y));
     if (w.objects[k] !== 'chest') continue;
     delete w.objects[k];
@@ -594,7 +621,7 @@ function stepGangs(g: Game, dt: number): void {
 /** Putters carry the spill up a load at a time: coal first, then ore. */
 function haul(g: Game, dt: number): void {
   const d = g.day!;
-  const rate = role(g.s, 'putter') * ROLE_FX.putterHaul;
+  const rate = role(g.s, 'putter') * ROLE_FX.putterHaul * (led(g.s, 'doghandler') ? FOREMAN_FX.dogHaul : 1);
   if (rate <= 0) return;
   d.haulWork = Math.min(d.haulWork + rate * dt, 50);
   while (d.haulWork >= 1) {

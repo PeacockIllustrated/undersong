@@ -908,3 +908,114 @@ button.danger {
 .kit-slot.tool b {
   color: var(--gold);
 }
+
+.sign {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sign h3,
+.song h3 {
+  margin: 4px 0 0;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.pick-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  background: var(--slate-0);
+  border: 2px solid var(--slate-1);
+  font-size: 11px;
+  text-align: center;
+}
+.pick-card img {
+  width: 32px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+.pick-card b {
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+.pick-card small {
+  color: var(--ink-dim);
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+.pick-card.on,
+.seam.on {
+  border-color: var(--gold);
+}
+.pick-card.locked,
+.seam.locked {
+  opacity: 0.5;
+}
+.pick-card.locked img {
+  filter: brightness(0);
+}
+.badge-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: var(--gold);
+}
+.seam-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.seam {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 6px 8px;
+  background: var(--slate-0);
+  border: 2px solid var(--slate-1);
+}
+.seam small {
+  color: var(--ink-dim);
+}
+.verse-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.verse-n {
+  font-family: var(--display);
+  font-size: 11px;
+  padding: 2px 5px;
+  border: 1px solid var(--slate-2);
+  color: var(--slate-3);
+}
+.verse-n.on {
+  border-color: var(--glow);
+  color: var(--glow);
+}
+.verse-text {
+  font-style: italic;
+  color: var(--gold-pale);
+  margin: 4px 0 0;
+}
+@media (max-width: 720px) {
+  .pick-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .pick-card b {
+    font-size: 9px;
+  }
+}

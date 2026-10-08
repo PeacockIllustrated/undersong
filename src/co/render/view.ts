@@ -8,7 +8,7 @@ import { hash3 } from '../../sim/rng';
 import type { World } from '../../world/world';
 import { drawSprite } from '../../render/sprites';
 import { tileTexture, wallTexture } from '../../render/tiles';
-import { BODY, DAY, TOOLS } from '../data/co';
+import { BODY, DAY, FOREMEN, TOOLS } from '../data/co';
 import { aimTile, packOre } from '../sim/day';
 import { shaftFoot } from '../sim/mine';
 import { deputies, role, shaftDepth } from '../sim/stats';
@@ -103,6 +103,7 @@ export class View {
   /** Smoothed draw position of the Foreman, so a step up a ledge reads as a hop. */
   private fy = 0;
   private walkT = 0;
+  private dogX = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -228,6 +229,7 @@ export class View {
     this.drawForeman(g, c, now, dt);
     this.fx.drawWorld(ctx, now);
     this.drawLight(g, tx0, ty0, tx1, ty1, now);
+    if (g.s.contract.foreman === 'doghandler') this.drawChestMarks(w, tx0, ty0, tx1, ty1, now);
     if (g.s.phase === 'day') this.drawAim(g, c, now, touchAim);
     this.fx.drawText(ctx, now);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -479,6 +481,22 @@ export class View {
     }
   }
 
+  /** The Dog-handler sees every chest in view through the dark: Biscuit has their scent. */
+  private drawChestMarks(w: World, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
+    const bob = Math.round(Math.sin(now / 160) * 1.5);
+    for (const [k, kind] of Object.entries(w.objects)) {
+      if (kind !== 'chest') continue;
+      const i = Number(k);
+      const x = i % w.w;
+      const y = Math.floor(i / w.w);
+      if (x < tx0 || x > tx1 || y < ty0 || y > ty1) continue;
+      drawSprite(this.ctx, 'obj-chest', 0, x * T + T / 2, y * T + T - 1);
+      this.ctx.fillStyle = '#FFD65A';
+      this.ctx.fillRect(x * T + 7, y * T - 9 + bob, 2, 5);
+      this.ctx.fillRect(x * T + 7, y * T - 3 + bob, 2, 2);
+    }
+  }
+
   /** Platforms, drill rigs, mortar shells, and the tool in the Foreman's hand. */
   private drawTools(g: Game, tx0: number, ty0: number, tx1: number, ty1: number, now: number): void {
     const { ctx } = this;
@@ -520,7 +538,21 @@ export class View {
     else if (moving || (b.climbing && Math.abs(b.vy) > 0.1)) frame = 5 + (Math.floor(this.walkT * 9) % 4);
     else frame = Math.floor(now / 600) % 2;
     const flip = digging ? c.aimX < b.x : b.facing < 0;
-    drawSprite(this.ctx, 'foreman', frame, Math.round(b.x * T), Math.round(this.fy * T), flip);
+    const who = FOREMEN[g.s.contract.foreman];
+    drawSprite(this.ctx, who.sprite, frame, Math.round(b.x * T), Math.round(this.fy * T), flip);
+    // Biscuit trots behind the Dog-handler
+    if (g.s.contract.foreman === 'doghandler') {
+      this.dogX += (b.x - b.facing * 1.4 - this.dogX) * Math.min(1, dt * 5);
+      const run = Math.abs(b.x - b.facing * 1.4 - this.dogX) > 0.2;
+      drawSprite(
+        this.ctx,
+        'dog',
+        run ? Math.floor(now / 120) : 0,
+        Math.round(this.dogX * T),
+        Math.round(this.fy * T),
+        b.facing < 0,
+      );
+    }
     if (b.jetting) this.fx.jet(b.x * T, this.fy * T - 6, now);
   }
 

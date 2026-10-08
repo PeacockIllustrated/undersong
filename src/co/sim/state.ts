@@ -6,6 +6,8 @@ import {
   ORE_IDS,
   SHOP,
   type BookId,
+  type ForemanId,
+  type SeamId,
   type GemId,
   type OreId,
   type RelicId,
@@ -24,6 +26,8 @@ export interface Meta {
   book: Record<BookId, number>;
   /** Every verse ever found (0-based). Each speeds every crew (canon §4.13). */
   verses: number[];
+  /** Badges earned: `fm:<foreman>` and `seam:<seam>` for a day survived on them (H4, H5). */
+  badges: string[];
 }
 
 export interface Contract {
@@ -45,6 +49,12 @@ export interface Contract {
   tinker: { offers: RelicId[]; rerolls: number };
   /** Ore banked at the kibble and not yet spent at the store (ADR-H009). Counts, so plain numbers. */
   ores: Record<OreId, number>;
+  /** Who leads it, and where it was signed (H4, H5). */
+  foreman: ForemanId;
+  seam: SeamId;
+  /** The village's best day when it was signed (Picket Line pays for days past it), and the day it began on. */
+  bestBefore: number;
+  firstDay: number;
 }
 
 export interface Tally {
@@ -244,13 +254,25 @@ export function newContract(n: number, seed: number): Contract {
     streak: 0,
     tinker: { offers: [], rerolls: 0 },
     ores: zeroOres(),
+    foreman: 'apprentice',
+    seam: 'openCut',
+    bestBefore: 0,
+    firstDay: 1,
   };
 }
 
 export function newState(seed: number): CoState {
   return {
     phase: 'title',
-    meta: { echoes: ZERO(), echoesEver: ZERO(), contracts: 0, bestDay: 0, book: zeroBook(), verses: [] },
+    meta: {
+      echoes: ZERO(),
+      echoesEver: ZERO(),
+      contracts: 0,
+      bestDay: 0,
+      book: zeroBook(),
+      verses: [],
+      badges: [],
+    },
     contract: newContract(1, seed),
     rng: seed ^ 0x9e3779b9,
     tally: null,
@@ -303,6 +325,7 @@ export function fromSave(raw: unknown, seed: number): CoState {
     caveIn: (r.caveIn as CaveIn | null) ?? null,
   };
   s.meta.book = { ...zeroBook(), ...s.meta.book };
+  if (!Array.isArray(s.meta.badges)) s.meta.badges = [];
   s.contract.levels = { ...zeroLevels(), ...s.contract.levels };
   // save v1 had no streak or tinker (ADR-H008); the spread over a fresh contract fills them
   const tk = s.contract.tinker as Partial<Contract['tinker']> | undefined;

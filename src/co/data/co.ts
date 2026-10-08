@@ -6,7 +6,7 @@ export const STEP_S = 1 / 60;
 export const MAX_STEPS_PER_FRAME = 8;
 
 export const SAVE_KEY = 'hollowayco.save';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** hybrid canon §2: the day. */
 export const DAY = {
@@ -663,7 +663,17 @@ export const ECHO = { div: 20, perDay: 0.15, perVerse: 0.25, min: 1 } as const;
 
 /** hybrid canon §13: the Survey Book's Union branch. cost(l) = base × growth^l Echoes. */
 export type BookId =
-  'steady' | 'oldHands' | 'longLight' | 'strike' | 'pardon' | 'pockets' | 'union' | 'ledger';
+  | 'steady'
+  | 'oldHands'
+  | 'longLight'
+  | 'strike'
+  | 'pardon'
+  | 'pockets'
+  | 'union'
+  | 'ledger'
+  | 'seniority'
+  | 'closedShop'
+  | 'picket';
 export interface BookDef {
   id: BookId;
   name: string;
@@ -694,6 +704,30 @@ export const BOOK: readonly BookDef[] = [
     growth: 4,
     max: 2,
   },
+  {
+    id: 'closedShop',
+    name: 'Closed Shop',
+    blurb: 'Promotions cost 20% less',
+    base: 4,
+    growth: 3,
+    max: 2,
+  },
+  {
+    id: 'picket',
+    name: 'Picket Line',
+    blurb: '+1 Echo for every day survived past your best',
+    base: 6,
+    growth: 2.5,
+    max: 3,
+  },
+  {
+    id: 'seniority',
+    name: 'Seniority',
+    blurb: 'Start each contract at 40% of your best day, with that day’s crew hired',
+    base: 15,
+    growth: 1,
+    max: 1,
+  },
 ];
 export const BOOK_FX = {
   steady: 0.2,
@@ -708,3 +742,159 @@ export const BOOK_FX = {
 
 /** Time away pays the crew's day rate as scrip at this share, for at most capH hours (night-shift pay). */
 export const AWAY = { share: 0.25, capH: 8, minS: 60 } as const;
+
+/** hybrid canon §19 (H4, H5): Foremen. Each is a Holloway person with a body, a starting kit and one rule change.
+ * `unlock` reads the village's record: contracts signed, best day, verses found, or a badge earned. */
+export type ForemanId =
+  'apprentice' | 'smith' | 'lamplighter' | 'fieldhand' | 'woodcutter' | 'doghandler' | 'lone' | 'stoker';
+export type Unlock =
+  | { kind: 'start' }
+  | { kind: 'contracts'; n: number }
+  | { kind: 'bestDay'; n: number }
+  | { kind: 'verses'; n: number }
+  | { kind: 'badge'; id: string };
+export interface ForemanDef {
+  name: string;
+  who: string;
+  blurb: string;
+  sprite: string;
+  unlock: Unlock;
+}
+export const FOREMEN: Record<ForemanId, ForemanDef> = {
+  apprentice: {
+    name: 'The Apprentice',
+    who: 'New to the pit',
+    blurb: 'A wooden pick and nothing else. Balanced.',
+    sprite: 'apprentice',
+    unlock: { kind: 'start' },
+  },
+  smith: {
+    name: "Smith's Hand",
+    who: 'Bram',
+    blurb: 'Starts with 4 charges a day. Everything costs 25% less ore.',
+    sprite: 'fm-smith',
+    unlock: { kind: 'contracts', n: 1 },
+  },
+  lamplighter: {
+    name: 'Lamplighter',
+    who: 'Old Wren',
+    blurb: 'Lit faces: the crew digs 50% more. Lantern Hours cost no scrip.',
+    sprite: 'fm-lamplighter',
+    unlock: { kind: 'verses', n: 3 },
+  },
+  fieldhand: {
+    name: 'Fieldhand',
+    who: 'Tansy',
+    blurb: 'A pack twice the size. Hands cost 30% less to hire.',
+    sprite: 'fm-fieldhand',
+    unlock: { kind: 'bestDay', n: 8 },
+  },
+  woodcutter: {
+    name: 'Woodcutter',
+    who: 'Rook',
+    blurb:
+      'The axe cleaves: every swing takes the rock above and below too. Twice the ladders and platforms.',
+    sprite: 'fm-woodcutter',
+    unlock: { kind: 'contracts', n: 3 },
+  },
+  doghandler: {
+    name: 'Dog-handler',
+    who: 'Pell',
+    blurb: 'Biscuit fetches chests near you and points out the rest. Putters haul 50% faster.',
+    sprite: 'fm-doghandler',
+    unlock: { kind: 'bestDay', n: 12 },
+  },
+  lone: {
+    name: 'The Lone Foreman',
+    who: 'Hard',
+    blurb: 'Cannot hire anyone. Every bonus to digging by hand counts five times.',
+    sprite: 'lone-foreman',
+    unlock: { kind: 'badge', id: 'fm:apprentice' },
+  },
+  stoker: {
+    name: 'The Stoker',
+    who: 'Act IV',
+    blurb: 'Heat helps instead of hurting. Hot rock pays double.',
+    sprite: 'stoker',
+    unlock: { kind: 'verses', n: 9 },
+  },
+};
+export const FOREMAN_IDS = Object.keys(FOREMEN) as ForemanId[];
+export const FOREMAN_FX = {
+  smithCharges: 4,
+  smithOre: 0.75,
+  lampCrew: 1.5,
+  fieldPack: 2,
+  fieldHire: 0.7,
+  woodProps: 2,
+  dogHaul: 1.5,
+  /** Biscuit fetches any chest within this many tiles of the Foreman. */
+  dogFetch: 5,
+  loneHand: 5,
+  stokerHot: 2,
+} as const;
+
+/** Surviving this day earns a badge: for the Foreman who led the contract, and for the Seam it was signed on. */
+export const BADGE_DAY = 15;
+
+/** hybrid canon §13.1: the Union branch's late entries. */
+export const UNION = {
+  /** Seniority: start a contract at this share of your best day, with this many hands per day skipped. */
+  seniorityShare: 0.4,
+  seniorityHands: 3,
+  /** Closed Shop: promotions cost this much less a level. */
+  closedShop: 0.2,
+  /** Picket Line: Echoes per day survived past your best, a level. */
+  picket: 1,
+} as const;
+
+/** hybrid canon §20 (H5): Seams, the shape of the mountain a contract is signed on. Each keeps the biome bands by
+ * depth and changes one rule. Surviving `SEAM_UNLOCK_DAY` on a Seam opens the next. */
+export type SeamId = 'openCut' | 'drowned' | 'geode' | 'workings' | 'chimney' | 'heart';
+export interface SeamDef {
+  name: string;
+  kind: string;
+  blurb: string;
+  /** The Seam whose badge opens this one; the Hollow Heart needs all five. */
+  after: SeamId | 'all' | null;
+}
+export const SEAM_DEFS: Record<SeamId, SeamDef> = {
+  openCut: {
+    name: 'The Open Cut',
+    kind: 'Standard',
+    blurb: 'The mountain as Holloway knows it.',
+    after: null,
+  },
+  drowned: {
+    name: 'The Drowned Street',
+    kind: 'Funnel',
+    blurb: 'A narrow funnel. Water rises from the bottom through the day.',
+    after: 'openCut',
+  },
+  geode: {
+    name: 'The Hanging Geode',
+    kind: 'Sky mine',
+    blurb: 'The shaft drops into a great bowl. Dig up into crystal hanging overhead.',
+    after: 'drowned',
+  },
+  workings: {
+    name: 'The Old Workings',
+    kind: 'Sparse',
+    blurb: 'Half-dug by past villages. Chests everywhere, thin coal.',
+    after: 'geode',
+  },
+  chimney: {
+    name: 'The Ember Chimney',
+    kind: 'Shallow',
+    blurb: 'Heat from 300 ft down. Short days, and it pays the most.',
+    after: 'workings',
+  },
+  heart: {
+    name: 'The Hollow Heart',
+    kind: 'Finale',
+    blurb: 'The shaft goes straight to the Heart. Verse XII waits there, and the choice.',
+    after: 'all',
+  },
+};
+export const SEAM_IDS = Object.keys(SEAM_DEFS) as SeamId[];
+export const SEAM_UNLOCK_DAY = 10;

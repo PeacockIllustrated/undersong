@@ -21,14 +21,14 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Platforms (G): one-way, drop through with S
 
 ## H4 · The Contract
-- [ ] Foremen 1 to 4 chosen at signing: Apprentice, Smith's Hand, Lamplighter, Fieldhand
-- [ ] Union branch: Seniority, Closed Shop, Picket Line (Echoes per day past your best)
-- [ ] Verses I to V found by depth; the tally board of verses
+- [x] Foremen 1 to 4 chosen at signing: Apprentice, Smith's Hand, Lamplighter, Fieldhand
+- [x] Union branch: Seniority, Closed Shop, Picket Line (Echoes per day past your best)
+- [x] Verses I to V found by depth; the tally board of verses
 
 ## H5 · Seams
 - [ ] Six Seams with one rule each: Open Cut, Drowned Street, Hanging Geode, Old Workings, Ember Chimney, Hollow Heart
 - [ ] Heat in the Ember Chimney and the deep; the lance and the Stoker answer it
-- [ ] Foremen 5 to 8: Woodcutter, Dog-handler, Lone Foreman, Stoker
+- [x] Foremen 5 to 8: Woodcutter, Dog-handler, Lone Foreman, Stoker
 - [ ] Badges: day 15 survived per Foreman and per Seam
 
 ## H6 · Overman and the movement ladder

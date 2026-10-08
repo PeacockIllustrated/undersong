@@ -224,7 +224,11 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
   const t = s.tally;
   const next = s.contract.day + 1;
   const q = quota(s, next);
-  const shown = SHOP.filter((d) => (d.fromDay ?? 0) <= next);
+  // the Lone Foreman hires nobody, so the crew rows are not on the counter
+  const crewIds: readonly string[] = ['hand', 'deputy', 'putter', 'shotfirer', 'lampman', 'pumpman'];
+  const shown = SHOP.filter(
+    (d) => (d.fromDay ?? 0) <= next && !(s.contract.foreman === 'lone' && crewIds.includes(d.id)),
+  );
   const line = t
     ? t.pardoned
       ? TALLY_LINES.pardoned[0]

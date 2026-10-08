@@ -1,15 +1,28 @@
 // The title (first contract) and the Cave-in with the Survey Book (every contract after).
 import { spriteURL } from '../../render/sprites';
 import { fmt } from '../../ui/format';
-import { BOOK, type BookId } from '../data/co';
-import { CAVEIN, TITLE } from '../story/company';
+import { useState } from 'preact/hooks';
+import { VERSES } from '../../story/verses';
+import {
+  BOOK,
+  ECHO_POWER,
+  FOREMEN,
+  FOREMAN_IDS,
+  SEAM_DEFS,
+  SEAM_IDS,
+  SEAM_UNLOCK_DAY,
+  type BookId,
+  type ForemanId,
+  type SeamId,
+} from '../data/co';
+import { foremanOpen, seamOpen } from '../sim/contract';
+import { CAVEIN, SIGNING, TITLE, unlockText } from '../story/company';
 import type { Game } from '../sim/state';
 import { bookCost } from '../sim/stats';
 import type { Bridge } from './App';
 import { Controls } from './Hud';
 
 export function TitleScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
-  void g;
   return (
     <div class="screen title">
       <div class="card narrow">
@@ -21,9 +34,13 @@ export function TitleScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
             <li key={l}>{l}</li>
           ))}
         </ul>
-        <button class="big go" onClick={() => bridge.sign()}>
-          {TITLE.sign}
-        </button>
+        {g.s.meta.contracts > 0 ? (
+          <SignTable g={g} bridge={bridge} label={TITLE.sign} />
+        ) : (
+          <button class="big go" onClick={() => bridge.sign()}>
+            {TITLE.sign}
+          </button>
+        )}
         <Controls />
         <p class="muted small">On a phone: left thumb moves, right thumb aims and digs.</p>
       </div>
@@ -83,11 +100,11 @@ export function CaveInScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
             </dl>
           )}
           <p class="muted small">
-            Best day so far: {g.s.meta.bestDay}. Every Echo you have ever earned makes everyone dig 2% faster.
+            Best day so far: {g.s.meta.bestDay}. Every Echo you have ever earned makes everyone dig{' '}
+            {Math.round(ECHO_POWER * 100)}% faster.
           </p>
-          <button class="big go" onClick={() => bridge.sign()}>
-            {CAVEIN.again}
-          </button>
+          <SignTable g={g} bridge={bridge} label={CAVEIN.again} />
+          <Song g={g} />
         </section>
         <section class="card store">
           <div class="store-head">
@@ -105,6 +122,94 @@ export function CaveInScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+/** Pick a Foreman and a Seam, then sign. Locked cards say how to open them. */
+export function SignTable({ g, bridge, label }: { g: Game; bridge: Bridge; label: string }) {
+  const last = g.s.contract;
+  const [fm, setFm] = useState<ForemanId>(foremanOpen(g, last.foreman) ? last.foreman : 'apprentice');
+  const [seam, setSeam] = useState<SeamId>(seamOpen(g, last.seam) ? last.seam : 'openCut');
+  return (
+    <div class="sign">
+      <h3>{SIGNING.foreman}</h3>
+      <div class="pick-grid">
+        {FOREMAN_IDS.map((id) => {
+          const f = FOREMEN[id];
+          const open = foremanOpen(g, id);
+          const badge = g.s.meta.badges.includes(`fm:${id}`);
+          return (
+            <button
+              key={id}
+              class={`pick-card ${fm === id ? 'on' : ''} ${open ? '' : 'locked'}`}
+              disabled={!open}
+              onClick={() => setFm(id)}
+              title={open ? f.blurb : unlockText(f.unlock)}
+            >
+              <img src={spriteURL(f.sprite)} alt="" />
+              <b>{f.name}</b>
+              <small>{open ? f.who : unlockText(f.unlock)}</small>
+              {badge && <span class="badge-dot" title="Day 15 badge" />}
+            </button>
+          );
+        })}
+      </div>
+      <p class="muted small">{FOREMEN[fm].blurb}</p>
+      <h3>{SIGNING.seam}</h3>
+      <div class="seam-list">
+        {SEAM_IDS.map((id) => {
+          const d = SEAM_DEFS[id];
+          const open = seamOpen(g, id);
+          return (
+            <button
+              key={id}
+              class={`seam ${seam === id ? 'on' : ''} ${open ? '' : 'locked'}`}
+              disabled={!open}
+              onClick={() => setSeam(id)}
+            >
+              <b>{d.name}</b>
+              <small>
+                {open
+                  ? `${d.kind}. ${d.blurb}`
+                  : d.after === 'all'
+                    ? 'Survive day ' + SEAM_UNLOCK_DAY + ' on the other five'
+                    : `Survive day ${SEAM_UNLOCK_DAY} on ${SEAM_DEFS[d.after!].name}`}
+              </small>
+            </button>
+          );
+        })}
+      </div>
+      <button class="big go" onClick={() => bridge.sign({ foreman: fm, seam })}>
+        {label}
+      </button>
+    </div>
+  );
+}
+
+/** The verses found so far, in order, with the newest in full. */
+export function Song({ g }: { g: Game }) {
+  const found = g.s.meta.verses;
+  const last = found[found.length - 1];
+  return (
+    <div class="song">
+      <h3>{SIGNING.song}</h3>
+      <div class="verse-row">
+        {VERSES.map((v, i) => (
+          <span key={v.n} class={`verse-n ${found.includes(i) ? 'on' : ''}`}>
+            {v.n}
+          </span>
+        ))}
+      </div>
+      {last !== undefined ? (
+        <p class="verse-text">
+          {VERSES[last]!.lines[0]}
+          <br />
+          {VERSES[last]!.lines[1]}
+        </p>
+      ) : (
+        <p class="muted small">{SIGNING.songEmpty}</p>
+      )}
     </div>
   );
 }

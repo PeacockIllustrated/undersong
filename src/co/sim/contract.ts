@@ -13,6 +13,15 @@ import {
   SHOP,
   STREAK,
   TINKER,
+  BADGE_DAY,
+  FOREMEN,
+  SEAM_DEFS,
+  SEAM_IDS,
+  SEAM_UNLOCK_DAY,
+  UNION,
+  type ForemanId,
+  type SeamId,
+  type Unlock,
   type BookId,
   type RelicId,
   type ShopId,
@@ -67,12 +76,51 @@ export function settleDusk(g: Game): void {
   };
   g.day = null;
   g.world = null;
+  if (passed) earnBadges(g);
   if (passed || pardoned) {
     if (passed) c.survived++;
     s.meta.bestDay = Math.max(s.meta.bestDay, c.day);
     s.phase = 'night';
     c.tinker = { offers: rollOffers(g), rerolls: 0 };
   } else caveIn(g);
+}
+
+/** A day survived on the badge days earns the Foreman's and the Seam's badges. */
+function earnBadges(g: Game): void {
+  const c = g.s.contract;
+  const m = g.s.meta;
+  const add = (id: string): void => {
+    if (!m.badges.includes(id)) m.badges.push(id);
+  };
+  if (c.day >= BADGE_DAY) add(`fm:${c.foreman}`);
+  if (c.day >= SEAM_UNLOCK_DAY) add(`seam:${c.seam}`);
+}
+
+/** Has the village met an unlock condition? */
+export function unlocked(g: Game, u: Unlock): boolean {
+  const m = g.s.meta;
+  switch (u.kind) {
+    case 'start':
+      return true;
+    case 'contracts':
+      return m.contracts >= u.n;
+    case 'bestDay':
+      return m.bestDay >= u.n;
+    case 'verses':
+      return m.verses.length >= u.n;
+    case 'badge':
+      return m.badges.includes(u.id);
+  }
+}
+
+export const foremanOpen = (g: Game, id: ForemanId): boolean => unlocked(g, FOREMEN[id].unlock);
+
+export function seamOpen(g: Game, id: SeamId): boolean {
+  const after = SEAM_DEFS[id].after;
+  if (after === null) return true;
+  if (after === 'all')
+    return SEAM_IDS.filter((k) => k !== id).every((k) => g.s.meta.badges.includes(`seam:${k}`));
+  return g.s.meta.badges.includes(`seam:${after}`);
 }
 
 /** hybrid canon §14: the streak multiplier on surplus and grade scrip. */
@@ -128,7 +176,12 @@ export const echoesIfTonight = (g: Game): Decimal => contractEchoes(g);
 /** Echoes for the contract as it stands: the coal formula, plus each heartstone still banked (ADR-H009). */
 function contractEchoes(g: Game): Decimal {
   const c = g.s.contract;
-  return echoGain(c.coal, c.survived, c.versesFound.length).add(c.ores.heart * HEART_ECHOES);
+  // Picket Line: Echoes for every day survived past the best the village had when it signed
+  const past = Math.max(0, c.firstDay - 1 + c.survived - c.bestBefore);
+  const picket = past * UNION.picket * g.s.meta.book.picket;
+  return echoGain(c.coal, c.survived, c.versesFound.length)
+    .add(c.ores.heart * HEART_ECHOES)
+    .add(picket);
 }
 
 /** Sing it down: end the contract on purpose at night and take the Echoes. */
@@ -172,7 +225,9 @@ export function canBuy(g: Game, id: ShopId): boolean {
   if (s.phase !== 'night') return false;
   const def = SHOP.find((x) => x.id === id);
   if (!def || (def.fromDay ?? 0) > s.contract.day + 1) return false;
-  // a promotion needs a hand to promote
+  // a promotion needs a hand to promote; the Lone Foreman hires nobody
+  const crew = id === 'hand' || (ROLE_IDS as readonly string[]).includes(id);
+  if (crew && s.contract.foreman === 'lone') return false;
   if ((ROLE_IDS as readonly string[]).includes(id) && promoted(s) >= hands(s)) return false;
   const cost = shopCost(s, id);
   return !!cost && s.contract.scrip.gte(cost) && hasOres(s, shopOres(s, id));
@@ -203,11 +258,25 @@ export function nextDay(g: Game): void {
   startDay(g);
 }
 
+export interface SignOpts {
+  foreman?: ForemanId;
+  seam?: SeamId;
+}
+
 /** Sign a new contract with the Company and start its first day. */
-export function signContract(g: Game, seed: number): void {
+export function signContract(g: Game, seed: number, opts: SignOpts = {}): void {
   const s = g.s;
   const c = newContract(s.meta.contracts + 1, seed);
-  c.levels.hand = BOOK_FX.oldHands * s.meta.book.oldHands;
+  c.foreman = opts.foreman && foremanOpen(g, opts.foreman) ? opts.foreman : 'apprentice';
+  c.seam = opts.seam && seamOpen(g, opts.seam) ? opts.seam : 'openCut';
+  c.bestBefore = s.meta.bestDay;
+  if (c.foreman !== 'lone') c.levels.hand = BOOK_FX.oldHands * s.meta.book.oldHands;
+  // Seniority: start part-way up, with the crew those days would have hired
+  if (s.meta.book.seniority > 0) {
+    c.day = Math.max(1, Math.floor(s.meta.bestDay * UNION.seniorityShare));
+    if (c.foreman !== 'lone') c.levels.hand += (c.day - 1) * UNION.seniorityHands;
+  }
+  c.firstDay = c.day;
   const led = s.meta.book.ledger;
   if (led > 0)
     c.scrip = D(BOOK_FX.ledger)

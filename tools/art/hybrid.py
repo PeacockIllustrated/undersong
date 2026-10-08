@@ -132,6 +132,30 @@ st.px(12, 13, 'T'); st.px(3, 13, 'T')
 write('chars', 'stoker', [st, idle2(st), with_pick(st, 0, head=('T', 'S')), with_pick(st, 1, head=('T', 'S')), with_pick(st, 2, head=('T', 'S'))] + [walk(st, i, legs=('a', 'b')) for i in range(4)],
       anchor=(8, 23), comment='frames: idle 1-2, swing 3-5, walk 6-9')
 
+# Foremen 2 to 6 as playable bodies (H4, H5): Holloway's people with the Foreman's 9 frames.
+def foreman_set(name, b, head=('v', 'u'), legs=('l', 'm')):
+    write('chars', name, [b, idle2(b), with_pick(b, 0, head=head), with_pick(b, 1, head=head), with_pick(b, 2, head=head)]
+          + [walk(b, i, legs=legs) for i in range(4)], anchor=(8, 23), comment='frames: idle 1-2, swing 3-5, walk 6-9')
+
+# Smith's Hand (Bram): bald, a beard, the leather apron, a hammer-headed pick.
+sm = body(hat='bald', hair='a', beard='b', shirt=('o', 'p'), legs=('a', 'b'), apron='b')
+foreman_set('fm-smith', sm, head=('t', 's'), legs=('a', 'b'))
+# Lamplighter (old Wren): a soft cap, a long blue coat, a lamp on the belt.
+wr = body(hat='cap', hatc=('C', 'D', 'E'), shirt=('C', 'D'), legs=('k', 'l'), hair='W')
+wr.px(4, 15, 'Y'); wr.px(4, 16, 'z')
+foreman_set('fm-lamplighter', wr, head=('Y', 'y'), legs=('k', 'l'))
+# Fieldhand (Tansy): a straw hat, a green smock, a big sack.
+ta = body(hat='cap', hatc=('y', 'Y', 'z'), shirt=('h', 'i'), legs=('b', 'c'), skirt=True)
+ta.grid(1, 9, ['.yy.', 'yYYy', 'yYYy', '.yy.'])
+foreman_set('fm-fieldhand', ta, head=('v', 'u'), legs=('b', 'c'))
+# Woodcutter (Rook): a red check shirt, a beard, an axe instead of a pick.
+ro = body(hat='bald', hair='b', beard='b', shirt=('R', 'S'), legs=('k', 'l'))
+foreman_set('fm-woodcutter', ro, head=('W', 'v'), legs=('k', 'l'))
+# Dog-handler (Pell): a flat cap and a whistle; Biscuit runs alongside (chars/dog).
+pe = body(hat='cap', hatc=('b', 'c', 'd'), shirt=('G', 'H'), legs=('l', 'm'))
+pe.px(10, 10, 'Y')
+foreman_set('fm-doghandler', pe)
+
 # ---------------------------------------------------------------- tools (H3, H5)
 write('items', 'scatter-pick', [art([
     '................',

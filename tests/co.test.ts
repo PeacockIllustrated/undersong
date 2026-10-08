@@ -9,11 +9,13 @@ import {
   buy,
   buyBook,
   buyRelic,
+  canBuy,
   echoGain,
   echoesIfTonight,
   gradeOf,
   nextDay,
   rerollTinker,
+  seamOpen,
   settleDusk,
   signContract,
   singDown,
@@ -22,7 +24,7 @@ import {
 import { aimTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
-import { crewRate, pickTier, quota, shopOres } from '../src/co/sim/stats';
+import { charges, crewRate, handMult, packCap, pickTier, quota, shopOres } from '../src/co/sim/stats';
 
 const run = (g: Game, c: Partial<Control>, seconds: number): void => {
   const ctl = { ...idleControl(), ...c };
@@ -445,5 +447,64 @@ describe('tools and finds (H3)', () => {
     for (const [k, v] of Object.entries(w.objects))
       if (v === 'chest') bands.add(biomeAt(w.depth(Math.floor(Number(k) / w.w))).id);
     for (const id of [1, 2, 3, 4, 5, 6]) expect(bands.has(id)).toBe(true);
+  });
+});
+
+describe('the contract: Foremen and the Union (H4)', () => {
+  it('a locked Foreman cannot be signed; an open one changes the rules', () => {
+    const g = newGame(9);
+    signContract(g, 1, { foreman: 'fieldhand' });
+    expect(g.s.contract.foreman).toBe('apprentice');
+    const cap = packCap(g.s);
+    g.s.meta.bestDay = 8;
+    g.s.meta.contracts = 1;
+    signContract(g, 2, { foreman: 'fieldhand' });
+    expect(g.s.contract.foreman).toBe('fieldhand');
+    expect(packCap(g.s)).toBe(cap * 2);
+    signContract(g, 3, { foreman: 'smith' });
+    expect(charges(g.s)).toBe(4);
+    expect(shopOres(g.s, 'pick')[0]!.n).toBe(6);
+  });
+
+  it('the Lone Foreman cannot hire, and digs by hand far faster', () => {
+    const g = newGame(9);
+    g.s.meta.badges.push('fm:apprentice');
+    signContract(g, 1, { foreman: 'lone' });
+    g.s.contract.levels.whetstone = 2;
+    const lone = handMult(g.s);
+    g.s.contract.foreman = 'apprentice';
+    expect(lone).toBeGreaterThan(handMult(g.s) * 2);
+    g.s.contract.foreman = 'lone';
+    g.s.phase = 'night';
+    g.s.contract.scrip = D(1e6);
+    expect(canBuy(g, 'hand')).toBe(false);
+  });
+
+  it('Seniority starts part-way up with a crew; Picket Line pays for days past the best', () => {
+    const g = newGame(9);
+    g.s.meta.bestDay = 20;
+    g.s.meta.book.seniority = 1;
+    g.s.meta.book.picket = 2;
+    signContract(g, 1);
+    expect(g.s.contract.day).toBe(8);
+    expect(g.s.contract.levels.hand).toBe(21);
+    g.s.contract.survived = 15;
+    g.s.contract.coal = D(100);
+    const base = echoGain(D(100), 15, 0).toNumber();
+    // days 8 to 22 survived: 2 past the best of 20, at 2 Echoes each
+    expect(echoesIfTonight(g).toNumber()).toBe(base + 4);
+  });
+
+  it('surviving day 15 earns the Foreman badge, and day 10 opens the next Seam', () => {
+    const g = started();
+    g.s.contract.day = 15;
+    g.s.contract.levels.hand = 400;
+    startDay(g);
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(g.s.meta.badges).toContain('fm:apprentice');
+    expect(g.s.meta.badges).toContain('seam:openCut');
+    expect(seamOpen(g, 'drowned')).toBe(true);
+    expect(seamOpen(g, 'heart')).toBe(false);
   });
 });
