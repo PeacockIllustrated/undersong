@@ -3,7 +3,7 @@ import { SHAFT_X } from '../src/data/constants';
 import { M } from '../src/data/materials';
 import { biomeAt } from '../src/data/biomes';
 import { D } from '../src/sim/decimal';
-import { CO_PICKS, DAY, GOLD_SCRIP, STEP_S } from '../src/co/data/co';
+import { CO_PICKS, DAY, GOLD_SCRIP, SEAM_IDS, STEP_S, type SeamId } from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
 import {
   buy,
@@ -24,7 +24,17 @@ import {
 import { aimTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
-import { charges, crewRate, handMult, packCap, pickTier, quota, shopOres } from '../src/co/sim/stats';
+import {
+  charges,
+  crewRate,
+  dayLength,
+  handMult,
+  packCap,
+  pickTier,
+  quota,
+  shaftDepth,
+  shopOres,
+} from '../src/co/sim/stats';
 
 const run = (g: Game, c: Partial<Control>, seconds: number): void => {
   const ctl = { ...idleControl(), ...c };
@@ -506,5 +516,62 @@ describe('the contract: Foremen and the Union (H4)', () => {
     expect(g.s.meta.badges).toContain('seam:openCut');
     expect(seamOpen(g, 'drowned')).toBe(true);
     expect(seamOpen(g, 'heart')).toBe(false);
+  });
+});
+
+describe('Seams and heat (H5)', () => {
+  const onSeam = (seam: SeamId): Game => {
+    const g = newGame(4);
+    g.s.meta.badges.push(...SEAM_IDS.map((k) => `seam:${k}`));
+    signContract(g, 77, { seam });
+    return g;
+  };
+
+  it('every Seam builds a mine with a shaft and its own shape', () => {
+    for (const seam of SEAM_IDS) {
+      const g = onSeam(seam);
+      expect(g.s.contract.seam).toBe(seam);
+      const w = g.world!;
+      const top = w.surf[SHAFT_X]!;
+      expect(w.objects[String(w.idx(SHAFT_X, top + 2))]).toBe('rope');
+    }
+    expect(shaftDepth(onSeam('heart').s)).toBe(340);
+    const chests = (seam: SeamId): number =>
+      Object.values(onSeam(seam).world!.objects).filter((o) => o === 'chest').length;
+    expect(chests('workings')).toBeGreaterThan(chests('openCut'));
+    const ch = onSeam('chimney');
+    expect(dayLength(ch.s)).toBeLessThan(DAY.baseS);
+    expect(ch.world!.get(5, ch.world!.surf[5]! + 40)).not.toBe(M.STONE);
+  });
+
+  it('the Drowned Street floods from the bottom through the day', () => {
+    const g = onSeam('drowned');
+    run(g, {}, 30);
+    const line = g.day!.waterline;
+    run(g, {}, 60);
+    expect(g.day!.waterline).toBeLessThan(line);
+  });
+
+  it('heat in the deep hauls the Foreman up unless the lance is in hand', () => {
+    const g = onSeam('chimney');
+    run(g, {}, 0.2);
+    const b = g.day!.body;
+    const w = g.world!;
+    const y = w.surf[10]! + 40;
+    for (const yy of [y - 2, y - 1]) w.set(10, yy, M.AIR);
+    w.set(10, y, M.BEDROCK);
+    b.x = 10.5;
+    b.y = y;
+    g.day!.pack.coal = D(10);
+    run(g, {}, 15);
+    expect(g.events.some((e) => e.t === 'overcome')).toBe(true);
+    expect(g.day!.pack.coal.toNumber()).toBeLessThanOrEqual(5);
+    g.events.length = 0;
+    g.s.contract.levels.lance = 1;
+    g.day!.tool = 'lance';
+    b.x = 10.5;
+    b.y = y;
+    run(g, {}, 15);
+    expect(g.events.some((e) => e.t === 'overcome')).toBe(false);
   });
 });

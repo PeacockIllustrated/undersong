@@ -159,6 +159,8 @@ export type CoEvent =
   | { t: 'rig'; x: number; y: number; placed: boolean }
   | { t: 'platform'; x: number; y: number }
   | { t: 'tool'; tool: ToolId }
+  | { t: 'overcome'; lost: number }
+  | { t: 'rising'; y: number }
   | { t: 'chip'; x: number; y: number; m: number }
   | { t: 'refused'; x: number; y: number }
   | { t: 'full' }
@@ -209,6 +211,9 @@ export interface DayRun {
   plat: Record<number, true>;
   /** Tiles broken today by each tool. */
   toolTiles: Partial<Record<ToolUse, number>>;
+  /** The Drowned Street's waterline (a row; water fills every open tile below it), and the heat meter 0…1. */
+  waterline: number;
+  heat: number;
   /** Seconds of pick work the scatter pick has put into a tile so far (tile index → seconds). */
   cracks: Record<number, number>;
   bombs: Bomb[];

@@ -26,10 +26,10 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Verses I to V found by depth; the tally board of verses
 
 ## H5 · Seams
-- [ ] Six Seams with one rule each: Open Cut, Drowned Street, Hanging Geode, Old Workings, Ember Chimney, Hollow Heart
-- [ ] Heat in the Ember Chimney and the deep; the lance and the Stoker answer it
+- [x] Six Seams with one rule each: Open Cut, Drowned Street, Hanging Geode, Old Workings, Ember Chimney, Hollow Heart
+- [x] Heat in the Ember Chimney and the deep; the lance and the Stoker answer it
 - [x] Foremen 5 to 8: Woodcutter, Dog-handler, Lone Foreman, Stoker
-- [ ] Badges: day 15 survived per Foreman and per Seam
+- [x] Badges: day 15 survived per Foreman and per Seam
 
 ## H6 · Overman and the movement ladder
 - [ ] Wings between spring boots and the jetpack: glide and flap

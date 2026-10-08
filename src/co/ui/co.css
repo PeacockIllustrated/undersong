@@ -1019,3 +1019,13 @@ button.danger {
     font-size: 9px;
   }
 }
+
+.stat.heat .bar > div {
+  background: var(--ember);
+}
+
+.badge-dot.inline {
+  position: static;
+  display: inline-block;
+  margin-left: 6px;
+}

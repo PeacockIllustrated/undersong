@@ -409,7 +409,7 @@ export class View {
     const frame = Math.min(3, Math.floor(filled * 4));
     const kx = SHAFT_X + 2;
     drawSprite(this.ctx, 'ore-heap', frame, kx * T, (w.surf[kx] ?? SKY_ROWS) * T);
-    if (g.s.contract.levels.footKibble > 0) {
+    if (g.s.contract.levels.footKibble > 0 || g.s.contract.seam === 'geode') {
       const f = shaftFoot(w, shaftDepth(g.s));
       drawSprite(this.ctx, 'ore-heap', 0, (f.x + 1) * T + T / 2, (f.y + 1) * T);
     }

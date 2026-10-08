@@ -898,3 +898,26 @@ export const SEAM_DEFS: Record<SeamId, SeamDef> = {
 };
 export const SEAM_IDS = Object.keys(SEAM_DEFS) as SeamId[];
 export const SEAM_UNLOCK_DAY = 10;
+
+/** hybrid canon §20.1: each Seam's one rule, as numbers. */
+export const SEAM_FX = {
+  drowned: {
+    /** The funnel: open width at the grass and at its foot, and its depth in tiles. */
+    topW: 22,
+    footW: 4,
+    depth: 70,
+    /** The water starts at the funnel's foot and rises to `riseTo` tiles below the grass by dusk. */
+    riseTo: 10,
+    /** Each pumpman slows the rise by this share (at most `pumpMax`). */
+    pump: 0.12,
+    pumpMax: 0.7,
+  },
+  geode: { top: 12, bottom: 44, halfW: 24, crystal: 0.5 },
+  workings: { tunnels: 14, length: 60, chests: 4, coalShift: 0.07 },
+  chimney: { heatD: 30, dayMult: 0.75, scrip: 2, emberChance: 0.12 },
+  heart: { shaftDepth: 340 },
+} as const;
+
+/** hybrid canon §21: heat. Below `fromD` tiles (the Ember Deep), the meter fills at `rise` a second and drains at
+ * `fall`; full, the Foreman is hauled up to the kibble and drops half the pack. */
+export const HEAT = { fromD: 250, rise: 0.08, fall: 0.25 } as const;

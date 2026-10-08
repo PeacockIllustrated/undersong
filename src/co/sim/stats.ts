@@ -11,6 +11,7 @@ import {
   QUOTA,
   ROLE_FX,
   ROLE_IDS,
+  SEAM_FX,
   SHAFT,
   SHOP,
   UPGRADE,
@@ -72,15 +73,24 @@ export function packCap(s: CoState): number {
 }
 
 export function dayLength(s: CoState): number {
-  return (
+  const t =
     DAY.baseS +
     DAY.hourS * lvl(s, 'hours') +
     BOOK_FX.longLight * book(s, 'longLight') +
-    (has(s, 'flask') ? 15 : 0)
-  );
+    (has(s, 'flask') ? 15 : 0);
+  return s.contract.seam === 'chimney' ? Math.round(t * SEAM_FX.chimney.dayMult) : t;
 }
 
-export const shaftDepth = (s: CoState): number => SHAFT.baseDepth + SHAFT.depthStep * lvl(s, 'shaft');
+/** How deep the shaft goes: the village's ladder, sunk further on the Hanging Geode and the Hollow Heart. */
+export function shaftDepth(s: CoState): number {
+  const d = SHAFT.baseDepth + SHAFT.depthStep * lvl(s, 'shaft');
+  if (s.contract.seam === 'geode') return Math.max(d, SEAM_FX.geode.top + 1);
+  if (s.contract.seam === 'heart') return Math.max(d, SEAM_FX.heart.shaftDepth);
+  return d;
+}
+
+/** Seam rules: the Chimney's short days and double pay. */
+const chimney = (s: CoState): boolean => s.contract.seam === 'chimney';
 const props = (s: CoState): number => (led(s, 'woodcutter') ? FOREMAN_FX.woodProps : 1);
 export const ladders = (s: CoState): number => (KIT.ladders + UPGRADE.ladders * lvl(s, 'ladders')) * props(s);
 export const platforms = (s: CoState): number =>
@@ -101,7 +111,7 @@ export const lampmen = (s: CoState): number =>
   Math.min(role(s, 'lampman'), Math.floor(hands(s) / ROLE_FX.lampPer));
 
 export function scripMult(s: CoState): number {
-  return 1 + BOOK_FX.strike * book(s, 'strike');
+  return (1 + BOOK_FX.strike * book(s, 'strike')) * (chimney(s) ? SEAM_FX.chimney.scrip : 1);
 }
 export const oreMult = (s: CoState): number => scripMult(s) * (has(s, 'lamp') ? 1.25 : 1);
 export const chestMult = (s: CoState): number => scripMult(s) * (has(s, 'button') ? 2 : 1);

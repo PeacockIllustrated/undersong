@@ -12,6 +12,7 @@ import {
   GEM,
   GEMS,
   GOLD_SCRIP,
+  HEAT,
   HOT,
   KIT,
   MORTAR,
@@ -19,6 +20,8 @@ import {
   ORE_IDS,
   RELICS,
   ROLE_FX,
+  SEAM_FX,
+  STEP_S as STEP,
   SHAFT,
   VEIN_BREAK,
   hardnessAt,
@@ -56,7 +59,7 @@ import {
 export function startDay(g: Game): void {
   const s = g.s;
   const depth = shaftDepth(s);
-  const w = makeMine(daySeed(s.contract.seed, s.contract.day), depth);
+  const w = makeMine(daySeed(s.contract.seed, s.contract.day), depth, s.contract.seam);
   g.world = w;
   const sx = SHAFT_X + 2;
   const b = newBody(sx + 0.5, w.surf[sx] ?? SKY_ROWS);
@@ -92,6 +95,8 @@ export function startDay(g: Game): void {
     plat: {},
     toolTiles: {},
     cracks: {},
+    waterline: w.h,
+    heat: 0,
     bombs: [],
     gangs: makeGangs(g, depth),
     crewPop: 0,
@@ -478,7 +483,7 @@ export function atKibble(g: Game): { x: number; y: number } | null {
   const b = g.day!.body;
   const top = { x: SHAFT_X + 0.5, y: w.surf[SHAFT_X] ?? SKY_ROWS };
   if (Math.abs(b.x - top.x) <= SHAFT.kibbleReach && Math.abs(b.y - top.y) <= 1.2) return top;
-  if (g.s.contract.levels.footKibble > 0) {
+  if (g.s.contract.levels.footKibble > 0 || g.s.contract.seam === 'geode') {
     const f = shaftFoot(w, shaftDepth(g.s));
     const foot = { x: f.x + 0.5, y: f.y + 1 };
     if (Math.abs(b.x - foot.x) <= SHAFT.kibbleReach && Math.abs(b.y - foot.y) <= 1.2) return foot;
@@ -618,6 +623,55 @@ function stepGangs(g: Game, dt: number): void {
   }
 }
 
+/** The Drowned Street: the water climbs the funnel from its foot through the day. Pumpmen slow it. */
+function rise(g: Game): void {
+  const d = g.day!;
+  const w = g.world!;
+  if (g.s.contract.seam !== 'drowned') return;
+  const f = SEAM_FX.drowned;
+  const top = w.surf[SHAFT_X] ?? SKY_ROWS;
+  const slow = Math.min(f.pumpMax, f.pump * role(g.s, 'pumpman'));
+  const p = Math.min(1, (d.t / d.length) * (1 - slow));
+  const line = Math.round(top + f.depth - (f.depth - f.riseTo) * p);
+  const foot = top + f.depth;
+  const fill = (from: number): void => {
+    for (let y = from; y <= foot; y++)
+      for (let x = 1; x < w.w - 1; x++) {
+        const i = y * w.w + x;
+        if (w.mat[i] === M.AIR && w.water[i]! < 8) {
+          w.water[i] = 8;
+          w.redraw(x, y);
+        }
+      }
+  };
+  if (line < d.waterline) {
+    if (d.waterline > foot) d.waterline = foot + 1;
+    fill(line);
+    d.waterline = line;
+    g.events.push({ t: 'rising', y: line });
+  } else if (Math.floor(d.t) !== Math.floor(d.t - STEP)) fill(d.waterline);
+}
+
+/** Heat: deep down (or shallow, in the Chimney) the Foreman cooks unless the cold lance is in hand or the Stoker leads. */
+function stepHeat(g: Game, dt: number): void {
+  const d = g.day!;
+  const w = g.world!;
+  const from = g.s.contract.seam === 'chimney' ? SEAM_FX.chimney.heatD : HEAT.fromD;
+  const safe = d.tool === 'lance' || led(g.s, 'stoker');
+  const hot = !safe && w.depth(d.body.y - 1) >= from;
+  d.heat = Math.max(0, Math.min(1, d.heat + (hot ? HEAT.rise : -HEAT.fall) * dt));
+  if (d.heat < 1) return;
+  // overcome: hauled up to the kibble, half the pack spilled on the way
+  const lost = Math.floor(packUsed(d) / 2);
+  d.pack.coal = d.pack.coal.mul(0.5).floor();
+  for (const k of ORE_IDS) d.pack.ores[k] = Math.floor(d.pack.ores[k] / 2);
+  d.body.x = SHAFT_X + 1.5;
+  d.body.y = w.surf[SHAFT_X + 1] ?? SKY_ROWS;
+  d.body.vx = d.body.vy = 0;
+  d.heat = 0;
+  g.events.push({ t: 'overcome', lost });
+}
+
 /** Putters carry the spill up a load at a time: coal first, then ore. */
 function haul(g: Game, dt: number): void {
   const d = g.day!;
@@ -690,6 +744,8 @@ export function stepDay(g: Game, c: Control, dt: number): void {
   }
   stepGangs(g, dt);
   haul(g, dt);
+  rise(g);
+  stepHeat(g, dt);
 
   if (!d.met && d.deposited.gte(d.quota)) {
     d.met = true;

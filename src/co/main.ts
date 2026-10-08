@@ -344,6 +344,17 @@ function boot(): void {
         play('collapse', 1.6);
         fx.kick(1, 120, now);
         break;
+      case 'overcome':
+        play('collapse', 0.7);
+        fx.kick(3, 300, now);
+        toast(`The heat got you. Hauled up, ${e.lost} spilled on the way. Take the cold lance down.`, 'warn');
+        break;
+      case 'rising':
+        if (e.y % 6 === 0) {
+          play('rain', 0.8);
+          toast('The water is rising', 'warn');
+        }
+        break;
       case 'rig':
         play(e.placed ? 'cart' : 'ui', e.placed ? 1 : 0.7);
         break;

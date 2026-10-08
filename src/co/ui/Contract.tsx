@@ -168,7 +168,12 @@ export function SignTable({ g, bridge, label }: { g: Game; bridge: Bridge; label
               disabled={!open}
               onClick={() => setSeam(id)}
             >
-              <b>{d.name}</b>
+              <b>
+                {d.name}
+                {g.s.meta.badges.includes(`seam:${id}`) && (
+                  <span class="badge-dot inline" title="Badge earned" />
+                )}
+              </b>
               <small>
                 {open
                   ? `${d.kind}. ${d.blurb}`

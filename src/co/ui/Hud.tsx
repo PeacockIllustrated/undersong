@@ -72,6 +72,14 @@ export function Hud({ g, bridge }: { g: Game; bridge: Bridge }) {
             </div>
           )}
         </div>
+        {d.heat > 0.02 && (
+          <div class={`stat heat ${d.heat > 0.7 ? 'full' : ''}`}>
+            <span class="lbl">Heat</span>
+            <div class="bar">
+              <div style={{ width: `${Math.round(d.heat * 100)}%` }} />
+            </div>
+          </div>
+        )}
         {crew > 0 && (
           <div class="stat">
             <span class="lbl">Crew</span>
