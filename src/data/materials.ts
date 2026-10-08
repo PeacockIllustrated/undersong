@@ -24,6 +24,8 @@ export const M = {
   RUBBLE: 19,
   HEARTWALL: 20,
   SINGING: 21,
+  /** Holloway & Co. only: the Company's coal (hybrid canon §3). Never generated in Undersong. */
+  COAL: 22,
 } as const;
 export type M = (typeof M)[keyof typeof M];
 
@@ -181,6 +183,17 @@ export const MATERIALS: Record<number, MaterialDef> = {
     ramp: HEART_R,
     drop: { res: 'rubble', n: 1 },
   },
+};
+
+// Holloway & Co.: coal seams run through every band. Soft, so the day's quota is always within reach.
+MATERIALS[M.COAL] = {
+  id: M.COAL,
+  name: 'Coal',
+  hardness: 2,
+  ramp: STONE_R,
+  host: M.STONE,
+  overlay: 'ore-coal',
+  isOre: true,
 };
 
 export const isSolid = (m: number): boolean => m !== M.AIR;

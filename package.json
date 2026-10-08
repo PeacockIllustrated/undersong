@@ -12,8 +12,10 @@
     "test": "vitest run",
     "lint:sprites": "tsx tools/lint-sprites.ts",
     "sim": "tsx tools/balance-sim.ts",
+    "sim:co": "tsx tools/co-sim.ts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run lint:sprites",
     "build:itch": "npm run build && tsx tools/pack-itch.ts",
+    "build:itch:co": "npm run build && tsx tools/pack-itch.ts --out=holloway-co-itch.zip",
     "smoke": "tsx tools/smoke.ts"
   },
   "repository": {

@@ -3,12 +3,23 @@
 Newest entry first. Add one at the end of every working session. Keep each entry short; the roadmap holds the detail.
 
 ```
+## 2026-10-08 · Holloway & Co. H2 to H8 (hybrid branch)
+Done: the whole dev-plan scope for Holloway & Co. is built. Crews tunnel after veins and have a promotion ladder (H2); a tool belt with the scatter pick, mortar, drill rig, cold lance and platforms, chests in every band and Vein Break (H3); eight Foremen and the Union (H4); six Seams, heat and badges (H5); wings, the Overman and night-shift ore (H6); the Tallyman's lines and the two endings with New Song+ (H7); four Company Rules, 65 feats, the `npm run sim:co` balance bot, and `npm run build:itch:co` (H8). Each ore now has a job in the store, and the 16 picks have their own sprites. Save v6. ADR-H008 to H016, canon §14 to §24.
+Balance: first Cave-in at 37 min on day 11; Echoes now give +3% each (was 1%) so later contracts reach day 30. Company Rules pay +10 to 20% Echoes each.
+Next: Tom plays it. Open: the bot does not use tools, Foremen or Seams, so their balance is untested by sim; the second contract goes no further than the first.
+
 ## YYYY-MM-DD · ticket ID(s)
 Done: what changed, with PR links.
 State: is `npm run check` green? Is anything stubbed or known to be broken?
 Next: the next ticket.
 Questions for Tom: anything blocking or worth a decision (or "none").
 ```
+
+## 2026-10-07 · Holloway & Co. (hybrid branch, playable build)
+Done: Holloway & Co., the Undersong × Coal LLC hybrid, is playable at `/`, and Undersong moves to `/undersong.html`. You play the Foreman directly (WASD, mouse aim, hold to dig) to fill a rising daily coal quota before dusk. Nights are spent in the Company Store, and a missed quota is the Cave-in, which pays Echoes for the Survey Book. Touch controls are included. Docs are in `docs/hybrid/` (ADR-H001 to H007, hybrid canon). The new `ore-coal` sprite is in.
+State: `npm run check` and `npm run smoke` are green, with 11 new sim tests. Played in Playwright at 1280×800 and 390×844 through title, day, dusk, night, buying, day 2, Cave-in, a new contract and pause. Deferred: bars and the forge, Foremen and Seams, and real art for the store icons (they borrow Undersong items).
+Next: tune feel from Tom's play. Then M-H2: bars and the forge, and more relics.
+Questions for Tom: does it feel enough like Coal LLC?
 
 ## 2026-10-07 · M13-08 (Walking, lamplight and lanterns)
 Done: the Foreman and miners walk with a four-frame cycle, and miners ease between faces instead of jumping. The Foreman's lamp now spreads through open tiles and dims fast in rock, so it no longer shines through walls. The lantern is redrawn as a brass lantern on an iron bracket so it reads against dark rock.

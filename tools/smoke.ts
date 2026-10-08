@@ -70,7 +70,7 @@ for (const [name, save] of saves)
     const page = await ctx.newPage();
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
-    await page.goto(url);
+    await page.goto(`${url}undersong.html`);
     await page.waitForTimeout(WAIT_MS);
     let over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     await page.screenshot({ path: join(OUT, `${name}-${view}.png`) });
@@ -94,6 +94,27 @@ for (const [name, save] of saves)
     console.log(`${errors.length || over > 0 ? '✗' : '✓'} ${tag}`);
     await ctx.close();
   }
+
+// hybrid branch (ADR-H001): Holloway & Co. boots, signs a contract and starts day 1 at both sizes
+for (const [view, opts] of Object.entries(VIEWS)) {
+  const ctx = await browser.newContext(opts);
+  const page = await ctx.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(url);
+  await page.waitForTimeout(WAIT_MS);
+  await page.screenshot({ path: join(OUT, `co-title-${view}.png`) });
+  await page.click('button.go');
+  await page.waitForTimeout(1200);
+  if (!(await page.locator('.hud').count())) errors.push('the day HUD did not appear');
+  const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  await page.screenshot({ path: join(OUT, `co-day-${view}.png`) });
+  const tag = `Holloway & Co. at ${view}`;
+  for (const e of errors) fails.push(`${tag}: ${e}`);
+  if (over > 0) fails.push(`${tag}: ${over}px of horizontal overflow`);
+  console.log(`${errors.length || over > 0 ? '✗' : '✓'} ${tag}`);
+  await ctx.close();
+}
 await browser.close();
 server.close();
 

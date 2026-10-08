@@ -20,7 +20,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/sim/**/*.ts', 'src/world/**/*.ts'],
+    files: ['src/sim/**/*.ts', 'src/world/**/*.ts', 'src/co/sim/**/*.ts'],
     rules: {
       'no-restricted-globals': ['error', ...impure],
       'no-restricted-properties': [
