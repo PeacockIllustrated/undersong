@@ -35,6 +35,7 @@ import {
   signContract,
   type SignOpts,
   singDown,
+  chooseEnding,
 } from './sim/contract';
 import { pickIndex } from './sim/stats';
 import { startDay, stepDay } from './sim/day';
@@ -42,6 +43,7 @@ import { newGame, type CoEvent, type Game } from './sim/state';
 import { loadGame, saveGame, wipeGame } from './save';
 import { App, type Bridge } from './ui/App';
 import { toast } from './ui/toasts';
+import { ENDINGS, FOREMAN_INTROS, SEAM_INTROS } from './story/company';
 import { fmt } from '../ui/format';
 import './ui/co.css';
 
@@ -170,6 +172,14 @@ function boot(): void {
         saveGame(g.s);
       }
     },
+    chooseEnding: (which) => {
+      if (!chooseEnding(g, which)) return;
+      if (which === 'quota') {
+        toast(ENDINGS.quota.after, 'gold');
+        play('record');
+      } else play('caveIn', 1.4);
+      saveGame(g.s);
+    },
     overman: () => {
       if (!overmanDay(g)) return;
       const t = g.s.tally;
@@ -190,6 +200,11 @@ function boot(): void {
     sign: (opts: SignOpts = {}) => {
       signContract(g, newSeed(), opts);
       input.reset();
+      const c = g.s.contract;
+      const intro = [FOREMAN_INTROS[c.foreman], c.seam !== 'openCut' ? SEAM_INTROS[c.seam] : '']
+        .filter(Boolean)
+        .join(' ');
+      if (intro && g.s.meta.contracts > 0) toast(intro, 'verse');
       play('biome');
       saveGame(g.s);
     },

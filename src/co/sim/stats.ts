@@ -6,6 +6,7 @@ import {
   CREW,
   DAY,
   ECHO_POWER,
+  ENDLESS,
   KIT,
   CO_PICKS,
   QUOTA,
@@ -138,6 +139,9 @@ export function quota(s: CoState, day: number): Decimal {
   if (isAudit(day)) q = q.mul(QUOTA.audit);
   if (day <= QUOTA.softDays) q = q.mul(QUOTA.soft);
   if (has(s, 'pen')) q = q.mul(0.9);
+  // the Endless Contract: the quota climbs faster every day after it was signed
+  if (s.contract.endless > 0 && day > s.contract.endless)
+    q = q.mul(D(ENDLESS.growth).pow(day - s.contract.endless));
   return q.ceil();
 }
 

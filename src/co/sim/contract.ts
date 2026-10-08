@@ -6,6 +6,7 @@ import {
   BOOK_FX,
   DAY,
   ECHO,
+  ENDLESS,
   OVERMAN,
   GRADES,
   HEART_ECHOES,
@@ -29,7 +30,7 @@ import {
 } from '../data/co';
 import { idleControl } from './body';
 import { startDay, stepDay } from './day';
-import { newContract, type Game } from './state';
+import { newContract, type CaveIn, type Game } from './state';
 import {
   bookCost,
   crewRate,
@@ -183,13 +184,37 @@ function contractEchoes(g: Game): Decimal {
   const picket = past * UNION.picket * g.s.meta.book.picket;
   return echoGain(c.coal, c.survived, c.versesFound.length)
     .add(c.ores.heart * HEART_ECHOES)
-    .add(picket);
+    .add(picket)
+    .mul(1 + ENDLESS.newSongEcho * g.s.meta.newSong)
+    .floor();
+}
+
+/** The choice at Verse XII: fill the last quota (the Endless Contract) or sing the last verse (New Song+). */
+export function chooseEnding(g: Game, which: 'quota' | 'song'): boolean {
+  const s = g.s;
+  const c = s.contract;
+  if (s.phase !== 'night' || !c.choice) return false;
+  c.choice = false;
+  if (!s.meta.endings.includes(which)) s.meta.endings.push(which);
+  if (which === 'quota') {
+    c.endless = c.day;
+    return true;
+  }
+  const before = s.meta.echoes;
+  caveIn(g, 'song');
+  // the song pays every Echo three times over
+  const extra = s.caveIn!.echoes.mul(ENDLESS.songEchoes - 1);
+  s.meta.echoes = before.add(s.caveIn!.echoes.mul(ENDLESS.songEchoes));
+  s.meta.echoesEver = s.meta.echoesEver.add(extra);
+  s.caveIn!.echoes = s.caveIn!.echoes.mul(ENDLESS.songEchoes);
+  s.meta.newSong++;
+  return true;
 }
 
 /** Sing it down: end the contract on purpose at night and take the Echoes. */
 export function singDown(g: Game): boolean {
   if (g.s.phase !== 'night') return false;
-  caveIn(g);
+  caveIn(g, 'sung');
   return true;
 }
 
@@ -208,14 +233,14 @@ export function echoGain(coal: Decimal, days: number, verses: number): Decimal {
 }
 
 /** The roof comes down: the contract is over, and the village is paid in Echoes. */
-export function caveIn(g: Game): void {
+export function caveIn(g: Game, why: CaveIn['why'] = 'short'): void {
   const s = g.s;
   const c = s.contract;
   const echoes = contractEchoes(g);
   s.meta.echoes = s.meta.echoes.add(echoes);
   s.meta.echoesEver = s.meta.echoesEver.add(echoes);
   s.meta.contracts++;
-  s.caveIn = { contract: c.n, days: c.survived, coal: c.coal, verses: c.versesFound.length, echoes };
+  s.caveIn = { contract: c.n, days: c.survived, coal: c.coal, verses: c.versesFound.length, echoes, why };
   s.phase = 'cavein';
   g.day = null;
   g.world = null;

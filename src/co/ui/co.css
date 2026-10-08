@@ -107,6 +107,9 @@ button.danger {
 .red {
   color: var(--ember);
 }
+.gold {
+  color: var(--gold);
+}
 
 /* ---- the day HUD ---- */
 .hud {
@@ -1040,4 +1043,54 @@ button.danger {
   width: 16px;
   height: 24px;
   image-rendering: pixelated;
+}
+
+/* ---- H7: the last verse ---- */
+.ending {
+  grid-column: 1 / -1;
+  border-color: var(--glow);
+  animation: stamp-in 0.4s ease-out;
+}
+.ending-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+.ending-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 10px;
+  white-space: normal;
+}
+.ending-opt.end-quota {
+  border-color: var(--gold);
+}
+.ending-opt.end-song {
+  border-color: var(--glow);
+}
+.ending-opt span {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+.endless {
+  color: var(--gold);
+}
+.new-song {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.new-song b {
+  color: var(--glow);
+}
+@media (max-width: 640px) {
+  .ending-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

@@ -25,6 +25,7 @@ export interface Bridge {
   buyRelic(id: RelicId): boolean;
   reroll(): boolean;
   singDown(): void;
+  chooseEnding(which: 'quota' | 'song'): void;
   nextDay(): void;
   overman(): void;
   sign(opts?: SignOpts): void;

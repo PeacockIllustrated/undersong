@@ -6,7 +6,7 @@ export const STEP_S = 1 / 60;
 export const MAX_STEPS_PER_FRAME = 8;
 
 export const SAVE_KEY = 'hollowayco.save';
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** hybrid canon §2: the day. */
 export const DAY = {
@@ -947,3 +947,7 @@ export const SEAM_FX = {
 /** hybrid canon §21: heat. Below `fromD` tiles (the Ember Deep), the meter fills at `rise` a second and drains at
  * `fall`; full, the Foreman is hauled up to the kibble and drops half the pack. */
 export const HEAT = { fromD: 250, rise: 0.08, fall: 0.25 } as const;
+
+/** hybrid canon §22 (H7): the endings. The Endless Contract's quota grows by `growth` more a day; singing the last
+ * verse pays `songEchoes` times the Echoes; every New Song+ adds `newSongEcho` to all Echoes earned after it. */
+export const ENDLESS = { growth: 1.8, songEchoes: 3, newSongEcho: 0.5, verse: 11 } as const;

@@ -16,7 +16,7 @@ import {
   type SeamId,
 } from '../data/co';
 import { foremanOpen, seamOpen } from '../sim/contract';
-import { CAVEIN, SIGNING, TITLE, unlockText } from '../story/company';
+import { CAVEIN, ENDINGS, SIGNING, TALLY_LINES, TITLE, unlockText } from '../story/company';
 import type { Game } from '../sim/state';
 import { bookCost } from '../sim/stats';
 import type { Bridge } from './App';
@@ -29,6 +29,13 @@ export function TitleScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
         <p class="eyebrow">A branch of Undersong</p>
         <h1>{TITLE.name}</h1>
         <p class="lede">{TITLE.line}</p>
+        {(g.s.meta.newSong > 0 || g.s.meta.endings.length > 0) && (
+          <p class="new-song">
+            {g.s.meta.newSong > 0 && <b>New Song+{g.s.meta.newSong > 1 ? ` ${g.s.meta.newSong}` : ''}</b>}
+            {g.s.meta.endings.includes('quota') && <span>{ENDINGS.quota.title}</span>}
+            {g.s.meta.endings.includes('song') && <span>{ENDINGS.song.title}</span>}
+          </p>
+        )}
         <ul class="pitch">
           {TITLE.pitch.map((l) => (
             <li key={l}>{l}</li>
@@ -77,8 +84,13 @@ export function CaveInScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
       <div class="night-grid">
         <section class="card tally">
           <p class="eyebrow">Contract {c?.contract ?? g.s.contract.n} is over</p>
-          <h2 class="red">{CAVEIN.title}</h2>
-          <p class="tally-line">{CAVEIN.line}</p>
+          <h2 class={c?.why === 'song' ? 'gold' : 'red'}>
+            {c?.why === 'song' ? ENDINGS.song.title : CAVEIN.title}
+          </h2>
+          {c?.why === 'short' && (
+            <p class="tally-line">{TALLY_LINES.failed[(c.days + c.contract) % TALLY_LINES.failed.length]}</p>
+          )}
+          <p class="tally-line">{c?.why === 'song' ? ENDINGS.song.after : CAVEIN.line}</p>
           {c && (
             <dl class="sheet">
               <div>

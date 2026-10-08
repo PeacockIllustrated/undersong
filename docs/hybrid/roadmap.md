@@ -37,9 +37,9 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Night-shift pay pays ore as well as scrip, never ends a contract
 
 ## H7 · The Company and the Song
-- [ ] The Tallyman's nightly lines, audit notices and Foreman intros
-- [ ] Verses VI to XII by depth; the Hollow Heart holds Verse XII and the choice
-- [ ] Ending A, Fill the Last Quota: the Endless Contract. Ending B, Sing the Last Verse: New Song+
+- [x] The Tallyman's nightly lines, audit notices and Foreman intros
+- [x] Verses VI to XII by depth; the Hollow Heart holds Verse XII and the choice
+- [x] Ending A, Fill the Last Quota: the Endless Contract. Ending B, Sing the Last Verse: New Song+
 
 ## H8 · Company Rules and launch
 - [ ] Four hard modes (Company Rules) with badges

@@ -20,8 +20,71 @@ export const TALLY_LINES = {
     'Good. The Company remembers good days. Briefly.',
   ],
   pardoned: ['Short. The Union card covers you this once.'],
-  failed: ['Short. The Company does not accept short.'],
+  failed: [
+    'Short. The Company does not accept short.',
+    'Short. The Tallyman closes the ledger without looking up.',
+    'Short. Somewhere above, a pen scratches a line through Holloway.',
+  ],
   audit: 'Audit day tomorrow. The Company will be counting carefully.',
+  /** The Tallyman's word for a graded shift (ADR-H008). */
+  graded: {
+    'Good shift': [
+      'Good. The Company has noted it. In pencil.',
+      'A good shift. Do not let it become a habit.',
+    ],
+    'Bumper shift': [
+      'A bumper shift. The Company wonders what you were holding back.',
+      'Double the quota. The Company will remember this number tomorrow.',
+    ],
+    'Record shift': [
+      'A record. The Tallyman writes it down twice, to be sure.',
+      'Three times the quota. Somewhere a shareholder smiles and does not know why.',
+    ],
+  } as Record<string, readonly string[]>,
+  /** Lines for a streak of met quotas. */
+  streak: [
+    'Another day, another quota met. The Company is starting to expect it.',
+    'The Tallyman has stopped saying well done. It is assumed now.',
+  ],
+} as const;
+
+/** What the Tallyman says to each Foreman when the contract is signed. */
+export const FOREMAN_INTROS: Record<string, string> = {
+  apprentice: 'The Tallyman looks you up and down. "They are sending children now."',
+  smith: '"The smith. Mind the Company’s charges; they are on your account."',
+  lamplighter: '"Old Wren. The Company does not pay for light. It pays for coal."',
+  fieldhand: '"A farmer. The Company hopes you dig as well as you carry."',
+  woodcutter: '"An axe in a coal pit. Very well. The props are your own lookout."',
+  doghandler: '"No dogs on the ledger. Feed it from your own scrip."',
+  lone: '"Alone? The Company admires a lean payroll."',
+  stoker: '"You like the heat. Good. The deep has plenty of it."',
+};
+
+/** What the Tallyman says about the ground a contract is signed on. */
+export const SEAM_INTROS: Record<string, string> = {
+  openCut: 'The Open Cut. Plain ground and an honest quota.',
+  drowned: 'The Drowned Street. The water comes up every afternoon. Be out of the funnel by then.',
+  geode: 'The Hanging Geode. The shaft drops into the bowl. Look up.',
+  workings: 'The Old Workings. Somebody dug here before you. They left in a hurry.',
+  chimney: 'The Ember Chimney. Short days and double pay. Take the cold lance down.',
+  heart:
+    'The Hollow Heart. The Company has never sent anyone this deep and had them come back to sign twice.',
+};
+
+/** The two endings (H7). Verse XII is canon; the Company's words are new (ADR-H007). */
+export const ENDINGS = {
+  ask: 'Verse XII is in the rock. The Company wants the Heart. The song wants to be sung.',
+  quota: {
+    title: 'Fill the Last Quota',
+    line: 'Sign the Endless Contract. Quotas without end, for as long as you can keep up.',
+    after:
+      'The Tallyman smiles for the first time. "Then there is no last quota." The contract does not end. The quota grows faster.',
+  },
+  song: {
+    title: 'Sing the Last Verse',
+    line: 'Break the contract. The roof comes down, the Company with it, and the village begins again: New Song+.',
+    after: 'The song carries up the shaft. The ledger burns. Holloway keeps every Echo, three times over.',
+  },
 } as const;
 
 export const CAVEIN = {

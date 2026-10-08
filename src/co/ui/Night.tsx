@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { spriteURL } from '../../render/sprites';
 import { D, type Decimal } from '../../sim/decimal';
 import { fmt } from '../../ui/format';
-import { CO_PICKS, ORES, ORE_IDS, RELICS, SHOP, type OreId, type ShopId } from '../data/co';
+import { CO_PICKS, ENDLESS, ORES, ORE_IDS, RELICS, SHOP, type OreId, type ShopId } from '../data/co';
 import { canBuy, echoesIfTonight, relicCost, rerollCost, streakMult } from '../sim/contract';
-import { NIGHT, TALLY_LINES } from '../story/company';
+import { ENDINGS, NIGHT, TALLY_LINES } from '../story/company';
 import type { Game } from '../sim/state';
 import { crewRate, dayLength, hands, isAudit, promoted, quota, shopCost, shopOres } from '../sim/stats';
 import type { Bridge } from './App';
@@ -165,6 +165,38 @@ function SingDown({ g, bridge }: { g: Game; bridge: Bridge }) {
   );
 }
 
+/** Verse XII is found: the choice between the Company and the song (H7). */
+function Ending({ g, bridge }: { g: Game; bridge: Bridge }) {
+  const e = echoesIfTonight(g).mul(ENDLESS.songEchoes);
+  return (
+    <section class="card ending">
+      <p class="eyebrow">Verse XII</p>
+      <h2>The last verse</h2>
+      <p class="tally-line">{ENDINGS.ask}</p>
+      <div class="ending-pair">
+        <button class="ending-opt end-quota" onClick={() => bridge.chooseEnding('quota')}>
+          <b>{ENDINGS.quota.title}</b>
+          <span>{ENDINGS.quota.line}</span>
+        </button>
+        <button class="ending-opt end-song" onClick={() => bridge.chooseEnding('song')}>
+          <b>{ENDINGS.song.title}</b>
+          <span>{ENDINGS.song.line}</span>
+          <b class="echo-n">+{fmt(e)} Echoes</b>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** The Tallyman's line for the day: a graded shift, a long streak, a pardon, or a plain pass. */
+function tallyLine(t: NonNullable<Game['s']['tally']>): string {
+  if (t.pardoned) return TALLY_LINES.pardoned[0];
+  const graded = t.grade ? TALLY_LINES.graded[t.grade] : undefined;
+  if (graded?.length) return graded[t.day % graded.length]!;
+  if (t.streak >= 3) return TALLY_LINES.streak[t.day % TALLY_LINES.streak.length]!;
+  return TALLY_LINES.passed[t.day % TALLY_LINES.passed.length]!;
+}
+
 function Row({ g, bridge, id }: { g: Game; bridge: Bridge; id: ShopId }) {
   const def = SHOP.find((d) => d.id === id)!;
   const cost = shopCost(g.s, id);
@@ -234,11 +266,7 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
   const shown = SHOP.filter(
     (d) => (d.fromDay ?? 0) <= next && !(s.contract.foreman === 'lone' && crewIds.includes(d.id)),
   );
-  const line = t
-    ? t.pardoned
-      ? TALLY_LINES.pardoned[0]
-      : TALLY_LINES.passed[t.day % TALLY_LINES.passed.length]
-    : '';
+  const line = t ? tallyLine(t) : '';
   const crewDay = crewRate(s) * dayLength(s);
   const rows = t
     ? ([
@@ -252,9 +280,11 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
   return (
     <div class="screen night">
       <div class="night-grid">
+        {s.contract.choice && <Ending g={g} bridge={bridge} />}
         <section class="card tally">
           <p class="eyebrow">
             Night {s.contract.day} · Contract {s.contract.n}
+            {s.contract.endless > 0 && <span class="endless"> · The Endless Contract</span>}
           </p>
           <h2>The tally</h2>
           {t && (

@@ -28,6 +28,9 @@ export interface Meta {
   verses: number[];
   /** Badges earned: `fm:<foreman>` and `seam:<seam>` for a day survived on them (H4, H5). */
   badges: string[];
+  /** Endings reached ('quota', 'song'), and how many times the song has been sung (New Song+). */
+  endings: string[];
+  newSong: number;
 }
 
 export interface Contract {
@@ -55,6 +58,9 @@ export interface Contract {
   /** The village's best day when it was signed (Picket Line pays for days past it), and the day it began on. */
   bestBefore: number;
   firstDay: number;
+  /** Verse XII was found this contract and the choice waits (H7); and the day the Endless Contract began (0: not). */
+  choice: boolean;
+  endless: number;
 }
 
 export interface Tally {
@@ -86,6 +92,8 @@ export interface CaveIn {
   coal: Decimal;
   verses: number;
   echoes: Decimal;
+  /** Why the roof came down: short of quota, sung down at night, or the last verse sung (H7). */
+  why?: 'short' | 'sung' | 'song';
 }
 
 export interface CoState {
@@ -265,6 +273,8 @@ export function newContract(n: number, seed: number): Contract {
     seam: 'openCut',
     bestBefore: 0,
     firstDay: 1,
+    choice: false,
+    endless: 0,
   };
 }
 
@@ -279,6 +289,8 @@ export function newState(seed: number): CoState {
       book: zeroBook(),
       verses: [],
       badges: [],
+      endings: [],
+      newSong: 0,
     },
     contract: newContract(1, seed),
     rng: seed ^ 0x9e3779b9,
@@ -333,6 +345,8 @@ export function fromSave(raw: unknown, seed: number): CoState {
   };
   s.meta.book = { ...zeroBook(), ...s.meta.book };
   if (!Array.isArray(s.meta.badges)) s.meta.badges = [];
+  if (!Array.isArray(s.meta.endings)) s.meta.endings = [];
+  s.meta.newSong = Number(s.meta.newSong) || 0;
   s.contract.levels = { ...zeroLevels(), ...s.contract.levels };
   // save v1 had no streak or tinker (ADR-H008); the spread over a fresh contract fills them
   const tk = s.contract.tinker as Partial<Contract['tinker']> | undefined;

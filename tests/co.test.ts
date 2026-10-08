@@ -3,7 +3,7 @@ import { SHAFT_X } from '../src/data/constants';
 import { M } from '../src/data/materials';
 import { biomeAt } from '../src/data/biomes';
 import { D } from '../src/sim/decimal';
-import { CO_PICKS, DAY, GOLD_SCRIP, SEAM_IDS, STEP_S, type SeamId } from '../src/co/data/co';
+import { CO_PICKS, DAY, ENDLESS, GOLD_SCRIP, SEAM_IDS, STEP_S, type SeamId } from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
 import {
   awayPay,
@@ -11,6 +11,7 @@ import {
   buyBook,
   buyRelic,
   canBuy,
+  chooseEnding,
   echoGain,
   echoesIfTonight,
   gradeOf,
@@ -23,7 +24,7 @@ import {
   singDown,
   streakMult,
 } from '../src/co/sim/contract';
-import { aimTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
+import { aimTile, breakTile, pickGem, startDay, stepDay } from '../src/co/sim/day';
 import { daySeed, makeMine } from '../src/co/sim/mine';
 import { fromSave, newGame, toSave, type Game } from '../src/co/sim/state';
 import {
@@ -624,5 +625,93 @@ describe('the Overman and the movement ladder (H6)', () => {
     expect(g.s.tally!.day).toBe(2);
     expect(g.s.tally!.byHand.toNumber()).toBe(0);
     expect(g.s.phase).toBe('night');
+  });
+});
+
+describe('the Company and the Song (H7)', () => {
+  /** A day met and settled, with Verse XII broken out of the rock on the way. */
+  const atChoice = (): Game => {
+    const g = started();
+    g.s.contract.levels.hand = 40;
+    g.s.contract.coal = D(5000);
+    const v = g.world!.carvings.find((k) => k.verse === ENDLESS.verse)!;
+    breakTile(g, v.x, v.y, true);
+    expect(g.s.contract.choice).toBe(true);
+    run(g, {}, DAY.baseS + 0.1);
+    g.day!.deposited = g.day!.quota;
+    settleDusk(g);
+    expect(g.s.phase).toBe('night');
+    return g;
+  };
+
+  it('Verse XII sits in the Hollow Heart and waits for the choice', () => {
+    const g = atChoice();
+    expect(g.s.meta.verses).toContain(ENDLESS.verse);
+    expect(chooseEnding(g, 'quota')).toBe(true);
+    expect(chooseEnding(g, 'quota')).toBe(false);
+  });
+
+  it('Fill the Last Quota signs the Endless Contract: the quota climbs faster', () => {
+    const g = atChoice();
+    const day = g.s.contract.day;
+    const plain = quota(g.s, day + 3);
+    chooseEnding(g, 'quota');
+    expect(g.s.contract.endless).toBe(day);
+    expect(g.s.meta.endings).toEqual(['quota']);
+    expect(g.s.phase).toBe('night');
+    const ratio = quota(g.s, day + 3)
+      .div(plain)
+      .toNumber();
+    expect(ratio).toBeCloseTo(ENDLESS.growth ** 3, 1);
+    // a second Verse XII in the Endless Contract does not ask again
+    nextDay(g);
+    const v = g.world!.carvings.find((k) => k.verse === ENDLESS.verse)!;
+    breakTile(g, v.x, v.y, true);
+    expect(g.s.contract.choice).toBe(false);
+  });
+
+  it('Sing the Last Verse brings the roof down for triple Echoes and starts New Song+', () => {
+    const g = atChoice();
+    const tonight = echoesIfTonight(g);
+    chooseEnding(g, 'song');
+    expect(g.s.phase).toBe('cavein');
+    expect(g.s.caveIn!.why).toBe('song');
+    expect(g.s.meta.echoes.toNumber()).toBe(tonight.mul(ENDLESS.songEchoes).toNumber());
+    expect(g.s.meta.echoesEver.toNumber()).toBe(g.s.meta.echoes.toNumber());
+    expect(g.s.meta.newSong).toBe(1);
+    // every contract after pays half as many Echoes again
+    const plain = echoGain(D(5000), 0, 0);
+    signContract(g, 7);
+    g.s.contract.coal = D(5000);
+    expect(echoesIfTonight(g).toNumber()).toBe(
+      plain
+        .mul(1 + ENDLESS.newSongEcho)
+        .floor()
+        .toNumber(),
+    );
+  });
+
+  it('a short day and a sung-down night say why the roof came down', () => {
+    const g = started();
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(g.s.caveIn!.why).toBe('short');
+    const h = atChoice();
+    singDown(h);
+    expect(h.s.caveIn!.why).toBe('sung');
+  });
+
+  it('an old save gains the endings fields', () => {
+    const g = started();
+    const raw = JSON.parse(JSON.stringify(toSave(g.s)));
+    delete raw.meta.endings;
+    delete raw.meta.newSong;
+    delete raw.contract.choice;
+    delete raw.contract.endless;
+    const s = fromSave(raw, 1);
+    expect(s.meta.endings).toEqual([]);
+    expect(s.meta.newSong).toBe(0);
+    expect(s.contract.choice).toBe(false);
+    expect(s.contract.endless).toBe(0);
   });
 });

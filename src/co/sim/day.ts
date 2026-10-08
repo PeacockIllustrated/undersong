@@ -9,6 +9,7 @@ import {
   DAY,
   DIG,
   DROPS,
+  ENDLESS,
   GEM,
   GEMS,
   GOLD_SCRIP,
@@ -259,6 +260,8 @@ function findVerse(g: Game, v: number): void {
   const first = !g.s.meta.verses.includes(v);
   if (first) g.s.meta.verses.push(v);
   if (!c.versesFound.includes(v)) c.versesFound.push(v);
+  // Verse XII: the choice waits at the end of the day (H7)
+  if (v === ENDLESS.verse && !c.endless) c.choice = true;
   g.events.push({ t: 'verse', verse: v, first });
 }
 
