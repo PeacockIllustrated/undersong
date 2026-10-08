@@ -214,6 +214,8 @@ export interface DayRun {
   /** The Drowned Street's waterline (a row; water fills every open tile below it), and the heat meter 0…1. */
   waterline: number;
   heat: number;
+  /** The Overman is running this day: no Foreman underground, the crew at a share. */
+  overman: boolean;
   /** Seconds of pick work the scatter pick has put into a tile so far (tile index → seconds). */
   cracks: Record<number, number>;
   bombs: Bomb[];

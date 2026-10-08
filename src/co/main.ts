@@ -29,6 +29,7 @@ import {
   buyRelic,
   duskDone,
   nextDay,
+  overmanDay,
   rerollTinker,
   settleDusk,
   signContract,
@@ -169,6 +170,17 @@ function boot(): void {
         saveGame(g.s);
       }
     },
+    overman: () => {
+      if (!overmanDay(g)) return;
+      const t = g.s.tally;
+      if (t)
+        toast(
+          `The Overman ran day ${t.day}: ${fmt(t.deposited.floor())} of ${fmt(t.quota)} coal`,
+          t.passed ? 'gold' : 'warn',
+        );
+      play(g.s.phase === 'cavein' ? 'caveIn' : 'bought');
+      saveGame(g.s);
+    },
     nextDay: () => {
       nextDay(g);
       input.reset();
@@ -210,7 +222,11 @@ function boot(): void {
     win.__co = bridge;
     win.__coDev = { startDay: () => startDay(g) };
   }
-  if (pay.gt(0)) toast(`Night-shift pay while you were away: +${fmt(pay)} scrip`, 'gold');
+  if (pay.scrip.gt(0))
+    toast(
+      `Night-shift pay while you were away: +${fmt(pay.scrip)} scrip${pay.ore ? ` and ${pay.ore} ore` : ''}`,
+      'gold',
+    );
 
   const onEvent = (e: CoEvent, now: number): void => {
     const fx = view.fx;

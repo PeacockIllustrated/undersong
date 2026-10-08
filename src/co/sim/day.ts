@@ -16,6 +16,7 @@ import {
   HOT,
   KIT,
   MORTAR,
+  OVERMAN,
   FOREMAN_FX,
   ORE_IDS,
   RELICS,
@@ -96,6 +97,7 @@ export function startDay(g: Game): void {
     toolTiles: {},
     cracks: {},
     waterline: w.h,
+    overman: false,
     heat: 0,
     bombs: [],
     gangs: makeGangs(g, depth),
@@ -716,6 +718,7 @@ export function stepDay(g: Game, c: Control, dt: number): void {
     {
       runMult: runMult(s),
       doubleJump: s.contract.levels.doubleJump > 0,
+      wings: s.contract.levels.wings > 0,
       jetFuelS: jetFuel(s),
       platform: (x, y) => !!d.plat[g.world!.idx(x, y)],
     },
@@ -734,8 +737,8 @@ export function stepDay(g: Game, c: Control, dt: number): void {
   openChests(g);
   if (atKibble(g)) deposit(g);
 
-  // the crew sends coal up all day
-  const crew = crewRate(s) * dt;
+  // the crew sends coal up all day (a little less with only the Overman watching)
+  const crew = crewRate(s) * dt * (d.overman ? OVERMAN.share : 1);
   if (crew > 0) {
     d.deposited = d.deposited.add(crew);
     d.byCrew = d.byCrew.add(crew);

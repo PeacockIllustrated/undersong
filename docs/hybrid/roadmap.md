@@ -32,9 +32,9 @@ PR #30. Tom asked on 7 Oct 2026 for the whole scope to be built, with balance te
 - [x] Badges: day 15 survived per Foreman and per Seam
 
 ## H6 · Overman and the movement ladder
-- [ ] Wings between spring boots and the jetpack: glide and flap
-- [ ] The Overman (Survey Book): "Let the Overman run it" plays a day at 60% of the crew
-- [ ] Night-shift pay pays ore as well as scrip, never ends a contract
+- [x] Wings between spring boots and the jetpack: glide and flap
+- [x] The Overman (Survey Book): "Let the Overman run it" plays a day at 60% of the crew
+- [x] Night-shift pay pays ore as well as scrip, never ends a contract
 
 ## H7 · The Company and the Song
 - [ ] The Tallyman's nightly lines, audit notices and Foreman intros

@@ -58,6 +58,10 @@ export const BODY = {
   jetPush: 80,
   jetMaxRise: 9,
   jetFuelS: 1.6,
+  /** Wings: the fall speed while gliding, and the flaps (each this share of a jump). */
+  glideFall: 3.2,
+  flaps: 2,
+  flap: 0.7,
 } as const;
 
 /** hybrid canon §5: digging. seconds per tile = H(d) / (pickPower × DIG.k × handMult). */
@@ -346,7 +350,8 @@ export type ShopId =
   | 'scatter'
   | 'mortar'
   | 'drill'
-  | 'lance';
+  | 'lance'
+  | 'wings';
 
 export const SHOP: readonly ShopDef[] = [
   { id: 'hand', name: 'Hire a hand', blurb: 'Digs coal all day and sends it up', base: 18, growth: 1.22 },
@@ -485,6 +490,16 @@ export const SHOP: readonly ShopDef[] = [
     max: 1,
     fromDay: 2,
     ore: { id: 'crystal', base: 8, growth: 1 },
+  },
+  {
+    id: 'wings',
+    name: 'Canvas wings',
+    blurb: 'Hold jump to glide; two flaps in the air',
+    base: 500,
+    growth: 1,
+    max: 1,
+    fromDay: 4,
+    ore: { id: 'silver', base: 12, growth: 1 },
   },
   {
     id: 'footKibble',
@@ -673,7 +688,8 @@ export type BookId =
   | 'ledger'
   | 'seniority'
   | 'closedShop'
-  | 'picket';
+  | 'picket'
+  | 'overman';
 export interface BookDef {
   id: BookId;
   name: string;
@@ -721,6 +737,14 @@ export const BOOK: readonly BookDef[] = [
     max: 3,
   },
   {
+    id: 'overman',
+    name: 'The Overman',
+    blurb: 'At night, let the Overman run tomorrow at 60% of the crew',
+    base: 25,
+    growth: 1,
+    max: 1,
+  },
+  {
     id: 'seniority',
     name: 'Seniority',
     blurb: 'Start each contract at 40% of your best day, with that day’s crew hired',
@@ -741,7 +765,9 @@ export const BOOK_FX = {
 } as const;
 
 /** Time away pays the crew's day rate as scrip at this share, for at most capH hours (night-shift pay). */
-export const AWAY = { share: 0.25, capH: 8, minS: 60 } as const;
+export const AWAY = { share: 0.25, capH: 8, minS: 60, ore: 0.02 } as const;
+/** The Overman runs a day at this share of the crew's coal; ore comes from the gangs as usual. */
+export const OVERMAN = { share: 0.6, stepS: 0.1 } as const;
 
 /** hybrid canon §19 (H4, H5): Foremen. Each is a Holloway person with a body, a starting kit and one rule change.
  * `unlock` reads the village's record: contracts signed, best day, verses found, or a badge earned. */

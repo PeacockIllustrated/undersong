@@ -6,6 +6,7 @@ import {
   BOOK_FX,
   DAY,
   ECHO,
+  OVERMAN,
   GRADES,
   HEART_ECHOES,
   RELICS,
@@ -26,7 +27,8 @@ import {
   type RelicId,
   type ShopId,
 } from '../data/co';
-import { startDay } from './day';
+import { idleControl } from './body';
+import { startDay, stepDay } from './day';
 import { newContract, type Game } from './state';
 import {
   bookCost,
@@ -288,14 +290,36 @@ export function signContract(g: Game, seed: number, opts: SignOpts = {}): void {
   startDay(g);
 }
 
-/** Night-shift pay: time away pays a share of the crew's day as scrip. Only at night; never ends a contract. */
-export function awayPay(g: Game, awayS: number): Decimal {
+/** Night-shift pay: time away pays a share of the crew's day as scrip, and a little copper, tin and iron.
+ * Only at night; never plays a day or ends a contract (ADR-H005). */
+export function awayPay(g: Game, awayS: number): { scrip: Decimal; ore: number } {
   const s = g.s;
-  if (s.phase !== 'night' || awayS < AWAY.minS) return ZERO();
+  if (s.phase !== 'night' || awayS < AWAY.minS) return { scrip: ZERO(), ore: 0 };
   const t = Math.min(awayS, AWAY.capH * 3600);
   const pay = D(crewRate(s) * t * AWAY.share * scripMult(s)).floor();
   s.contract.scrip = s.contract.scrip.add(pay);
-  return pay;
+  const ore = Math.floor(crewRate(s) * t * AWAY.ore);
+  const each = Math.floor(ore / 3);
+  for (const k of ['copper', 'tin', 'iron'] as const) s.contract.ores[k] += each;
+  return { scrip: pay, ore: each * 3 };
+}
+
+/** Let the Overman run it: tomorrow is played without the Foreman, the crew at a share, and settled at dusk. */
+export function overmanDay(g: Game): boolean {
+  const s = g.s;
+  if (s.phase !== 'night' || s.meta.book.overman <= 0 || hands(s) <= 0) return false;
+  s.contract.day++;
+  startDay(g);
+  const d = g.day!;
+  d.overman = true;
+  // the Foreman stays up top; the day runs in coarse steps (crews and putters only)
+  const idle = idleControl();
+  const running = (): boolean => (s.phase as string) === 'day';
+  while (running()) stepDay(g, idle, OVERMAN.stepS);
+  d.dusk = DAY.duskS;
+  g.events.length = 0;
+  settleDusk(g);
+  return true;
 }
 
 /** Seconds of daylight left, for the HUD. */

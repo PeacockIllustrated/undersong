@@ -47,6 +47,7 @@ export interface Control {
 export interface Mobility {
   runMult: number;
   doubleJump: boolean;
+  wings?: boolean;
   jetFuelS: number;
   platform?: PlatformAt;
 }
@@ -178,6 +179,11 @@ export function stepBody(w: World, b: Body, c: Control, mob: Mobility, dt: numbe
       b.vy = -BODY.jump * 0.9;
       b.jumps = 2;
       jumped = true;
+    } else if (mob.wings && b.jumps < (mob.doubleJump ? 2 : 1) + BODY.flaps) {
+      // a flap of the wings
+      b.vy = -BODY.jump * BODY.flap;
+      b.jumps = Math.max(b.jumps, mob.doubleJump ? 2 : 1) + 1;
+      jumped = true;
     }
     if (jumped) {
       b.buffer = 0;
@@ -216,6 +222,8 @@ export function stepBody(w: World, b: Body, c: Control, mob: Mobility, dt: numbe
     b.vy = Math.min(BODY.swimFall, b.vy + BODY.gravity * BODY.swimGravity * dt);
   } else {
     b.vy = Math.min(BODY.maxFall, b.vy + BODY.gravity * dt);
+    // gliding: jump held on the way down, with wings and no jet firing
+    if (mob.wings && c.jump && b.vy > BODY.glideFall && !b.jetting) b.vy = BODY.glideFall;
   }
 
   // move across, stepping up single-tile ledges while on the ground

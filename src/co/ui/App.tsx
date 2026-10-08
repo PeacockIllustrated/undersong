@@ -26,6 +26,7 @@ export interface Bridge {
   reroll(): boolean;
   singDown(): void;
   nextDay(): void;
+  overman(): void;
   sign(opts?: SignOpts): void;
   startOver(): void;
 }

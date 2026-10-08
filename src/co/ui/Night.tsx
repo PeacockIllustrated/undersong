@@ -29,6 +29,11 @@ const ICON: Partial<Record<ShopId, string>> = {
   shotfirer: 'shotfirer',
   lampman: 'lampman',
   pumpman: 'pumpman',
+  wings: 'wings',
+  scatter: 'scatter-pick',
+  mortar: 'mortar',
+  drill: 'drill-rig',
+  lance: 'cold-lance',
 };
 
 /** What each purchase does to a number the player can read, so the jump is visible before buying. */
@@ -324,6 +329,12 @@ export function NightScreen({ g, bridge }: { g: Game; bridge: Bridge }) {
           <button class="big go" onClick={() => bridge.nextDay()}>
             Go down for day {next}
           </button>
+          {s.meta.book.overman > 0 && hands(s) > 0 && (
+            <button class="overman" onClick={() => bridge.overman()}>
+              <img src={spriteURL('overman')} alt="" />
+              Let the Overman run it
+            </button>
+          )}
           <p class="muted small">Enter also starts the day.</p>
           <SingDown g={g} bridge={bridge} />
         </section>

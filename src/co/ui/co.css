@@ -1029,3 +1029,15 @@ button.danger {
   display: inline-block;
   margin-left: 6px;
 }
+
+.overman {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.overman img {
+  width: 16px;
+  height: 24px;
+  image-rendering: pixelated;
+}

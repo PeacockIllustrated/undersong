@@ -6,6 +6,7 @@ import { D } from '../src/sim/decimal';
 import { CO_PICKS, DAY, GOLD_SCRIP, SEAM_IDS, STEP_S, type SeamId } from '../src/co/data/co';
 import { boxHits, idleControl, type Control } from '../src/co/sim/body';
 import {
+  awayPay,
   buy,
   buyBook,
   buyRelic,
@@ -14,6 +15,7 @@ import {
   echoesIfTonight,
   gradeOf,
   nextDay,
+  overmanDay,
   rerollTinker,
   seamOpen,
   settleDusk,
@@ -573,5 +575,54 @@ describe('Seams and heat (H5)', () => {
     b.y = y;
     run(g, {}, 15);
     expect(g.events.some((e) => e.t === 'overcome')).toBe(false);
+  });
+});
+
+describe('the Overman and the movement ladder (H6)', () => {
+  it('wings glide and flap', () => {
+    const g = started();
+    run(g, {}, 0.3);
+    const b = g.day!.body;
+    g.s.contract.levels.wings = 1;
+    b.y -= 6;
+    b.onGround = false;
+    b.vy = 10;
+    run(g, { jump: true }, 0.3);
+    expect(b.vy).toBeLessThanOrEqual(3.3);
+    b.jumps = 1;
+    b.vy = 5;
+    run(g, { jump: true, jumpPressed: true }, STEP_S);
+    expect(b.vy).toBeLessThan(0);
+  });
+
+  it('night-shift pay matches the crew rate and never ends a contract', () => {
+    const g = started();
+    g.s.contract.levels.hand = 20;
+    g.day!.deposited = g.day!.quota;
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(g.s.phase).toBe('night');
+    const before = g.s.contract.scrip;
+    const pay = awayPay(g, 3600);
+    const want = crewRate(g.s) * 3600 * 0.25;
+    expect(Math.abs(pay.scrip.toNumber() - want) / want).toBeLessThan(0.02);
+    expect(g.s.contract.scrip.sub(before).eq(pay.scrip)).toBe(true);
+    expect(pay.ore).toBeGreaterThan(0);
+    expect(g.s.phase).toBe('night');
+  });
+
+  it('the Overman plays a day and settles it', () => {
+    const g = started();
+    g.s.contract.levels.hand = 200;
+    g.day!.deposited = g.day!.quota;
+    run(g, {}, DAY.baseS + 0.1);
+    settleDusk(g);
+    expect(overmanDay(g)).toBe(false);
+    g.s.meta.book.overman = 1;
+    expect(overmanDay(g)).toBe(true);
+    expect(g.s.contract.day).toBe(2);
+    expect(g.s.tally!.day).toBe(2);
+    expect(g.s.tally!.byHand.toNumber()).toBe(0);
+    expect(g.s.phase).toBe('night');
   });
 });
